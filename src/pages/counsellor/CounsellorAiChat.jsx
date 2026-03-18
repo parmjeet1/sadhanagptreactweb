@@ -127,15 +127,92 @@ const CounsellorAiChat = () => {
                 </div>
                 <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1 overflow-hidden">
                   <div className="text-[15px] leading-relaxed text-[#1e293b] whitespace-pre-wrap ai-content">
-                    {msg.text.split('\n').map((line, i) => {
-                      if (line.startsWith('###')) {
-                        return <h4 key={i} className="text-[#1a73e8] font-black text-[16px] mt-4 mb-2">{line.replace('###', '').trim()}</h4>;
+                    {(() => {
+                      const lines = msg.text.split('\n');
+                      const rendered = [];
+                      let currentTable = null;
+
+                      for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+
+                        // Table Detection
+                        if (line.startsWith('|')) {
+                          if (!currentTable) {
+                            currentTable = [];
+                          }
+                          const cells = line.split('|').filter(c => c.trim() !== '' || line.startsWith('|') && line.endsWith('|')).map(c => c.trim());
+                          // Skip the separator line |---|---|
+                          if (!cells.every(c => c.match(/^-+:?|:?-+$/))) {
+                            currentTable.push(cells);
+                          }
+                          continue;
+                        } else {
+                          if (currentTable) {
+                            rendered.push(
+                              <div key={`table-${i}`} className="my-4 overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+                                <table className="w-full text-left text-[13px] border-collapse">
+                                  <thead className="bg-[#f8fafc]">
+                                    <tr>
+                                      {currentTable[0].map((cell, idx) => (
+                                        <th key={idx} className="px-4 py-3 font-black text-[#64748b] border-b border-gray-100 uppercase tracking-wider whitespace-nowrap">{cell}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {currentTable.slice(1).map((row, rIdx) => (
+                                      <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
+                                        {row.map((cell, cIdx) => (
+                                          <td key={cIdx} className="px-4 py-3 font-bold text-[#0f172a] border-b border-gray-50 whitespace-nowrap">{cell}</td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            );
+                            currentTable = null;
+                          }
+                        }
+
+                        if (line.startsWith('###')) {
+                          rendered.push(<h4 key={i} className="text-[#1a73e8] font-black text-[16px] mt-4 mb-2">{line.replace('###', '').trim()}</h4>);
+                        } else if (line.startsWith('-')) {
+                          rendered.push(<div key={i} className="flex gap-2 ml-1 mb-1 font-medium"><span className="text-[#1a73e8]">•</span><span>{line.replace(/^-|\*\*/g, '').trim()}</span></div>);
+                        } else if (line !== '') {
+                          rendered.push(<p key={i} className="mb-2 font-medium">{line}</p>);
+                        } else {
+                          rendered.push(<div key={i} className="h-2"></div>);
+                        }
                       }
-                      if (line.trim().startsWith('-')) {
-                        return <div key={i} className="flex gap-2 ml-1 mb-1 font-medium"><span className="text-[#1a73e8]">•</span><span>{line.replace(/^-|\*\*/g, '').trim()}</span></div>;
+
+                      // Final table flush if message ends with table
+                      if (currentTable) {
+                        rendered.push(
+                          <div key="table-end" className="my-4 overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+                            <table className="w-full text-left text-[12px] border-collapse">
+                              <thead className="bg-[#f8fafc]">
+                                <tr>
+                                  {currentTable[0].map((cell, idx) => (
+                                    <th key={idx} className="px-4 py-3 font-black text-[#64748b] border-b border-gray-100 uppercase tracking-wider whitespace-nowrap">{cell}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {currentTable.slice(1).map((row, rIdx) => (
+                                  <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
+                                    {row.map((cell, cIdx) => (
+                                      <td key={cIdx} className="px-4 py-3 font-bold text-[#0f172a] border-b border-gray-50 whitespace-nowrap">{cell}</td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
                       }
-                      return <p key={i} className={`${line.trim() === '' ? 'h-3' : 'mb-2'} font-medium`}>{line}</p>;
-                    })}
+
+                      return rendered;
+                    })()}
                   </div>
                 </div>
               </motion.div>

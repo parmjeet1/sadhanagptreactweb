@@ -12,6 +12,11 @@ export const getAIAnalysis = async (studentsData) => {
       ### 🌐 Group Overview
       (Summary of collective discipline)
       
+      ### 📊 Performance Summary Table
+      | Student | Wakeup | Chanting | Reading | Hearing | Sleep |
+      | :--- | :--- | :--- | :--- | :--- | :--- |
+      (Insert data for each student)
+      
       ### 👤 Individual Highlights
       - **[Student Name]:** (Specific insight based on their data)
       
