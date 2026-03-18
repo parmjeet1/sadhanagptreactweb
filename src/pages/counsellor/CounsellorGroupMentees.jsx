@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 
@@ -23,28 +23,21 @@ const generateDummyStudents = () => {
     group: groups[i % groups.length],
     label: labels[(i + 1) % labels.length],
     avatar: avatars[i % avatars.length],
-    activities: [
-      { type: 'wakeup', time: `${Math.floor(Math.random() * 2) + 3}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` },
-      { type: 'sleep', time: `${Math.floor(Math.random() * 2) + 21}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` },
-      { type: 'chatting', duration_minutes: Math.floor(Math.random() * 8) + 8 },
-      { type: 'hearing', duration_minutes: Math.floor(Math.random() * 30) + 30 },
-      { type: 'reading', duration_minutes: Math.floor(Math.random() * 40) + 20 }
-    ]
   }));
 };
 
 const dummyStudents = generateDummyStudents();
 
-const CounsellorViewMentees = () => {
+const CounsellorGroupMentees = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { groupName } = location.state || { groupName: 'All' };
+  
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('All');
+  const [selectedGroup, setSelectedGroup] = useState(groupName.replace(' Base', ''));
   const [selectedLabel, setSelectedLabel] = useState('All');
-  const [selectedStudents, setSelectedStudents] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [isLabelPopupOpen, setIsLabelPopupOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const SELECTION_LIMIT = 5;
   
   const groupLabelMapping = {
     'Karanpur': ['First year', 'Second year', 'Third year'],
@@ -95,60 +88,24 @@ const CounsellorViewMentees = () => {
     setVisibleCount(10);
   }, [searchQuery, selectedGroup, selectedLabel]);
 
-  const showError = (msg) => {
-    setErrorMessage(msg);
-    setTimeout(() => setErrorMessage(''), 3000);
-  };
-
   const toggleStudent = (id) => {
-    setSelectedStudents(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(sid => sid !== id);
-      } else {
-        if (prev.length >= SELECTION_LIMIT) {
-          showError(`Only up to ${SELECTION_LIMIT} students can be selected for AI Analysis at a time due to processing limits.`);
-          return prev;
-        }
-        return [...prev, id];
-      }
-    });
+    setSelectedStudents(prev => 
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
   };
 
   const selectAll = () => {
-    if (selectedStudents.length === allFilteredStudents.length || selectedStudents.length === SELECTION_LIMIT) {
+    if (selectedStudents.length === allFilteredStudents.length) {
       setSelectedStudents([]);
     } else {
-      if (allFilteredStudents.length > SELECTION_LIMIT) {
-        showError(`Selected first ${SELECTION_LIMIT} students. Only ${SELECTION_LIMIT} are supported at once.`);
-        setSelectedStudents(allFilteredStudents.slice(0, SELECTION_LIMIT).map(s => s.id));
-      } else {
-        setSelectedStudents(allFilteredStudents.map(s => s.id));
-      }
+      setSelectedStudents(allFilteredStudents.map(s => s.id));
     }
   };
 
   return (
     <div className="min-h-screen bg-white font-sans relative overflow-x-hidden">
-      {/* Error Toast */}
-      <AnimatePresence>
-        {errorMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 left-4 right-4 z-[100] flex justify-center pointer-events-none"
-          >
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-sm mx-auto">
-              <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-              <p className="text-[13px] font-bold leading-tight">{errorMessage}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div 
-        className="w-full max-w-md mx-auto transition-all duration-300" 
-        style={{ paddingBottom: selectedStudents.length > 0 ? '280px' : '100px' }}
+        className="w-full max-w-md mx-auto transition-all duration-300 pb-[100px]"
       >
         
         {/* Header */}
@@ -157,17 +114,12 @@ const CounsellorViewMentees = () => {
             onClick={() => navigate(-1)}
             className="text-[#64748b] font-bold text-[16px] hover:text-[#0f172a] transition-colors"
           >
-            Cancel
+            Back
           </button>
           
-          <h1 className="text-[18px] font-extrabold text-[#0f172a] tracking-tight">Select Students</h1>
+          <h1 className="text-[18px] font-extrabold text-[#0f172a] tracking-tight">{selectedGroup === 'All' ? 'All Mentees' : `${selectedGroup} Mentees`}</h1>
           
-          <button 
-            onClick={selectAll}
-            className="text-[#1a73e8] font-bold text-[16px] hover:text-[#155fc3] transition-colors"
-          >
-            {selectedStudents.length === allFilteredStudents.length && allFilteredStudents.length > 0 ? 'None' : 'All'}
-          </button>
+          <div className="w-10"></div> {/* Spacer for center alignment */}
         </div>
 
         {/* Search */}
@@ -227,8 +179,7 @@ const CounsellorViewMentees = () => {
             filteredStudents.map(student => (
               <div 
                 key={student.id} 
-                onClick={() => toggleStudent(student.id)}
-                className="flex items-center px-4 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="flex items-center px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors"
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
@@ -244,24 +195,14 @@ const CounsellorViewMentees = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-4 shrink-0">
-                  <button className="text-[#94a3b8] hover:text-[#0f172a] transition-colors" onClick={(e) => e.stopPropagation()}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <div className="flex items-center shrink-0">
+                  {/* View Details Icon */}
+                  <button 
+                    onClick={() => console.log('View details for', student.name)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-[#94a3b8] hover:text-[#1a73e8] hover:bg-blue-50 active:scale-95 transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
-                  <button className="text-[#94a3b8] hover:text-[#0f172a] transition-colors" onClick={(e) => e.stopPropagation()}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                  </button>
-                  
-                  {/* Checkbox */}
-                  <div className={`w-[26px] h-[26px] rounded-full border-2 flex items-center justify-center transition-all ${
-                    selectedStudents.includes(student.id) 
-                      ? 'bg-[#1a73e8] border-[#1a73e8]' 
-                      : 'border-[#cbd5e1] hover:border-[#94a3b8]'
-                  }`}>
-                    {selectedStudents.includes(student.id) && (
-                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    )}
-                  </div>
                 </div>
               </div>
             ))
@@ -276,61 +217,6 @@ const CounsellorViewMentees = () => {
         </div>
 
       </div>
-
-      <AnimatePresence>
-        {selectedStudents.length > 0 && (
-          <motion.div
-            initial={{ y: 200, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 200, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-[84px] left-0 right-0 max-w-md mx-auto z-40 px-4"
-          >
-            <div className="bg-[#1a73e8] rounded-[24px] p-4 shadow-2xl shadow-blue-500/40 w-full relative">
-              <div className="flex justify-between items-center mb-3 text-white px-1">
-                <span className="font-bold text-[14px]">Selected: {selectedStudents.length} students</span>
-                <button 
-                  onClick={() => setSelectedStudents([])}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-
-              <button 
-                onClick={() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  const selectedData = selectedStudents.map(id => {
-                    const student = dummyStudents.find(s => s.id === id);
-                    return {
-                      student_id: student.id,
-                      name: student.name,
-                      date: today,
-                      activities: student.activities
-                    };
-                  });
-                  navigate('/counsellor/ai-chat', { state: { studentsData: selectedData } });
-                }}
-                className="w-full bg-white text-[#1a73e8] rounded-full py-2.5 mb-2 font-extrabold text-[14px] flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-[0.98] transition-all"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>
-                AI Analysis
-              </button>
-
-              <div className="flex gap-2">
-                <button className="flex-1 border-2 border-white/20 text-white rounded-full py-2.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/10 active:scale-[0.98] transition-all px-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>
-                  <span className="truncate">Add to Group</span>
-                </button>
-                <button className="flex-1 border-2 border-white/20 text-white rounded-full py-2.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/10 active:scale-[0.98] transition-all px-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V20H3V19L5 17V11C5 7.9 7.03 5.17 10 4.29C10 4.19 10 4.1 10 4A2 2 0 0 1 12 2A2 2 0 0 1 14 4C14 4.1 14 4.19 14 4.29C16.97 5.17 19 7.9 19 11V17L21 19M14 21A2 2 0 0 1 12 23A2 2 0 0 1 10 21"/></svg>
-                  <span className="truncate">Notifications</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {isLabelPopupOpen && (
@@ -410,4 +296,4 @@ const CounsellorViewMentees = () => {
   );
 };
 
-export default CounsellorViewMentees;
+export default CounsellorGroupMentees;

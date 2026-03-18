@@ -15,7 +15,7 @@ const CounsellorAddContent = () => {
     'DIT base': ['First year', 'Second year'],
     'UIT base': ['First year', 'Third year']
   };
-  
+
   const groups = Object.keys(groupLabelsMap);
   const availableLabels = groupLabelsMap[audience] || [];
 
@@ -53,11 +53,11 @@ const CounsellorAddContent = () => {
     <div className="min-h-screen bg-[#fafbfc] font-sans pb-28">
       {/* Container holding the mobile width cleanly if opened on desktop */}
       <div className="w-full max-w-md mx-auto relative bg-white min-h-screen shadow-sm">
-        
+
         {/* Header */}
         <div className="flex items-center px-4 py-4 sticky top-0 bg-white z-10 border-b border-gray-50">
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="w-10 h-10 flex items-center justify-center text-[#0f172a] active:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +69,7 @@ const CounsellorAddContent = () => {
 
         {/* Form Container */}
         <div className="px-5 pt-6 pb-20">
-          
+
           {/* Content Type Selector */}
           <div className="mb-8">
             <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">CONTENT TYPE</h2>
@@ -80,11 +80,10 @@ const CounsellorAddContent = () => {
                   <button
                     key={type.id}
                     onClick={() => setContentType(type.id)}
-                    className={`flex-shrink-0 relative flex flex-col items-center justify-center w-[100px] h-[100px] rounded-full transition-all duration-200 border-2 active:scale-95 ${
-                      isActive 
-                        ? 'bg-[#1a73e8] border-[#1a73e8] shadow-[0_4px_16px_rgba(26,115,232,0.4)] text-white' 
+                    className={`flex-shrink-0 relative flex flex-col items-center justify-center w-[100px] h-[100px] rounded-full transition-all duration-200 border-2 active:scale-95 ${isActive
+                        ? 'bg-[#1a73e8] border-[#1a73e8] shadow-[0_4px_16px_rgba(26,115,232,0.4)] text-white'
                         : 'bg-white border-gray-100 text-[#64748b] hover:border-gray-200 shadow-sm'
-                    }`}
+                      }`}
                   >
                     <div className="mb-2">{type.icon}</div>
                     <span className={`text-[12px] font-semibold ${isActive ? 'text-white' : 'text-[#64748b]'}`}>
@@ -104,7 +103,7 @@ const CounsellorAddContent = () => {
             <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">
               {contentType === 'Text Quote' ? 'QUOTE CONTENT' : contentType === 'Image' ? 'UPLOAD IMAGE' : 'YOUTUBE LINK'}
             </h2>
-            
+
             {contentType === 'Text Quote' && (
               <div className="border border-gray-200 rounded-[28px] overflow-hidden shadow-sm bg-white focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all">
                 {/* Formatting Toolbar Mock */}
@@ -114,10 +113,10 @@ const CounsellorAddContent = () => {
                   <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all underline">U</button>
                   <div className="w-px h-5 bg-gray-300 mx-1"></div>
                   <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" /></svg>
                   </button>
                   <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" /></svg>
                   </button>
                 </div>
                 <div className="relative">

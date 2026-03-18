@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
@@ -15,7 +15,15 @@ const CounsellorAnalytics = () => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
+  const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [groups, setGroups] = useState(dummyGroups);
+  const [selectedGroupForLabels, setSelectedGroupForLabels] = useState(dummyGroups[0].name);
+  const [groupLabels, setGroupLabels] = useState({
+    'Karanpur Base': ['First year', 'Second year', 'Third year'],
+    'Graphic Era Base': ['A-Batch', 'B-Batch'],
+    'UIT Base': ['Morning', 'Evening']
+  });
+  const [newLabelName, setNewLabelName] = useState('');
 
   const handleAddGroup = (newGroup) => {
     const nextId = groups.length ? Math.max(...groups.map(g => g.id)) + 1 : 1;
@@ -56,17 +64,20 @@ const CounsellorAnalytics = () => {
           </button>
         </div>
 
-        {/* Big Blue Card */}
+        {/* Big Blue Card - View Mentees */}
         <div className="px-6 mb-4">
-          <div className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-3xl p-6 shadow-lg shadow-blue-500/30 relative overflow-hidden text-white flex flex-col justify-between items-start cursor-pointer active:scale-[0.98] transition-all min-h-[160px]">
+          <div 
+            onClick={() => navigate('/counsellor/mentees')}
+            className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-3xl p-6 shadow-lg shadow-blue-500/30 relative overflow-hidden text-white flex flex-col justify-between items-start cursor-pointer active:scale-[0.98] transition-all min-h-[160px]"
+          >
             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-6">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4M12,14A4,4 0 0,1 8,10V9H10V10A2,2 0 0,0 12,12A2,2 0 0,0 14,10V9H16V10A4,4 0 0,1 12,14M8,20V18C10.5,18 12,17.2 13.25,16.5C14.15,16 15,15.5 16,15.5V17.5C15.6,17.5 14.85,17.9 14.1,18.3C12.55,19.2 11,20 8,20M20.5,14V16C19.8,16 19.3,16.2 18.6,16.5C17.7,17 16.55,17.5 15.5,17.5C14.1,17.5 12.95,17 12.05,16.5C11.35,16.1 10.85,15.9 10,15.9C9.2,15.9 8.7,16.1 8,16.5C7.05,17 5.9,17.5 4.5,17.5C3.45,17.5 2.3,17 1.4,16.5C0.7,16.2 0.2,16 0.2,16V14C1,14.6 2.35,15.5 4.5,15.5C5.9,15.5 7.05,15 7.95,14.5C8.65,14.1 9.15,13.9 10,13.9C10.85,13.9 11.35,14.1 12.05,14.5C12.95,15 14.1,15.5 15.5,15.5C16.9,15.5 18.05,15 18.95,14.5C19.65,14.1 20.15,13.9 20.5,13.9Z" />
+                <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-[22px] font-bold mb-1">Personal Analytics</h2>
-              <p className="text-white/80 text-[14px]">View your personal sadhana insights</p>
+              <h2 className="text-[22px] font-bold mb-1">View Mentees</h2>
+              <p className="text-white/80 text-[14px]">Manage your students & check progress</p>
             </div>
             
             <div className="absolute top-1/2 -translate-y-1/2 right-6 w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-md">
@@ -75,8 +86,8 @@ const CounsellorAnalytics = () => {
           </div>
         </div>
 
-        {/* Two smaller cards block */}
-        <div className="px-6 flex gap-4 mb-4">
+        {/* Two smaller cards block - Rewards and Labels */}
+        <div className="px-6 flex gap-4 mb-8">
           <div 
             onClick={() => navigate('/counsellor/rewards')}
             className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
@@ -90,35 +101,19 @@ const CounsellorAnalytics = () => {
           </div>
           
           <div 
-            onClick={() => navigate('/counsellor/mentees')}
+            onClick={() => setIsLabelsModalOpen(true)}
             className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
-            <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
-              </svg>
-            </div>
-            <span className="font-bold text-[#0f172a]">View Mentees</span>
-          </div>
-        </div>
-
-        {/* Mentee Labels row */}
-        <div className="px-6 mb-8">
-          <div className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer active:scale-[0.98] transition-transform">
-            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mr-4">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z" />
               </svg>
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-[16px] text-[#0f172a]">Mentee Labels</h3>
-              <p className="text-[#94a3b8] text-[12px] mt-0.5">Manage batches & custom tags</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </div>
+            <span className="font-bold text-[#0f172a]">Mentee Labels</span>
           </div>
         </div>
+
+
 
         {/* My Groups Header */}
         <div className="px-6 flex items-center justify-between mb-4">
@@ -157,7 +152,13 @@ const CounsellorAnalytics = () => {
                     <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V218Z" />
                   </svg>
                 </button>
-                <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#475569] hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/counsellor/group-mentees', { state: { groupName: group.name } });
+                  }}
+                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#475569] hover:bg-gray-100 transition-colors"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
                   </svg>
@@ -179,6 +180,98 @@ const CounsellorAnalytics = () => {
         onClose={() => setIsAddGroupOpen(false)}
         onSave={handleAddGroup}
       />
+
+      {/* Mentee Labels Modal */}
+      <AnimatePresence>
+        {isLabelsModalOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLabelsModalOpen(false)}
+              className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white rounded-t-[40px] z-[70] p-8 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[22px] font-extrabold text-[#0f172a]">Mentee Labels</h2>
+                <button 
+                  onClick={() => setIsLabelsModalOpen(false)}
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-95 transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Select Group</label>
+                  <div className="relative">
+                    <select
+                      value={selectedGroupForLabels}
+                      onChange={(e) => setSelectedGroupForLabels(e.target.value)}
+                      className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-100 rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] appearance-none outline-none transition-all"
+                    >
+                      {dummyGroups.map(g => (
+                        <option key={g.id} value={g.name}>{g.name}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Available Labels</label>
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {groupLabels[selectedGroupForLabels]?.map((label, idx) => (
+                      <div key={idx} className="bg-blue-50 text-[#1a73e8] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">
+                        {label}
+                        <button className="text-blue-300 hover:text-blue-500">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Add custom label..."
+                      value={newLabelName}
+                      onChange={(e) => setNewLabelName(e.target.value)}
+                      className="flex-1 bg-[#f8fafc] rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] outline-none border-2 border-transparent focus:border-blue-100 transition-all placeholder:text-gray-300"
+                    />
+                    <button 
+                      onClick={() => {
+                        if (newLabelName.trim()) {
+                          setGroupLabels({
+                            ...groupLabels,
+                            [selectedGroupForLabels]: [...(groupLabels[selectedGroupForLabels] || []), newLabelName.trim()]
+                          });
+                          setNewLabelName('');
+                        }
+                      }}
+                      className="w-14 h-14 bg-[#1a73e8] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-4"></div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Reusable Counsellor Bottom Navigation */}
       <CounsellorBottomNavigation />
