@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
+import AddGroupModal from '../../components/shared/AddGroupModal';
 
 const dummyGroups = [
   { id: 1, name: 'Karanpur Base', members: 24, status: 'Active', image: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?auto=format&fit=crop&q=80&w=150&h=150', statusIcon: '⚡', iconColor: 'bg-blue-500' },
@@ -13,6 +14,21 @@ const dummyGroups = [
 const CounsellorAnalytics = () => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
+  const [groups, setGroups] = useState(dummyGroups);
+
+  const handleAddGroup = (newGroup) => {
+    const nextId = groups.length ? Math.max(...groups.map(g => g.id)) + 1 : 1;
+    setGroups([{
+      id: nextId,
+      name: newGroup.name,
+      members: 0,
+      status: 'New',
+      image: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(newGroup.name) + '&background=f8fafc&color=0f172a',
+      statusIcon: 'NEW',
+      iconColor: 'bg-green-500'
+    }, ...groups]);
+  };
 
   return (
     <div className="min-h-screen bg-[#fafbfc] font-sans pb-28 relative overflow-x-hidden text-[#0f172a]">
@@ -61,7 +77,10 @@ const CounsellorAnalytics = () => {
 
         {/* Two smaller cards block */}
         <div className="px-6 flex gap-4 mb-4">
-          <div className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]">
+          <div 
+            onClick={() => navigate('/counsellor/rewards')}
+            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+          >
             <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 5H17V3H7V5H5C3.9 5 3 5.9 3 7V8C3 10.76 5.24 13 8 13H9.2C10.05 14.5 11.66 15.5 13.5 15.6V18H11V21H15V18H12.5V15.6C14.34 15.5 15.95 14.5 16.8 13H18C20.76 13 23 10.76 23 8V7C23 5.9 22.1 5 21 5H19M18 10C16.89 10 16 9.1 16 8V7H18V10M8 10C6.89 10 6 9.1 6 8V7H8V10Z" />
@@ -70,7 +89,10 @@ const CounsellorAnalytics = () => {
             <span className="font-bold text-[#0f172a]">Rewards</span>
           </div>
           
-          <div className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]">
+          <div 
+            onClick={() => navigate('/counsellor/mentees')}
+            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+          >
             <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
@@ -101,14 +123,17 @@ const CounsellorAnalytics = () => {
         {/* My Groups Header */}
         <div className="px-6 flex items-center justify-between mb-4">
           <h2 className="text-[22px] font-extrabold text-[#0f172a]">My Groups</h2>
-          <button className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform">
+          <button 
+            onClick={() => setIsAddGroupOpen(true)}
+            className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
 
         {/* Groups List */}
         <div className="px-6 space-y-4">
-          {dummyGroups.map(group => (
+          {groups.map(group => (
             <div key={group.id} className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer hover:shadow-md transition-shadow">
               <div className="relative w-16 h-16 mr-4 shrink-0">
                 <img src={group.image} alt={group.name} className="w-full h-full rounded-full object-cover shadow-sm bg-gray-100" />
@@ -147,6 +172,12 @@ const CounsellorAnalytics = () => {
       <NotificationsPanel
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+      />
+
+      <AddGroupModal 
+        isOpen={isAddGroupOpen}
+        onClose={() => setIsAddGroupOpen(false)}
+        onSave={handleAddGroup}
       />
 
       {/* Reusable Counsellor Bottom Navigation */}

@@ -11,6 +11,8 @@ import AIChat from '../pages/student/AIChat';
 import CounsellorDashboard from '../pages/counsellor/CounsellorDashboard';
 import CounsellorProfile from '../pages/counsellor/CounsellorProfile';
 import CounsellorAnalytics from '../pages/counsellor/CounsellorAnalytics';
+import CounsellorRewardsManagement from '../pages/counsellor/CounsellorRewardsManagement';
+import CounsellorViewMentees from '../pages/counsellor/CounsellorViewMentees';
 import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 
 const AppRoutes = () => {
@@ -25,6 +27,8 @@ const AppRoutes = () => {
         <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
         <Route path="/counsellor/profile" element={<CounsellorProfile />} />
         <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
+        <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} />
+        <Route path="/counsellor/mentees" element={<CounsellorViewMentees />} />
         <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
         <Route path="/student/analytics" element={<Analytics />} />
         <Route path="/student/inspiration" element={<Inspiration />} />
