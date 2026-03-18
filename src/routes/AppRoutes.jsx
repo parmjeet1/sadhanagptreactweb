@@ -9,6 +9,9 @@ import Inspiration from '../pages/student/Inspiration';
 import Profile from '../pages/student/Profile';
 import AIChat from '../pages/student/AIChat';
 import CounsellorDashboard from '../pages/counsellor/CounsellorDashboard';
+import CounsellorProfile from '../pages/counsellor/CounsellorProfile';
+import CounsellorAnalytics from '../pages/counsellor/CounsellorAnalytics';
+import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 
 const AppRoutes = () => {
   return (
@@ -17,13 +20,16 @@ const AppRoutes = () => {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<RoleSelection />} />
-        <Route path="/onboarding-step-2" element={<OnboardingStepTwo />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/counsellor-dashboard" element={<CounsellorDashboard />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/inspiration" element={<Inspiration />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/ai-chat" element={<AIChat />} />
+        <Route path="/student/onboarding-step-2" element={<OnboardingStepTwo />} />
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
+        <Route path="/counsellor/profile" element={<CounsellorProfile />} />
+        <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
+        <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
+        <Route path="/student/analytics" element={<Analytics />} />
+        <Route path="/student/inspiration" element={<Inspiration />} />
+        <Route path="/student/profile" element={<Profile />} />
+        <Route path="/student/ai-chat" element={<AIChat />} />
 
         {/* Catch-all route to redirect back to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />

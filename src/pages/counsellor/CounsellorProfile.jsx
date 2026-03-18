@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import BottomNavigation from '../../components/student/BottomNavigation';
+import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import AddMentorModal from '../../components/shared/AddMentorModal';
 import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal';
 
-const Profile = () => {
+const CounsellorProfile = () => {
   const navigate = useNavigate();
   const [isAddMentorOpen, setIsAddMentorOpen] = useState(false);
   const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
@@ -72,7 +72,7 @@ const Profile = () => {
           <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
           
           <button 
-            onClick={() => navigate('/student/ai-chat')}
+            onClick={() => navigate('/counsellor/ai-chat')}
             className="mt-4 px-6 py-2.5 bg-white border-2 border-[#1a73e8]/10 rounded-full flex items-center gap-2.5 text-[#1a73e8] font-black text-[14px] shadow-sm hover:bg-[#1a73e8]/5 hover:border-[#1a73e8]/20 active:scale-95 transition-all"
           >
             <div className="w-5 h-5 bg-[#1a73e8] rounded-md flex items-center justify-center text-white">
@@ -169,9 +169,9 @@ const Profile = () => {
         onSave={handleSaveInfo}
       />
 
-      <BottomNavigation />
+      <CounsellorBottomNavigation />
     </div>
   );
 };
 
-export default Profile;
+export default CounsellorProfile;

@@ -7,10 +7,10 @@ const RoleSelection = () => {
   const handleRoleSelect = (role) => {
     localStorage.setItem('userRole', role);
     if (role === 'Student') {
-      navigate('/onboarding-step-2');
+      navigate('/student/onboarding-step-2');
     } else {
       // For now, go straight to Counsellor Dashboard or a specific onboarding
-      navigate('/counsellor-dashboard');
+      navigate('/counsellor/dashboard');
     }
   };
 

@@ -18,7 +18,7 @@ const OnboardingStepTwo = () => {
   const handleContinue = () => {
     // Navigate to next step or handle form submission
     console.log("Form Data:", formData);
-    navigate('/student-dashboard'); 
+    navigate('/student/dashboard'); 
   };
 
   return (
