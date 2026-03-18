@@ -6,8 +6,18 @@ const CounsellorAddContent = () => {
   const navigate = useNavigate();
   const [contentType, setContentType] = useState('Text Quote');
   const [quoteContent, setQuoteContent] = useState('');
-  const [audience, setAudience] = useState('All Groups');
-  const [label, setLabel] = useState('Morning');
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [audience, setAudience] = useState('Karanpur base');
+  const [label, setLabel] = useState('First year');
+
+  const groupLabelsMap = {
+    'Karanpur base': ['First year', 'Second year', 'Third year'],
+    'DIT base': ['First year', 'Second year'],
+    'UIT base': ['First year', 'Third year']
+  };
+  
+  const groups = Object.keys(groupLabelsMap);
+  const availableLabels = groupLabelsMap[audience] || [];
 
   const contentTypes = [
     {
@@ -89,55 +99,119 @@ const CounsellorAddContent = () => {
             </div>
           </div>
 
-          {/* Quote Content Textarea */}
+          {/* Dynamic Content Input Area */}
           <div className="mb-8">
-            <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">QUOTE CONTENT</h2>
-            <div className="relative">
-              <textarea
-                value={quoteContent}
-                onChange={(e) => {
-                  if (e.target.value.length <= 300) setQuoteContent(e.target.value);
-                }}
-                placeholder="Type the inspirational quote here..."
-                className="w-full min-h-[160px] p-5 border border-gray-200 rounded-[28px] text-[16px] text-[#0f172a] placeholder-[#94a3b8] focus:outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all resize-none shadow-sm"
-              />
-              <div className="absolute bottom-5 right-5 text-[13px] font-medium text-[#94a3b8]">
-                {quoteContent.length}/300
+            <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">
+              {contentType === 'Text Quote' ? 'QUOTE CONTENT' : contentType === 'Image' ? 'UPLOAD IMAGE' : 'YOUTUBE LINK'}
+            </h2>
+            
+            {contentType === 'Text Quote' && (
+              <div className="border border-gray-200 rounded-[28px] overflow-hidden shadow-sm bg-white focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all">
+                {/* Formatting Toolbar Mock */}
+                <div className="flex items-center gap-2 p-3 border-b border-gray-100 bg-gray-50/50">
+                  <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all font-serif font-bold">B</button>
+                  <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all font-serif italic">I</button>
+                  <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all underline">U</button>
+                  <div className="w-px h-5 bg-gray-300 mx-1"></div>
+                  <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                  </button>
+                  <button className="w-8 h-8 rounded hover:bg-white hover:shadow-sm text-gray-500 flex items-center justify-center transition-all">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                  </button>
+                </div>
+                <div className="relative">
+                  <textarea
+                    value={quoteContent}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 500) setQuoteContent(e.target.value);
+                    }}
+                    placeholder="Type the inspirational quote here..."
+                    className="w-full min-h-[140px] p-5 text-[16px] text-[#0f172a] placeholder-[#94a3b8] focus:outline-none resize-none bg-transparent"
+                  />
+                  <div className="absolute bottom-3 right-5 text-[12px] font-medium text-[#c0cbd8]">
+                    {quoteContent.length}/500
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {contentType === 'Image' && (
+              <div className="w-full h-[200px] border-2 border-dashed border-[#cbd5e1] rounded-[28px] bg-[#f8fafc] flex flex-col items-center justify-center hover:bg-[#f1f5f9] hover:border-[#94a3b8] transition-all cursor-pointer group">
+                <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center text-[#1a73e8] mb-3 group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-[14px] font-bold text-[#0f172a]">Click to upload image</p>
+                <p className="text-[12px] text-[#94a3b8] mt-1">PNG, JPG or WEBP (max. 5MB)</p>
+              </div>
+            )}
+
+            {contentType === 'YouTube' && (
+              <div className="relative">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-red-500">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={youtubeLink}
+                  onChange={(e) => setYoutubeLink(e.target.value)}
+                  placeholder="Paste YouTube loop / video link..."
+                  className="w-full p-5 pl-14 border border-gray-200 rounded-[28px] text-[16px] text-[#0f172a] placeholder-[#94a3b8] focus:outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all bg-white shadow-sm"
+                />
+              </div>
+            )}
           </div>
 
           {/* Audience Dropdown */}
           <div className="mb-8">
             <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">AUDIENCE</h2>
-            <button className="w-full flex items-center justify-between p-4 border border-gray-200 text-[#0f172a] rounded-[24px] bg-white shadow-sm hover:border-gray-300 transition-colors active:scale-[0.99]">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-[#64748b] mr-3" fill="currentColor" viewBox="0 0 24 24">
+            <div className="relative">
+              <select
+                value={audience}
+                onChange={(e) => {
+                  setAudience(e.target.value);
+                  setLabel(groupLabelsMap[e.target.value][0]);
+                }}
+                className="w-full appearance-none p-4 pl-12 border border-gray-200 text-[#0f172a] rounded-[24px] bg-white shadow-sm hover:border-gray-300 transition-colors focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none font-semibold text-[15px] cursor-pointer"
+              >
+                {groups.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+              <div className="absolute left-4 top-4 pointer-events-none text-[#64748b]">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
                 </svg>
-                <span className="font-semibold text-[15px]">{audience}</span>
               </div>
-              <svg className="w-5 h-5 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute right-4 top-4 w-5 h-5 text-[#94a3b8] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </button>
+            </div>
             <p className="text-[12px] text-[#94a3b8] font-medium mt-2 px-1">Visible to all mentees in the selected audience.</p>
           </div>
 
           {/* Select Label Dropdown */}
           <div className="mb-10">
             <h2 className="text-[12px] font-bold text-[#64748b] tracking-wider mb-3">SELECT LABEL</h2>
-            <button className="w-full flex items-center justify-between p-4 border border-gray-200 text-[#0f172a] rounded-[24px] bg-white shadow-sm hover:border-gray-300 transition-colors active:scale-[0.99]">
-              <div className="flex items-center">
-                <svg className="w-5 h-5 text-[#94a3b8] mr-3" fill="currentColor" viewBox="0 0 24 24">
+            <div className="relative">
+              <select
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className="w-full appearance-none p-4 pl-12 border border-gray-200 text-[#0f172a] rounded-[24px] bg-white shadow-sm hover:border-gray-300 transition-colors focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none font-semibold text-[15px] cursor-pointer"
+              >
+                {availableLabels.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+              <div className="absolute left-4 top-4 pointer-events-none text-[#94a3b8]">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
                 </svg>
-                <span className="font-semibold text-[15px]">{label}</span>
               </div>
-              <svg className="w-5 h-5 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute right-4 top-4 w-5 h-5 text-[#94a3b8] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </button>
+            </div>
           </div>
 
           {/* Action Buttons */}

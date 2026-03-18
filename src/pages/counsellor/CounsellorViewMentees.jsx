@@ -248,7 +248,28 @@ const CounsellorViewMentees = () => {
                 </button>
               </div>
 
-              <button className="w-full bg-white text-[#1a73e8] rounded-full py-2.5 mb-2 font-extrabold text-[14px] flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-[0.98] transition-all">
+              <button 
+                onClick={() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const selectedData = selectedStudents.map(id => {
+                    const student = dummyStudents.find(s => s.id === id);
+                    return {
+                      student_id: student.id,
+                      name: student.name,
+                      date: today,
+                      activities: [
+                        { type: 'wakeup', time: `${Math.floor(Math.random() * 2) + 3}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` },
+                        { type: 'sleep', time: `${Math.floor(Math.random() * 2) + 21}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` },
+                        { type: 'chatting', duration_minutes: Math.floor(Math.random() * 8) + 8 },
+                        { type: 'hearing', duration_minutes: Math.floor(Math.random() * 30) + 30 },
+                        { type: 'reading', duration_minutes: Math.floor(Math.random() * 40) + 20 }
+                      ]
+                    };
+                  });
+                  navigate('/counsellor/ai-chat', { state: { studentsData: selectedData } });
+                }}
+                className="w-full bg-white text-[#1a73e8] rounded-full py-2.5 mb-2 font-extrabold text-[14px] flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-[0.98] transition-all"
+              >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>
                 AI Analysis
               </button>
