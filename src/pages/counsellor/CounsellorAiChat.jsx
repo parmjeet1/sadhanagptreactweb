@@ -125,10 +125,18 @@ const CounsellorAiChat = () => {
                 <div className="w-10 h-10 rounded-xl bg-[#eff6ff] flex items-center justify-center text-[#1a73e8] shrink-0">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
                 </div>
-                <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1">
-                  <p className="text-[15px] leading-relaxed text-[#1e293b]">
-                    <span className="font-black text-[#1a73e8]">{msg.category}:</span> {msg.text}
-                  </p>
+                <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1 overflow-hidden">
+                  <div className="text-[15px] leading-relaxed text-[#1e293b] whitespace-pre-wrap ai-content">
+                    {msg.text.split('\n').map((line, i) => {
+                      if (line.startsWith('###')) {
+                        return <h4 key={i} className="text-[#1a73e8] font-black text-[16px] mt-4 mb-2">{line.replace('###', '').trim()}</h4>;
+                      }
+                      if (line.trim().startsWith('-')) {
+                        return <div key={i} className="flex gap-2 ml-1 mb-1 font-medium"><span className="text-[#1a73e8]">•</span><span>{line.replace(/^-|\*\*/g, '').trim()}</span></div>;
+                      }
+                      return <p key={i} className={`${line.trim() === '' ? 'h-3' : 'mb-2'} font-medium`}>{line}</p>;
+                    })}
+                  </div>
                 </div>
               </motion.div>
             ))}
