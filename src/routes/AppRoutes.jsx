@@ -17,6 +17,7 @@ import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
 import CounsellorGroupMentees from '../pages/counsellor/CounsellorGroupMentees';
 import CounsellorStudentReport from '../pages/counsellor/CounsellorStudentReport';
+import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsellors';
 
 const AppRoutes = () => {
   return (
@@ -36,6 +37,7 @@ const AppRoutes = () => {
         <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
         <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
         <Route path="/counsellor/group-mentees" element={<CounsellorGroupMentees />} />
+        <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
         <Route path="/student/analytics" element={<Analytics />} />
         <Route path="/student/inspiration" element={<Inspiration />} />
         <Route path="/student/profile" element={<Profile />} />

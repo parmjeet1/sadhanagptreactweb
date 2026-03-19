@@ -30,7 +30,8 @@ export const getAIAnalysis = async (studentsData) => {
       Keep it clean, professional, and spiritual. Max 250 words.
     `;
 
-    const response = await fetch(`https://text.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=openai&seed=42`);
+    const AI_URL = import.meta.env.VITE_AI_API_URL || 'https://text.pollinations.ai';
+    const response = await fetch(`${AI_URL}/prompt/${encodeURIComponent(prompt)}?model=openai&seed=42`);
     console.log('response', response);
     if (!response.ok) {
       throw new Error('AI Service request failed');

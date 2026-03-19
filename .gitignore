@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Environment files — keep secrets out of version control
+.env
+.env.local
+.env.*.local
+# .env.example is intentionally NOT ignored (safe template)
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

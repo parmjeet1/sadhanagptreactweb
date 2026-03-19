@@ -109,13 +109,30 @@ const CounsellorAnalytics = () => {
                 <path d="M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Mentee Labels</span>
+            <span className="font-bold text-[#0f172a]">Manage Labels</span>
           </div>
         </div>
 
-
-
-        {/* My Groups Header */}
+        {/* Full Width Card - Sub Counsellors */}
+        <div className="px-6 mb-8">
+          <div 
+            onClick={() => navigate('/counsellor/sub-counsellors')}
+            className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4A4 4 0 1 1 8 8A4 4 0 0 1 12 4M12 14C16.42 14 20 15.79 20 18V20H4V18C4 15.79 7.58 14 12 14ZM12 6A2 2 0 1 0 14 8A2 2 0 0 0 12 6ZM12 16C8.58 16 6 17.36 6 18V18H18V18C18 17.36 15.42 16 12 16Z" /></svg>
+              </div>
+              <div>
+                <h2 className="font-bold text-[18px] text-[#0f172a] mb-0.5">Sub Counsellors</h2>
+                <p className="text-[#64748b] text-[13px] font-medium">Manage team & assignments</p>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </div>
+        </div>        {/* My Groups Header */}
         <div className="px-6 flex items-center justify-between mb-4">
           <h2 className="text-[22px] font-extrabold text-[#0f172a]">My Groups</h2>
           <button 

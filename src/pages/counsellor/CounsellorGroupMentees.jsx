@@ -26,18 +26,25 @@ const generateDummyStudents = () => {
   }));
 };
 
-const dummyStudents = generateDummyStudents();
+const initialDummyStudents = generateDummyStudents();
 
 const CounsellorGroupMentees = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { groupName } = location.state || { groupName: 'All' };
   
+  const [students, setStudents] = useState(initialDummyStudents);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState(groupName.replace(' Base', ''));
   const [selectedLabel, setSelectedLabel] = useState('All');
   const [visibleCount, setVisibleCount] = useState(10);
   const [isLabelPopupOpen, setIsLabelPopupOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState([]);
+
+  // Edit State
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editLabel, setEditLabel] = useState('');
   
   const groupLabelMapping = {
     'Karanpur': ['First year', 'Second year', 'Third year'],
@@ -52,7 +59,7 @@ const CounsellorGroupMentees = () => {
   const observerTarget = useRef(null);
 
   // Filter Logic
-  const allFilteredStudents = dummyStudents.filter(student => {
+  const allFilteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGroup = selectedGroup === 'All' || student.group === selectedGroup;
     const matchesLabel = selectedLabel === 'All' || student.label === selectedLabel;
@@ -104,6 +111,23 @@ const CounsellorGroupMentees = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans relative overflow-x-hidden">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-4 right-4 z-[100] flex justify-center pointer-events-none"
+          >
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-sm mx-auto">
+              <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <p className="text-[13px] font-bold leading-tight">{successMessage}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div 
         className="w-full max-w-md mx-auto transition-all duration-300 pb-[100px]"
       >
@@ -138,25 +162,6 @@ const CounsellorGroupMentees = () => {
 
         {/* Filters */}
         <div className="px-6 pb-4 flex gap-3 overflow-x-auto hide-scrollbar">
-          {/* Group Filter */}
-          <div className="relative shrink-0">
-            <select
-              value={selectedGroup}
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              className={`appearance-none bg-[#f1f5f9] font-bold text-[13px] rounded-full py-2.5 pl-5 pr-9 border-none outline-none transition-colors cursor-pointer ${
-                selectedGroup !== 'All' ? 'bg-[#1a73e8] text-white' : 'text-[#0f172a] hover:bg-[#e2e8f0]'
-              }`}
-            >
-              <option value="All">All Groups</option>
-              <option value="Karanpur">Karanpur</option>
-              <option value="DIT">DIT</option>
-              <option value="UIT">UIT</option>
-            </select>
-            <div className={`absolute right-3.5 top-3 pointer-events-none ${selectedGroup !== 'All' ? 'text-white' : 'text-[#64748b]'}`}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-            </div>
-          </div>
-
           {/* Label Filter (Popup Trigger) */}
           <div className="relative shrink-0">
             <button
@@ -195,13 +200,23 @@ const CounsellorGroupMentees = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   {/* View Details Icon */}
                   <button 
-                    onClick={() => console.log('View details for', student.name)}
+                    onClick={() => navigate(`/counsellor/mentee/${student.id}`, { state: { student } })}
                     className="w-10 h-10 rounded-full flex items-center justify-center text-[#94a3b8] hover:text-[#1a73e8] hover:bg-blue-50 active:scale-95 transition-all"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  </button>
+                  {/* Edit Icon */}
+                  <button 
+                    onClick={() => {
+                      setEditingStudent(student);
+                      setEditLabel(student.label);
+                    }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-[#94a3b8] hover:text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                   </button>
                 </div>
               </div>
@@ -285,6 +300,77 @@ const CounsellorGroupMentees = () => {
                     )}
                   </button>
                 ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Assignment Modal */}
+      <AnimatePresence>
+        {editingStudent && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingStudent(null)}
+              className="fixed inset-0 bg-black/40 z-[80] backdrop-blur-[2px]"
+            />
+            <motion.div 
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 z-[90] bg-white rounded-t-[32px] p-6 pb-12 max-w-md mx-auto shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-[#0f172a]">Edit Assignment</h3>
+                  <p className="text-[13px] font-bold text-[#64748b] mt-0.5">{editingStudent.name} ({editingStudent.group})</p>
+                </div>
+                <button 
+                  onClick={() => setEditingStudent(null)}
+                  className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition-transform"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5 ml-1">Label</label>
+                  <div className="relative">
+                    <select
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      className="w-full appearance-none bg-[#f8fafc] border border-gray-200 rounded-2xl px-4 py-3.5 text-[15px] font-bold text-[#0f172a] outline-none focus:border-[#1a73e8] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Select Label</option>
+                      {(groupLabelMapping[editingStudent.group] || []).map(lbl => (
+                        <option key={lbl} value={lbl}>{lbl}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-[18px] pointer-events-none text-[#64748b]">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    setStudents(prev => prev.map(s => 
+                      s.id === editingStudent.id ? { ...s, label: editLabel } : s
+                    ));
+                    setEditingStudent(null);
+                    setSuccessMessage('Student label updated successfully!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                  }}
+                  disabled={!editLabel}
+                  className="w-full bg-[#1a73e8] text-white font-bold py-4 rounded-2xl mt-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-[#155fc3] shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm Assignment
+                </button>
               </div>
             </motion.div>
           </>

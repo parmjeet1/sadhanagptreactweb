@@ -33,10 +33,11 @@ const generateDummyStudents = () => {
   }));
 };
 
-const dummyStudents = generateDummyStudents();
+const initialDummyStudents = generateDummyStudents();
 
 const CounsellorViewMentees = () => {
   const navigate = useNavigate();
+  const [students, setStudents] = useState(initialDummyStudents);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('All');
   const [selectedLabel, setSelectedLabel] = useState('All');
@@ -44,6 +45,13 @@ const CounsellorViewMentees = () => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [isLabelPopupOpen, setIsLabelPopupOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  
+  // Edit State
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editGroup, setEditGroup] = useState('');
+  const [editLabel, setEditLabel] = useState('');
   const SELECTION_LIMIT = 5;
   
   const groupLabelMapping = {
@@ -59,7 +67,7 @@ const CounsellorViewMentees = () => {
   const observerTarget = useRef(null);
 
   // Filter Logic
-  const allFilteredStudents = dummyStudents.filter(student => {
+  const allFilteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGroup = selectedGroup === 'All' || student.group === selectedGroup;
     const matchesLabel = selectedLabel === 'All' || student.label === selectedLabel;
@@ -141,6 +149,19 @@ const CounsellorViewMentees = () => {
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-sm mx-auto">
               <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
               <p className="text-[13px] font-bold leading-tight">{errorMessage}</p>
+            </div>
+          </motion.div>
+        )}
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-4 right-4 z-[100] flex justify-center pointer-events-none"
+          >
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-sm mx-auto">
+              <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <p className="text-[13px] font-bold leading-tight">{successMessage}</p>
             </div>
           </motion.div>
         )}
@@ -255,7 +276,16 @@ const CounsellorViewMentees = () => {
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>
-                  <button className="text-[#94a3b8] hover:text-[#0f172a] transition-colors" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    className="text-[#94a3b8] hover:text-[#0f172a] transition-colors" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingStudent(student);
+                      setEditGroup(student.group);
+                      setEditLabel(student.label);
+                    }}
+                    title="Edit Assignment"
+                  >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                   </button>
                   
@@ -308,7 +338,7 @@ const CounsellorViewMentees = () => {
                 onClick={() => {
                   const today = new Date().toISOString().split('T')[0];
                   const selectedData = selectedStudents.map(id => {
-                    const student = dummyStudents.find(s => s.id === id);
+                    const student = students.find(s => s.id === id);
                     return {
                       student_id: student.id,
                       name: student.name,
@@ -329,9 +359,12 @@ const CounsellorViewMentees = () => {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>
                   <span className="truncate">Add to Group</span>
                 </button>
-                <button className="flex-1 border-2 border-white/20 text-white rounded-full py-2.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/10 active:scale-[0.98] transition-all px-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V20H3V19L5 17V11C5 7.9 7.03 5.17 10 4.29C10 4.19 10 4.1 10 4A2 2 0 0 1 12 2A2 2 0 0 1 14 4C14 4.1 14 4.19 14 4.29C16.97 5.17 19 7.9 19 11V17L21 19M14 21A2 2 0 0 1 12 23A2 2 0 0 1 10 21"/></svg>
-                  <span className="truncate">Notifications</span>
+                <button 
+                  onClick={() => setIsDownloadModalOpen(true)}
+                  className="flex-1 border-2 border-white/20 text-white rounded-full py-2.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/10 active:scale-[0.98] transition-all px-1"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+                  <span className="truncate">Download</span>
                 </button>
               </div>
             </div>
@@ -406,6 +439,268 @@ const CounsellorViewMentees = () => {
                     )}
                   </button>
                 ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Assignment Modal */}
+      <AnimatePresence>
+        {editingStudent && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingStudent(null)}
+              className="fixed inset-0 bg-black/40 z-[80] backdrop-blur-[2px]"
+            />
+            <motion.div 
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 z-[90] bg-white rounded-t-[32px] p-6 pb-12 max-w-md mx-auto shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-[#0f172a]">Edit Assignment</h3>
+                  <p className="text-[13px] font-bold text-[#64748b] mt-0.5">{editingStudent.name}</p>
+                </div>
+                <button 
+                  onClick={() => setEditingStudent(null)}
+                  className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition-transform"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5 ml-1">Group</label>
+                  <div className="relative">
+                    <select
+                      value={editGroup}
+                      onChange={(e) => {
+                        setEditGroup(e.target.value);
+                        // Reset label if mapping doesn't have the current label
+                        const newLabels = groupLabelMapping[e.target.value] || [];
+                        if (newLabels.length > 0 && !newLabels.includes(editLabel)) {
+                          setEditLabel(newLabels[0]);
+                        } else if (newLabels.length === 0) {
+                          setEditLabel('');
+                        }
+                      }}
+                      className="w-full appearance-none bg-[#f8fafc] border border-gray-200 rounded-2xl px-4 py-3.5 text-[15px] font-bold text-[#0f172a] outline-none focus:border-[#1a73e8] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Select Group</option>
+                      {Object.keys(groupLabelMapping).map(grp => (
+                        <option key={grp} value={grp}>{grp}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-[18px] pointer-events-none text-[#64748b]">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5 ml-1">Label</label>
+                  <div className="relative">
+                    <select
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      disabled={!editGroup}
+                      className="w-full appearance-none bg-[#f8fafc] border border-gray-200 rounded-2xl px-4 py-3.5 text-[15px] font-bold text-[#0f172a] outline-none focus:border-[#1a73e8] focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="" disabled>Select Label</option>
+                      {(groupLabelMapping[editGroup] || []).map(lbl => (
+                        <option key={lbl} value={lbl}>{lbl}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-[18px] pointer-events-none text-[#64748b]">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    setStudents(prev => prev.map(s => 
+                      s.id === editingStudent.id ? { ...s, group: editGroup, label: editLabel } : s
+                    ));
+                    setEditingStudent(null);
+                    setSuccessMessage('Student assignment updated successfully!');
+                    setTimeout(() => setSuccessMessage(''), 3000);
+                  }}
+                  disabled={!editGroup || !editLabel}
+                  className="w-full bg-[#1a73e8] text-white font-bold py-4 rounded-2xl mt-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-[#155fc3] shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm Assignment
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Download Options Modal */}
+      <AnimatePresence>
+        {isDownloadModalOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDownloadModalOpen(false)}
+              className="fixed inset-0 bg-black/40 z-[80] backdrop-blur-[2px]"
+            />
+            <motion.div 
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 z-[90] bg-white rounded-t-[32px] p-6 pb-12 max-w-md mx-auto shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-[#0f172a]">Download Format</h3>
+                  <p className="text-[13px] font-bold text-[#64748b] mt-0.5">Export {selectedStudents.length} selected students</p>
+                </div>
+                <button 
+                  onClick={() => setIsDownloadModalOpen(false)}
+                  className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition-transform"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { label: 'Excel (.xls)', type: 'excel', icon: 'bg-green-100 text-green-600' },
+                  { label: 'CSV (.csv)', type: 'csv', icon: 'bg-orange-100 text-orange-600' },
+                  { label: 'Print / Save PDF', type: 'pdf', icon: 'bg-red-100 text-red-600' }
+                ].map((format) => {
+                  return (
+                    <button 
+                      key={format.type}
+                      onClick={() => {
+                        const selectedData = selectedStudents.map(id => students.find(s => s.id === id));
+                        
+                        if (format.type === 'pdf') {
+                          // Native Print for PDF
+                          const printWindow = window.open('', '_blank');
+                          const content = `
+                            <html>
+                              <head>
+                                <title>Mentee Report - ${new Date().toLocaleDateString()}</title>
+                                <style>
+                                  body { font-family: sans-serif; padding: 40px; }
+                                  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                                  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                                  th { background-color: #f8fafc; font-weight: bold; }
+                                  h1 { color: #0f172a; margin-bottom: 5px; }
+                                </style>
+                              </head>
+                              <body>
+                                <h1>Mentee Status Report</h1>
+                                <p>Generated on: ${new Date().toLocaleString()}</p>
+                                <table>
+                                  <thead>
+                                    <tr>
+                                      <th>Name</th>
+                                      <th>Group</th>
+                                      <th>Label</th>
+                                      <th>Wakeup</th>
+                                      <th>Chanting (min)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    ${selectedData.map(s => `
+                                      <tr>
+                                        <td>${s.name}</td>
+                                        <td>${s.group}</td>
+                                        <td>${s.label}</td>
+                                        <td>${s.activities.find(a => a.type === 'wakeup')?.time || 'N/A'}</td>
+                                        <td>${s.activities.find(a => a.type === 'chatting')?.duration_minutes || '0'}</td>
+                                      </tr>
+                                    `).join('')}
+                                  </tbody>
+                                </table>
+                              </body>
+                            </html>
+                          `;
+                          printWindow.document.write(content);
+                          printWindow.document.close();
+                          printWindow.print();
+                        } else {
+                          // Excel / CSV
+                          let fileContent = "";
+                          let mimeType = "text/csv";
+                          let extension = "csv";
+
+                          if (format.type === 'csv') {
+                            const headers = "Name,Group,Label,Wakeup Time,Chanting Minutes\n";
+                            const rows = selectedData.map(s => {
+                              const wakeup = s.activities.find(a => a.type === 'wakeup')?.time || 'N/A';
+                              const chanting = s.activities.find(a => a.type === 'chatting')?.duration_minutes || '0';
+                              return `"${s.name}","${s.group}","${s.label}","${wakeup}","${chanting}"`;
+                            }).join("\n");
+                            fileContent = headers + rows;
+                          } else {
+                            // Excel as HTML Table (compatible with Excel)
+                            mimeType = "application/vnd.ms-excel";
+                            extension = "xls";
+                            fileContent = `
+                              <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                              <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Mentees</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+                              <body>
+                                <table>
+                                  <tr><th>Name</th><th>Group</th><th>Label</th><th>Wakeup</th><th>Chanting</th></tr>
+                                  ${selectedData.map(s => `
+                                    <tr>
+                                      <td>${s.name}</td>
+                                      <td>${s.group}</td>
+                                      <td>${s.label}</td>
+                                      <td>${s.activities.find(a => a.type === 'wakeup')?.time || ''}</td>
+                                      <td>${s.activities.find(a => a.type === 'chatting')?.duration_minutes || ''}</td>
+                                    </tr>
+                                  `).join('')}
+                                </table>
+                              </body>
+                              </html>
+                            `;
+                          }
+                          
+                          const blob = new Blob([fileContent], { type: `${mimeType};charset=utf-8;` });
+                          const link = document.createElement("a");
+                          const url = URL.createObjectURL(blob);
+                          
+                          link.setAttribute("href", url);
+                          link.setAttribute("download", `mentees_export.${extension}`);
+                          link.style.visibility = 'hidden';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }
+                        
+                        setIsDownloadModalOpen(false);
+                        setSuccessMessage(`Exported successfully as ${format.label}!`);
+                        setTimeout(() => setSuccessMessage(''), 3000);
+                      }}
+                      className="w-full bg-[#f8fafc] border border-gray-100 hover:border-blue-200 hover:bg-blue-50 text-[#0f172a] font-bold py-4 px-5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all"
+                    >
+                      <div className="flex items-center gap-3 space-x-2">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${format.icon}`}>
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></svg>
+                        </div>
+                        <span className="text-[15px]">{format.label}</span>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           </>
