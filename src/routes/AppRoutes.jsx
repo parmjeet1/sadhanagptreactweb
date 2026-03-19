@@ -16,6 +16,7 @@ import CounsellorViewMentees from '../pages/counsellor/CounsellorViewMentees';
 import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
 import CounsellorGroupMentees from '../pages/counsellor/CounsellorGroupMentees';
+import CounsellorStudentReport from '../pages/counsellor/CounsellorStudentReport';
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
         <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
         <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} />
         <Route path="/counsellor/mentees" element={<CounsellorViewMentees />} />
+        <Route path="/counsellor/mentee/:id" element={<CounsellorStudentReport />} />
         <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
         <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
         <Route path="/counsellor/group-mentees" element={<CounsellorGroupMentees />} />
