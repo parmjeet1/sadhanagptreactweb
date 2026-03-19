@@ -6,10 +6,16 @@ const RoleSelection = () => {
 
   const handleRoleSelect = (role) => {
     localStorage.setItem('userRole', role);
+    
+    // Maintain user as json.{} for role and other details
+    const userDetailsStr = sessionStorage.getItem('user_details');
+    const userDetails = userDetailsStr ? JSON.parse(userDetailsStr) : {};
+    userDetails.role = role;
+    sessionStorage.setItem('user_details', JSON.stringify(userDetails));
+
     if (role === 'Student') {
       navigate('/student/onboarding-step-2');
     } else {
-      // For now, go straight to Counsellor Dashboard or a specific onboarding
       navigate('/counsellor/dashboard');
     }
   };

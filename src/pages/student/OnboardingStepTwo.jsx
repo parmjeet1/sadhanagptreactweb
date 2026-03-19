@@ -11,6 +11,22 @@ const OnboardingStepTwo = () => {
     counselorEmail: ''
   });
 
+  React.useEffect(() => {
+    const profileStr = sessionStorage.getItem('profile');
+    if (profileStr) {
+      try {
+        const profile = JSON.parse(profileStr);
+        setFormData(prev => ({
+          ...prev,
+          name: profile.name || prev.name,
+          email: profile.email || prev.email
+        }));
+      } catch (err) {
+        console.error("Failed to parse profile from session", err);
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

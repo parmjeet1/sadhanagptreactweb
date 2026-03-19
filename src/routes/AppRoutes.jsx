@@ -23,8 +23,8 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
+        {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
+        <Route path="/" element={<Login />} />
         <Route path="/onboarding" element={<RoleSelection />} />
         <Route path="/student/onboarding-step-2" element={<OnboardingStepTwo />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
