@@ -49,18 +49,38 @@ const InteractiveLineChart = ({ data, dataKey, color, label }) => {
   }).join(' ');
 
   return (
-    <div className="relative w-full h-12 flex items-end mt-2">
-      <svg viewBox={`0 -5 ${width} ${height + 10}`} className={`w-full h-full preserve-aspect-ratio-none overflow-visible ${color}`} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-        <path d={pathData} />
+    <div className="relative w-full h-16 flex items-end mt-2">
+      <svg viewBox={`-2 -2 ${width + 4} ${height + 4}`} className={`w-full h-full preserve-aspect-ratio-none overflow-visible ${color}`} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Outer Box */}
+        <rect x="0" y="0" width={width} height={height} stroke="currentColor" />
+        
+        {/* Vertical Grid Lines */}
+        {values.map((val, i) => {
+          if (i === 0 || i === values.length - 1) return null;
+          const x = i * step;
+          return <line key={`gl-${i}`} x1={x} y1="0" x2={x} y2={height} stroke="currentColor" />;
+        })}
+
+        {/* Data Path */}
+        <path d={pathData} stroke="currentColor" />
+
+        {/* Start Dot */}
+        {values.length > 0 && (
+          <circle cx="0" cy={height - ((values[0] - min) / range) * height} r="2" fill="currentColor" stroke="none" />
+        )}
+
+        {/* Interaction Hit Areas */}
         {values.map((val, i) => {
           const x = i * step;
           const y = height - ((val - min) / range) * height;
           return (
-            <g key={i} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)} onClick={() => setActiveIdx(i)} onTouchStart={() => setActiveIdx(i)}>
-              <rect x={x - step/2} y={-5} width={step} height={height + 10} fill="transparent" className="cursor-pointer" style={{ pointerEvents: 'all' }} />
-              {activeIdx === i && (
-                <circle cx={x} cy={y} r="3" fill="currentColor" stroke="white" strokeWidth="1" />
-              )}
+            <g key={`hit-${i}`} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)} onClick={() => setActiveIdx(i)} onTouchStart={() => setActiveIdx(i)}>
+              <rect x={x - step/2} y={-5} width={step} height={height + 10} fill="transparent" className="cursor-pointer" style={{ pointerEvents: 'all' }} stroke="none" />
+              <AnimatePresence>
+                {activeIdx === i && (
+                  <motion.circle initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} cx={x} cy={y} r="3.5" fill="currentColor" stroke="white" strokeWidth="1.5" />
+                )}
+              </AnimatePresence>
             </g>
           );
         })}
