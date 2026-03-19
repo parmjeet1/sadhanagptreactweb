@@ -275,17 +275,17 @@ const CounsellorStudentReport = () => {
           
           <div className="space-y-4">
             {/* Chanting */}
-            <div className="bg-white border text-gray-800 border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-center mb-6">
-                <span className="font-bold text-[15px]">Chanting</span>
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-bold text-[15px] text-gray-800">Chanting</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.chanting}</span>
               </div>
               <InteractiveLineChart data={filteredData} dataKey="chanting" color="stroke-blue-500 text-blue-500" label="Rounds" />
             </div>
 
             {/* Reading */}
-            <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-center mb-6">
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
                 <span className="font-bold text-[15px] text-gray-800">Reading</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.reading}</span>
               </div>
@@ -293,8 +293,8 @@ const CounsellorStudentReport = () => {
             </div>
 
             {/* Morning Program */}
-            <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-center mb-6">
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
                 <span className="font-bold text-[15px] text-gray-800">Morning Program</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.wakeup}</span>
               </div>
@@ -309,8 +309,8 @@ const CounsellorStudentReport = () => {
             </div>
 
             {/* Hearing */}
-            <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-center mb-6">
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
                 <span className="font-bold text-[15px] text-gray-800">Hearing</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.hearing}</span>
               </div>
