@@ -24,24 +24,65 @@ const generateTimeseriesData = () => {
 
 const dummyTimeseriesData = generateTimeseriesData();
 
-// Helper to generate SVG sparkline path
-const generateSparkline = (dataArray, width = 100, height = 40) => {
-  if (!dataArray || dataArray.length === 0) return '';
-  const max = Math.max(...dataArray);
-  const min = Math.min(...dataArray);
+// Interactive SVG Line Chart
+const InteractiveLineChart = ({ data, dataKey, color, label }) => {
+  const [activeIdx, setActiveIdx] = useState(null);
+  const width = 100;
+  const height = 40;
+  
+  if (!data || data.length === 0) return null;
+  const values = data.map(d => d[dataKey]);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
   const range = max - min || 1;
-  const step = width / (dataArray.length - 1 || 1);
-  return dataArray.map((val, i) => {
+  const step = width / (values.length - 1 || 1);
+  
+  const pathData = values.map((val, i) => {
     const x = i * step;
     const y = height - ((val - min) / range) * height;
-    // adding curve rendering for aesthetics
     if (i === 0) return `M ${x} ${y}`;
     const prevX = (i - 1) * step;
-    const prevY = height - ((dataArray[i - 1] - min) / range) * height;
+    const prevY = height - ((values[i - 1] - min) / range) * height;
     const cpX1 = prevX + (x - prevX) / 2;
     const cpX2 = prevX + (x - prevX) / 2;
     return `C ${cpX1} ${prevY}, ${cpX2} ${y}, ${x} ${y}`;
   }).join(' ');
+
+  return (
+    <div className="relative w-full h-12 flex items-end mt-2">
+      <svg viewBox={`0 -5 ${width} ${height + 10}`} className={`w-full h-full preserve-aspect-ratio-none overflow-visible ${color}`} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <path d={pathData} />
+        {values.map((val, i) => {
+          const x = i * step;
+          const y = height - ((val - min) / range) * height;
+          return (
+            <g key={i} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)} onClick={() => setActiveIdx(i)} onTouchStart={() => setActiveIdx(i)}>
+              <rect x={x - step/2} y={-5} width={step} height={height + 10} fill="transparent" className="cursor-pointer" style={{ pointerEvents: 'all' }} />
+              {activeIdx === i && (
+                <circle cx={x} cy={y} r="3" fill="currentColor" stroke="white" strokeWidth="1" />
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      {/* Tooltip */}
+      <AnimatePresence>
+        {activeIdx !== null && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute bottom-full mb-1 bg-gray-900 text-white text-[11px] font-bold px-3 py-2 rounded-xl shadow-xl whitespace-nowrap pointer-events-none z-10 flex flex-col items-center"
+            style={{ left: `${(activeIdx / (values.length - 1 || 1)) * 100}%`, transform: 'translateX(-50%)' }}
+          >
+            <span className="text-gray-300 font-medium text-[10px] uppercase tracking-wider mb-0.5">{new Date(data[activeIdx].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            <span>{values[activeIdx]} {label}</span>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-l-transparent border-r-transparent border-t-gray-900"></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 const formatTime = (hour, minute) => {
@@ -239,11 +280,7 @@ const CounsellorStudentReport = () => {
                 <span className="font-bold text-[15px]">Chanting</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.chanting}</span>
               </div>
-              <div className="h-12 w-full flex items-end">
-                <svg viewBox="0 -5 100 50" className="w-full h-full preserve-aspect-ratio-none stroke-blue-500" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={generateSparkline(metrics.chanting)} />
-                </svg>
-              </div>
+              <InteractiveLineChart data={filteredData} dataKey="chanting" color="stroke-blue-500 text-blue-500" label="Rounds" />
             </div>
 
             {/* Reading */}
@@ -252,11 +289,7 @@ const CounsellorStudentReport = () => {
                 <span className="font-bold text-[15px] text-gray-800">Reading</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.reading}</span>
               </div>
-              <div className="h-12 w-full flex items-end">
-                <svg viewBox="0 -5 100 50" className="w-full h-full preserve-aspect-ratio-none stroke-orange-400" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={generateSparkline(metrics.reading)} />
-                </svg>
-              </div>
+              <InteractiveLineChart data={filteredData} dataKey="reading" color="stroke-orange-400 text-orange-400" label="Mins" />
             </div>
 
             {/* Morning Program */}
@@ -281,11 +314,7 @@ const CounsellorStudentReport = () => {
                 <span className="font-bold text-[15px] text-gray-800">Hearing</span>
                 <span className="text-gray-400 text-[12px] font-medium">Avg: {metrics.avgText.hearing}</span>
               </div>
-              <div className="h-12 w-full flex items-end">
-                <svg viewBox="0 -5 100 50" className="w-full h-full preserve-aspect-ratio-none stroke-purple-400" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={generateSparkline(metrics.hearing)} />
-                </svg>
-              </div>
+              <InteractiveLineChart data={filteredData} dataKey="hearing" color="stroke-purple-400 text-purple-400" label="Mins" />
             </div>
           </div>
         </div>
