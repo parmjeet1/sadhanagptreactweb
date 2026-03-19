@@ -31,6 +31,12 @@ const CounsellorSubCounsellors = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubCounsellor, setSelectedSubCounsellor] = useState('All Sub-Counsellors');
   const [visibleCount, setVisibleCount] = useState(10);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (g) => {
+    setToast({ groupName: g.name, subCounsellor: g.subCounsellor });
+    setTimeout(() => setToast(null), 3500);
+  };
   
   const observerTarget = useRef(null);
 
@@ -69,6 +75,31 @@ const CounsellorSubCounsellors = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans relative overflow-x-hidden">
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.96 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+            className="fixed top-6 left-4 right-4 z-[100] flex justify-center pointer-events-none"
+          >
+            <div className="bg-[#0f172a] text-white px-5 py-4 rounded-2xl shadow-2xl flex items-start gap-3 max-w-sm w-full">
+              <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V20H3V19L5 17V11C5 7.9 7.03 5.17 10 4.29C10 4.19 10 4.1 10 4A2 2 0 0 1 12 2A2 2 0 0 1 14 4C14 4.1 14 4.19 14 4.29C16.97 5.17 19 7.9 19 11V17L21 19M14 21A2 2 0 0 1 12 23A2 2 0 0 1 10 21" /></svg>
+              </div>
+              <div>
+                <p className="text-[14px] font-extrabold leading-snug">Report Requested</p>
+                <p className="text-[12px] text-gray-400 font-medium mt-0.5 leading-snug">
+                  {toast.subCounsellor} has been asked to submit a report for <span className="text-white font-bold">{toast.groupName}</span>. You'll be notified once it's ready.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="w-full max-w-md mx-auto pb-[100px]">
         
         {/* Header */}
@@ -152,8 +183,20 @@ const CounsellorSubCounsellors = () => {
                   </div>
                 </div>
 
-                {/* Performance Ring / Arrow */}
-                <div className="flex flex-col items-center shrink-0 ml-2">
+                {/* Request Report Icon + Performance Ring */}
+                <div className="flex flex-col items-center shrink-0 ml-2 gap-2">
+                  {/* Request Report Button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); showToast(g); }}
+                    title="Request Report"
+                    className="w-9 h-9 rounded-full bg-amber-50 hover:bg-amber-100 active:scale-90 flex items-center justify-center transition-all"
+                  >
+                    <svg className="w-4.5 h-4.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </button>
+
+                  {/* Performance Ring */}
                   <div className="relative w-12 h-12 flex items-center justify-center">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                       <path
