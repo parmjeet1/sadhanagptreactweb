@@ -67,10 +67,12 @@ export const postRequest = async (URL, requestData, callback) => {
 // 3. Standard Get Request
 export const getRequest = async (URL, callback) => {
     try {
+        console.log("api url", URL);
         const response = await axios({
             method: "GET",
             url: URL,
             headers: {
+
                 // "access_token" : sessionStorage.getItem('buyer_token') || localStorage.getItem('buyer_token'),
                 "Content-Type": "application/json"
             }
