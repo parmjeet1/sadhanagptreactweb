@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getRequest } from '../../services/api';
 
 const GoogleButton = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleGoogleLogin = async () => {
@@ -13,7 +14,7 @@ const GoogleButton = () => {
     try {
       const response = await getRequest(authUrl);
       if (response && response.user) {
-        // Store profile in session as requested
+        // Store profile in session
         sessionStorage.setItem('profile', JSON.stringify({
           google_id: response.user.google_id,
           name: response.user.name,
@@ -21,15 +22,16 @@ const GoogleButton = () => {
           picture: response.user.picture
         }));
         
-        // Initialize empty user details for role/other info
+        // Initialize empty user details
         sessionStorage.setItem('user_details', JSON.stringify({}));
         
         navigate("/onboarding");
-      } else if (response && response.code === 500) {
-        console.error("Login failed: Backend returned error", response.message);
+      } else {
+        // If not successful/data missing, maybe fallback or show error
+        console.error("Login response did not contain user data:", response);
       }
     } catch (error) {
-      console.error("Google Login background request failed:", error);
+      console.error("Google Login failed:", error);
     } finally {
       setIsLoading(false);
     }

@@ -12,18 +12,42 @@ const OnboardingStepTwo = () => {
   });
 
   React.useEffect(() => {
-    const profileStr = sessionStorage.getItem('profile');
-    if (profileStr) {
+    // 1. Check for profile in URL (returned from backend callback)
+    const params = new URLSearchParams(window.location.search);
+    const userDataParam = params.get('user_data');
+    
+    let profile = null;
+    
+    if (userDataParam) {
       try {
-        const profile = JSON.parse(profileStr);
-        setFormData(prev => ({
-          ...prev,
-          name: profile.name || prev.name,
-          email: profile.email || prev.email
-        }));
+        profile = JSON.parse(decodeURIComponent(userDataParam));
+        // Save to session for future use
+        sessionStorage.setItem('profile', JSON.stringify(profile));
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
-        console.error("Failed to parse profile from session", err);
+        console.error("Failed to parse user_data from URL", err);
       }
+    }
+
+    // 2. If not in URL, check sessionStorage
+    if (!profile) {
+      const profileStr = sessionStorage.getItem('profile');
+      if (profileStr) {
+        try {
+          profile = JSON.parse(profileStr);
+        } catch (err) {
+          console.error("Failed to parse profile from session", err);
+        }
+      }
+    }
+
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        name: profile.name || prev.name,
+        email: profile.email || prev.email
+      }));
     }
   }, []);
 
