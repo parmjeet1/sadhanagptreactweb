@@ -6,35 +6,14 @@ const GoogleButton = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleGoogleLogin = async () => {
-    const authUrl = import.meta.env.GOOGLE_AUTH_URL;
+  const handleGoogleLogin = () => {
+    const authUrl = import.meta.env.VITE_GOOGLE_AUTH_URL;
     if (!authUrl || isLoading) return;
 
     setIsLoading(true);
-    try {
-      const response = await getRequest(authUrl);
-      if (response && response.user) {
-        // Store profile in session
-        sessionStorage.setItem('profile', JSON.stringify({
-          google_id: response.user.google_id,
-          name: response.user.name,
-          email: response.user.email,
-          picture: response.user.picture
-        }));
-        
-        // Initialize empty user details
-        sessionStorage.setItem('user_details', JSON.stringify({}));
-        
-        navigate("/onboarding");
-      } else {
-        // If not successful/data missing, maybe fallback or show error
-        console.error("Login response did not contain user data:", response);
-      }
-    } catch (error) {
-      console.error("Google Login failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to the backend auth URL
+    // This avoids CORS issues and allows the backend to redirect to Google
+    window.location.href = authUrl;
   };
 
   return (
