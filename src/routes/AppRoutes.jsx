@@ -26,7 +26,7 @@ const AppRoutes = () => {
             <Routes>
                 {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
                 <Route path="/" element={<Login />} />
-                <Route path="/auth/callback" element={<GoogleCallback />} />
+                {/* <Route path="/auth/callback" element={<GoogleCallback />} /> */}
                 <Route path="/onboarding" element={<RoleSelection />} />
         <Route path="/student/onboarding-step-2" element={<OnboardingStepTwo />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
