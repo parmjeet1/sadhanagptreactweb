@@ -3,33 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { getRequest } from '../../services/api';
 
 const GoogleButton = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleGoogleLogin = async () => {
-    const authUrl = import.meta.env.GOOGLE_AUTH_URL;
+    const authUrl = import.meta.env.VITE_GOOGLE_AUTH_URL;
+    console.log("Google Auth URL:", authUrl);
     if (!authUrl || isLoading) return;
 
     setIsLoading(true);
     try {
+      // Call the GET API
       const response = await getRequest(authUrl);
+
+      // If success, store data and navigate to onboarding
       if (response && response.user) {
-        // Store profile in session as requested
         sessionStorage.setItem('profile', JSON.stringify({
           google_id: response.user.google_id,
           name: response.user.name,
           email: response.user.email,
           picture: response.user.picture
         }));
-        
-        // Initialize empty user details for role/other info
+
+        // Initialize empty user details
         sessionStorage.setItem('user_details', JSON.stringify({}));
-        
-        navigate("/onboarding");
-      } else if (response && response.code === 500) {
-        console.error("Login failed: Backend returned error", response.message);
+
+        navigate('/onboarding');
+      } else {
+        console.error("No user data in response:", response);
       }
     } catch (error) {
-      console.error("Google Login background request failed:", error);
+      console.error("Google login API call failed:", error);
     } finally {
       setIsLoading(false);
     }
