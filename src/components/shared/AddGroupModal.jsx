@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const AddGroupModal = ({ isOpen, onClose, onSave }) => {
   const [groupName, setGroupName] = useState('');
+  const [city, setCity] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = () => {
@@ -10,15 +11,21 @@ const AddGroupModal = ({ isOpen, onClose, onSave }) => {
       setError('Please enter a group name');
       return;
     }
+    if (!city.trim()) {
+      setError('Please enter a city');
+      return;
+    }
     setError('');
-    onSave({ name: groupName });
+    onSave({ name: groupName, city: city });
     setGroupName('');
+    setCity('');
     onClose();
   };
 
   const handleClose = () => {
     setError('');
     setGroupName('');
+    setCity('');
     onClose();
   };
 
@@ -82,9 +89,24 @@ const AddGroupModal = ({ isOpen, onClose, onSave }) => {
                     if (e.target.value.trim()) setError('');
                   }}
                   placeholder="Enter group name"
-                  className={`w-full border ${error ? 'border-red-200 focus:border-red-400 focus:ring-red-400' : 'border-[#e2e8f0] focus:border-[#1a73e8] focus:ring-[#1a73e8]'} rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-400 focus:ring-1 outline-none transition-all`}
+                  className={`w-full border ${error && !groupName.trim() ? 'border-red-200 focus:border-red-400 focus:ring-red-400' : 'border-[#e2e8f0] focus:border-[#1a73e8] focus:ring-[#1a73e8]'} rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-400 focus:ring-1 outline-none transition-all`}
                 />
-                
+              </div>
+
+              <div>
+                <label className="block text-[14px] font-medium text-[#1e293b] mb-2">City</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    if (e.target.value.trim()) setError('');
+                  }}
+                  placeholder="Enter city"
+                  className={`w-full border ${error && !city.trim() ? 'border-red-200 focus:border-red-400 focus:ring-red-400' : 'border-[#e2e8f0] focus:border-[#1a73e8] focus:ring-[#1a73e8]'} rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-400 focus:ring-1 outline-none transition-all`}
+                />
+              </div>
+
                 {/* Error Message */}
                 <AnimatePresence>
                   {error && (
@@ -101,7 +123,6 @@ const AddGroupModal = ({ isOpen, onClose, onSave }) => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
             </div>
 
             {/* Actions */}

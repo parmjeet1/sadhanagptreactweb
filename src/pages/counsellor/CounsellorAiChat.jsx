@@ -1,12 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
-import { getAIAnalysis } from '../../services/aiService';
+import { postRequest } from '../../services/api';
+
+const callAI = async (messages) => {
+    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`;
+    
+    // Prefix system instruction to the first message if needed implicitly
+    const contents = messages.map(m => ({
+        role: m.role === 'model' || m.role === 'ai' || m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content || m.text }]
+    }));
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents })
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || "AI request failed");
+    }
+
+    const data = await response.json();
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error("Empty response from AI");
+    }
+
+    return data.candidates[0].content.parts[0].text;
+};
+
+// Premium Markdown Renderer
+const MarkdownMessage = ({ text }) => {
+    const renderInline = (text) => {
+        const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className="font-black text-[#1a73e8]">{part.slice(2, -2)}</strong>;
+            }
+            if (part.startsWith('*') && part.endsWith('*')) {
+                return <em key={i} className="italic text-gray-600">{part.slice(1, -1)}</em>;
+            }
+            return part;
+        });
+    };
+
+    const renderLine = (line, idx) => {
+        const cleanLine = line.trim();
+        if (!cleanLine) return <div key={idx} className="h-3" />;
+
+        if (line.startsWith('## ')) {
+            const title = line.replace('## ', '');
+            return (
+                <div key={idx} className="mt-8 mb-4 flex items-center gap-3 text-[#1a73e8]">
+                    <div className="w-1.5 h-6 rounded-full bg-[#1a73e8]" />
+                    <h2 className="text-[17px] font-black uppercase tracking-tight">{title}</h2>
+                </div>
+            );
+        }
+
+        if (cleanLine.startsWith('**') && cleanLine.endsWith(':**')) {
+            const title = cleanLine.replace(/\*\*|:/g, '');
+            return (
+                <div key={idx} className="mt-5 mb-2 flex items-center gap-2 px-3 py-1.5 rounded-xl w-fit bg-gray-100 text-gray-700">
+                    <span className="text-[14px]">📝</span>
+                    <span className="text-[12px] font-black uppercase tracking-widest">{title}</span>
+                </div>
+            );
+        }
+
+        if (line.match(/^[\*\-]\s+/)) {
+            const content = line.replace(/^[\*\-]\s+/, '');
+            return (
+                <div key={idx} className="flex items-start gap-3 my-2.5 pl-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-200 mt-[8px] shrink-0" />
+                    <p className="text-[14.5px] leading-[1.6] text-[#334155] font-bold">
+                        {renderInline(content)}
+                    </p>
+                </div>
+            );
+        }
+
+        if (line.match(/^\d+\.\s+/)) {
+            const num = line.match(/^(\d+)\./)[1];
+            const content = line.replace(/^\d+\.\s+/, '');
+            return (
+                <div key={idx} className="bg-white border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-lg bg-[#1a73e8] text-white text-[11px] font-black flex items-center justify-center shrink-0">
+                        {num}
+                    </span>
+                    <p className="text-[14px] leading-relaxed text-[#334155] font-bold">
+                        {renderInline(content)}
+                    </p>
+                </div>
+            );
+        }
+
+        return <p key={idx} className="text-[14.5px] leading-[1.7] text-[#475569] my-1.5 font-bold">{renderInline(line)}</p>;
+    };
+
+    return (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-700">
+            {text.split('\n').map((line, idx) => renderLine(line, idx))}
+        </div>
+    );
+};
 
 const CounsellorAiChat = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { userDetails } = useOutletContext();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -17,41 +123,87 @@ const CounsellorAiChat = () => {
     }
   ]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
 
   useEffect(() => {
     const runAnalysis = async () => {
-      const studentsData = location.state?.studentsData;
-      if (studentsData && studentsData.length > 0) {
+      const { student_ids, date_from, date_to, studentsData, reports, fromReport } = location.state || {};
+      
+      if (fromReport && reports) {
+        setAnalyticsData(reports);
         setIsAnalyzing(true);
-        
-        // Add a "processing" message
+        try {
+          const systemContext = `You are a high-level data analyst for a counsellor. Your goal is to analyze the daily reports of multiple students over a time period and present actionable insights. 
+          Here is the JSON dataset: \n${JSON.stringify(reports)}\n\n
+          Provide a professional, easy-to-read summary assessing who is doing well, who is struggling, and clear recommendations. Use bullet points and bolding.`;
+          
+          const result = await callAI([{text: systemContext, role: 'user'}]);
+          setMessages([
+            { role: 'user', category: 'You', text: 'Generate Bulk AI Report' },
+            { role: 'ai', category: 'AI Analysis', text: result, icon: 'bot' }
+          ]);
+        } catch (err) {
+          setMessages(prev => [...prev, { role: 'ai', category: 'Error', text: `AI analysis failed: ${err.message}`, icon: 'bot' }]);
+        }
+        setIsAnalyzing(false);
+        return;
+      }
+
+      if (student_ids && studentsData) {
+        setIsAnalyzing(true);
         setMessages(prev => [
           ...prev,
           {
             role: 'ai',
             category: 'Status',
-            text: `Analyzing activity data for ${studentsData.length} students... Please wait a moment.`,
+            text: `Gathering and analyzing activity data for ${studentsData.length} students from the database... Please wait.`,
             icon: 'bot'
           }
         ]);
 
-        const result = await getAIAnalysis(studentsData);
-        
-        setIsAnalyzing(false);
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'ai',
-            category: 'AI Analysis',
-            text: result,
-            icon: 'bot'
+        const payload = {
+          user_id: userDetails.user_id,
+          student_ids,
+          date_from,
+          date_to
+        };
+
+        postRequest('/bulk-ai-report', payload, async (response) => {
+          if (response.data?.status === 1) {
+            const reportData = response.data.data;
+            setAnalyticsData(reportData);
+
+            try {
+              const systemContext = `You are a high-level data analyst for a counsellor. Your goal is to analyze the daily reports of multiple students over a time period and present actionable insights. 
+              Here is the JSON dataset: \n${JSON.stringify(reportData)}\n\n
+              Provide a professional, easy-to-read summary assessing who is doing well, who is struggling, and clear recommendations. Use bullet points and bolding.`;
+              
+              const result = await callAI([{text: systemContext, role: 'user'}]);
+
+              setMessages([
+                { role: 'user', category: 'You', text: 'Generate Bulk AI Report' },
+                { role: 'ai', category: 'AI Analysis', text: result, icon: 'bot' }
+              ]);
+            } catch (err) {
+              setMessages(prev => [
+                ...prev,
+                { role: 'ai', category: 'Error', text: `AI analysis failed: ${err.message}`, icon: 'bot' }
+              ]);
+            }
+          } else {
+             setMessages(prev => [
+                ...prev,
+                { role: 'ai', category: 'Error', text: `Failed to fetch data from database: ${response.data?.message || 'Server Error'}`, icon: 'bot' }
+             ]);
           }
-        ]);
+          setIsAnalyzing(false);
+        });
       }
     };
 
     runAnalysis();
-  }, [location.state]);
+    // eslint-disable-next-line
+  }, [location.state, userDetails.user_id]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isAnalyzing) return;
@@ -68,8 +220,20 @@ const CounsellorAiChat = () => {
     setIsAnalyzing(true);
 
     try {
-      // For simple chat, we can just call the same service or a simplified version
-      const result = await getAIAnalysis([{ name: 'Context', text: input, history: messages }]);
+      const historyContext = messages.map(m => ({ text: m.text, role: m.role }));
+      
+      let finalMessages = [];
+      if (analyticsData) {
+         finalMessages = [
+           {role: 'user', text: `Context Database: ${JSON.stringify(analyticsData)}`},
+           ...historyContext,
+           {role: 'user', text: input}
+         ];
+      } else {
+         finalMessages = [...historyContext, {role: 'user', text: input}];
+      }
+
+      const result = await callAI(finalMessages);
       
       setMessages(prev => [
         ...prev,
@@ -82,6 +246,7 @@ const CounsellorAiChat = () => {
       ]);
     } catch (error) {
       console.error(error);
+      setMessages(prev => [...prev, {role: 'ai', text: "Sorry, I ran into an error connecting to the AI."}]);
     } finally {
       setIsAnalyzing(false);
     }
@@ -126,94 +291,13 @@ const CounsellorAiChat = () => {
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
                 </div>
                 <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1 overflow-hidden">
-                  <div className="text-[15px] leading-relaxed text-[#1e293b] whitespace-pre-wrap ai-content">
-                    {(() => {
-                      const lines = msg.text.split('\n');
-                      const rendered = [];
-                      let currentTable = null;
-
-                      for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-
-                        // Table Detection
-                        if (line.startsWith('|')) {
-                          if (!currentTable) {
-                            currentTable = [];
-                          }
-                          const cells = line.split('|').filter(c => c.trim() !== '' || line.startsWith('|') && line.endsWith('|')).map(c => c.trim());
-                          // Skip the separator line |---|---|
-                          if (!cells.every(c => c.match(/^-+:?|:?-+$/))) {
-                            currentTable.push(cells);
-                          }
-                          continue;
-                        } else {
-                          if (currentTable) {
-                            rendered.push(
-                              <div key={`table-${i}`} className="my-4 overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-                                <table className="w-full text-left text-[13px] border-collapse">
-                                  <thead className="bg-[#f8fafc]">
-                                    <tr>
-                                      {currentTable[0].map((cell, idx) => (
-                                        <th key={idx} className="px-4 py-3 font-black text-[#64748b] border-b border-gray-100 uppercase tracking-wider whitespace-nowrap">{cell}</th>
-                                      ))}
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {currentTable.slice(1).map((row, rIdx) => (
-                                      <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                                        {row.map((cell, cIdx) => (
-                                          <td key={cIdx} className="px-4 py-3 font-bold text-[#0f172a] border-b border-gray-50 whitespace-nowrap">{cell}</td>
-                                        ))}
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            );
-                            currentTable = null;
-                          }
-                        }
-
-                        if (line.startsWith('###')) {
-                          rendered.push(<h4 key={i} className="text-[#1a73e8] font-black text-[16px] mt-4 mb-2">{line.replace('###', '').trim()}</h4>);
-                        } else if (line.startsWith('-')) {
-                          rendered.push(<div key={i} className="flex gap-2 ml-1 mb-1 font-medium"><span className="text-[#1a73e8]">•</span><span>{line.replace(/^-|\*\*/g, '').trim()}</span></div>);
-                        } else if (line !== '') {
-                          rendered.push(<p key={i} className="mb-2 font-medium">{line}</p>);
-                        } else {
-                          rendered.push(<div key={i} className="h-2"></div>);
-                        }
-                      }
-
-                      // Final table flush if message ends with table
-                      if (currentTable) {
-                        rendered.push(
-                          <div key="table-end" className="my-4 overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-                            <table className="w-full text-left text-[12px] border-collapse">
-                              <thead className="bg-[#f8fafc]">
-                                <tr>
-                                  {currentTable[0].map((cell, idx) => (
-                                    <th key={idx} className="px-4 py-3 font-black text-[#64748b] border-b border-gray-100 uppercase tracking-wider whitespace-nowrap">{cell}</th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {currentTable.slice(1).map((row, rIdx) => (
-                                  <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}>
-                                    {row.map((cell, cIdx) => (
-                                      <td key={cIdx} className="px-4 py-3 font-bold text-[#0f172a] border-b border-gray-50 whitespace-nowrap">{cell}</td>
-                                    ))}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        );
-                      }
-
-                      return rendered;
-                    })()}
-                  </div>
+                    {msg.role === 'ai' && msg.category !== 'Status' && msg.category !== 'Error' && msg.category !== 'System' ? (
+                       <MarkdownMessage text={msg.text} />
+                    ) : (
+                       <div className="text-[14.5px] leading-relaxed text-[#1e293b] whitespace-pre-wrap font-bold ai-content">
+                         {msg.text}
+                       </div>
+                    )}
                 </div>
               </motion.div>
             ))}

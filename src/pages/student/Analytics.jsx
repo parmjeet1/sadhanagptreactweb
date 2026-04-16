@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import BottomNavigation from '../../components/student/BottomNavigation';
+import { getRequest } from '../../services/api';
 
 // Helper for smooth Bezier curves
 const getCurvedPathData = (data, width, height, padding) => {
@@ -28,57 +29,90 @@ const getCurvedPathData = (data, width, height, padding) => {
   return d;
 };
 
-// Tooltip Component
-const DailyTooltip = ({ day, value, label, position }) => (
+const DailyTooltip = ({ dateStr, value, label, position }) => {
+  let displayDate = "";
+  if (dateStr) {
+     const d = new Date(dateStr);
+     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+     if (!isNaN(d.getTime())) {
+         displayDate = `${months[d.getMonth()]} ${d.getDate()}`;
+     }
+  }
+
+  return (
   <motion.div
     initial={{ opacity: 0, scale: 0.9, y: 10 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
     exit={{ opacity: 0, scale: 0.9, y: 10 }}
     className="absolute z-50 pointer-events-none"
-    style={{ left: position.x, top: position.y - 80 }}
+    style={{ 
+      left: position.x, 
+      top: -65, // Position high enough above finger
+      transform: 'translateX(-50%)' 
+    }}
   >
-    <div className="bg-[#0f172a] text-white px-4 py-2 rounded-xl shadow-2xl relative">
-      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Oct {18 + day}</div>
-      <div className="text-[16px] font-black whitespace-nowrap">{value} <span className="text-[12px] font-medium text-gray-400">{label}</span></div>
-      {/* Arrow */}
-      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0f172a] rotate-45"></div>
+    <div className="bg-[#0f172a]/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl shadow-2xl relative border border-white/10 flex flex-col items-center">
+      <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-0.5">{displayDate}</div>
+      <div className="text-[15px] font-black whitespace-nowrap leading-tight">{value} <span className="text-[11px] font-bold text-gray-400">{label}</span></div>
+      <div className="absolute -bottom-1 w-3 h-3 bg-[#0f172a] rotate-45 border-r border-b border-white/5"></div>
     </div>
   </motion.div>
-);
+  );
+};
 
-const MiniChart = ({ data, color, label }) => {
+const MiniChart = ({ data, dates, color, label }) => {
   const [hoverIndex, setHoverIndex] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const width = 300;
   const height = 100;
-  const padding = 10;
   
-  const linePath = getCurvedPathData(data, width, height, padding);
-  const areaPath = `${linePath} L ${width - padding} ${height - padding} L ${padding} ${height - padding} Z`;
+  const values = data.map(v => Number(v || 0));
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const step = width / (values.length - 1 || 1);
+  
+  const points = values.map((val, i) => ({
+    x: i * step,
+    y: height - ((val - min) / range) * height
+  }));
+
+  const pathData = points.map((p, i) => {
+    if (i === 0) return `M ${p.x} ${p.y}`;
+    const prev = points[i - 1];
+    const cpX1 = prev.x + (p.x - prev.x) / 2;
+    const cpX2 = prev.x + (p.x - prev.x) / 2;
+    return `C ${cpX1} ${prev.y}, ${cpX2} ${p.y}, ${p.x} ${p.y}`;
+  }).join(' ');
+
+  const areaData = `${pathData} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
 
   const handleInteraction = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const xStep = (rect.width - (padding * 2 * (rect.width/width))) / (data.length - 1);
-    const index = Math.round((x - (padding * (rect.width/width))) / xStep);
+    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+    const percent = Math.max(0, Math.min(1, x / rect.width));
+    const index = Math.round(percent * (data.length - 1));
     
     if (index >= 0 && index < data.length) {
       setHoverIndex(index);
-      // Calculate tooltip position relative to the SVG container
-      const xPos = padding + index * ((width - padding * 2) / (data.length - 1));
-      setTooltipPos({ x: (xPos / width) * rect.width, y: 0 });
+      setTooltipPos({ x: percent * rect.width, y: 0 });
     }
   };
 
-  const gradientId = `grad-${color.replace('#', '')}`;
-  const areaGradId = `area-${color.replace('#', '')}`;
+  const gradId = `grad-${label.replace(/\s+/g, '')}`;
 
   return (
-    <div className="relative w-full h-24 mt-6 overflow-visible" onPointerMove={handleInteraction} onPointerLeave={() => setHoverIndex(null)}>
+    <div className="relative w-full h-24 mt-8 touch-none group" 
+         onPointerMove={handleInteraction} 
+         onPointerLeave={() => setHoverIndex(null)}
+         onTouchStart={handleInteraction}
+         onTouchMove={handleInteraction}
+         onTouchEnd={() => setTimeout(() => setHoverIndex(null), 1000)}
+    >
       <AnimatePresence>
         {hoverIndex !== null && (
           <DailyTooltip 
-            day={hoverIndex} 
+            dateStr={dates?.[hoverIndex] || ''} 
             value={data[hoverIndex]} 
             label={label}
             position={tooltipPos}
@@ -86,68 +120,68 @@ const MiniChart = ({ data, color, label }) => {
         )}
       </AnimatePresence>
 
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+      <svg viewBox={`0 -5 ${width} ${height + 10}`} className="w-full h-full overflow-visible">
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor={color} stopOpacity="0.8" />
-            <stop offset="100%" stopColor={color} />
-          </linearGradient>
-          <linearGradient id={areaGradId} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity="0.2" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Area Fill */}
+        {/* Improved Area Fill */}
         <motion.path
-          d={areaPath}
-          fill={`url(#${areaGradId})`}
+          d={areaData}
+          fill={`url(#${gradId})`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
         />
 
-        {/* Main Line */}
+        {/* Premium Smooth Line */}
         <motion.path
-          d={linePath}
+          d={pathData}
           fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="4"
+          stroke={color}
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
+          className="drop-shadow-sm"
         />
 
-        {/* Scrubber Line */}
+        {/* Interaction Scrubbing UI */}
         <AnimatePresence>
-          {hoverIndex !== null && (
-            <motion.g
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <line 
-                x1={padding + hoverIndex * ((width - padding * 2) / (data.length - 1))} 
-                y1={0} 
-                x2={padding + hoverIndex * ((width - padding * 2) / (data.length - 1))} 
-                y2={height - padding} 
-                stroke="#e2e8f0" 
-                strokeWidth="1" 
-                strokeDasharray="4 2"
-              />
-              <circle 
-                cx={padding + hoverIndex * ((width - padding * 2) / (data.length - 1))} 
-                cy={height - padding - (data[hoverIndex] * ((height - padding * 2) / Math.max(...data, 1)))} 
-                r="6" 
-                fill="white" 
-                stroke={color} 
-                strokeWidth="3"
-                className="drop-shadow-sm"
-              />
-            </motion.g>
-          )}
+          {points.map((p, i) => (
+            (hoverIndex === i || (i === points.length - 1 && hoverIndex === null)) && (
+              <motion.g
+                key={`point-${i}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <line 
+                  x1={p.x} 
+                  y1={0} 
+                  x2={p.x} 
+                  y2={height} 
+                  stroke={color} 
+                  strokeWidth="1.5" 
+                  strokeOpacity={hoverIndex === i ? 0.4 : 0.15}
+                  strokeDasharray="4 2"
+                />
+                <circle 
+                  cx={p.x} 
+                  cy={p.y} 
+                  r="4" 
+                  fill="white" 
+                  stroke={color} 
+                  strokeWidth="2.5"
+                  className="drop-shadow-md"
+                />
+              </motion.g>
+            )
+          ))}
         </AnimatePresence>
       </svg>
     </div>
@@ -156,18 +190,99 @@ const MiniChart = ({ data, color, label }) => {
 
 const Analytics = () => {
   const navigate = useNavigate();
+  const { userDetails } = useOutletContext();
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('Weekly');
-  const [fromDate, setFromDate] = useState('2026-03-10');
-  const [toDate, setToDate] = useState('2026-03-17');
-
-  const tabs = ['Weekly', '15 Days', 'Custom'];
   
-  const activitiesData = [
-    { name: 'CHANTING', value: 86, label: 'Total Counts', trend: '+12%', data: [40, 55, 48, 65, 58, 62, 70], color: '#1a73e8' },
-    { name: 'READING', value: 42, label: 'Pages', trend: '+5%', data: [30, 32, 38, 45, 42, 48, 55], color: '#a855f7' },
-    { name: 'MEDITATION', value: 120, label: 'Minutes', trend: 'Stable', trendColor: '#93c5fd', data: [118, 122, 120, 119, 121, 120, 120], color: '#20c997' }
-  ];
+  const todayDate = new Date().toISOString().split('T')[0];
+  const lastWeekDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  const [fromDate, setFromDate] = useState(lastWeekDate);
+  const [toDate, setToDate] = useState(todayDate);
+  const [activitiesData, setActivitiesData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const tabs = ['Weekly', '30 Days', 'Custom'];
+  
+  const fetchAnalytics = () => {
+    if (!userDetails?.user_id) return;
+    setIsLoading(true);
+    
+    const filterMap = {
+      'Weekly': '7days',
+      '30 Days': '30days',
+      'Custom': 'custom'
+    };
+    
+    const params = {
+      user_id: userDetails.user_id,
+      filter: filterMap[activeTab] || '7days',
+    };
+
+    if (activeTab === 'Custom') {
+      params.start_date = fromDate;
+      params.end_date = toDate;
+    }
+
+    getRequest('/student-activities-analytics', params, (response) => {
+      console.log("Analytics response:", response);
+      const res = response.data;
+      const dataObj = res?.data || res; 
+      let payloadArray = [];
+      
+      if (Array.isArray(dataObj)) payloadArray = dataObj;
+      else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
+      else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
+      
+      const mapped = payloadArray.map(act => {
+          const chartData = Array.isArray(act.daily_data) 
+             ? act.daily_data.map(d => Number(d.count || 0)) 
+             : (Array.isArray(act.data) ? act.data : []);
+          
+          const chartDates = Array.isArray(act.daily_data)
+             ? act.daily_data.map(d => d.activity_date)
+             : [];
+
+          // Native React thematic mapping
+          const n = (act.name || '').toLowerCase();
+          const t = (act.activity_type || act.type || '').toLowerCase();
+          
+          let resolvedColor = '#1a73e8'; // default blue
+          let resolvedLabel = 'Count';
+          
+          if (n.includes('chant')) { resolvedColor = '#1a73e8'; resolvedLabel = 'Rounds'; }
+          else if (n.includes('read')) { resolvedColor = '#a855f7'; resolvedLabel = 'Pages'; }
+          else if (n.includes('meditat') || n.includes('hear')) { resolvedColor = '#20c997'; resolvedLabel = 'Mins'; }
+          else if (t === 'numb' || t === 'count') { resolvedColor = '#f59e0b'; resolvedLabel = 'Count'; }
+          else if (t === 'time' || t === 'duration' || t === 'min') { resolvedColor = '#06b6d4'; resolvedLabel = 'Mins'; }
+          else if (t === 'boolean' || t === 'yes/no') { resolvedColor = '#10b981'; resolvedLabel = 'Times'; }
+
+          // Clean up time values (e.g., 00:00:09.500000 -> 00:00:09)
+          let displayVal = act.value ?? act.average_count ?? 0;
+          if (t === 'time' || String(displayVal).includes(':')) {
+            displayVal = String(displayVal).split('.')[0];
+          }
+
+          return {
+              ...act,
+              data: chartData.length > 0 ? chartData : [0,0,0,0,0,0,0],
+              dates: chartDates,
+              color: resolvedColor,
+              value: displayVal,
+              label: resolvedLabel,
+              name: act.name || 'ACTIVITY',
+              trend: act.trend || 'Stable',
+              type: t
+          };
+      });
+      setActivitiesData(mapped);
+      setIsLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [activeTab, fromDate, toDate, userDetails]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-28 relative overflow-x-hidden">
@@ -182,14 +297,22 @@ const Analytics = () => {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           
-          <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight">Activity Analytics</h1>
+          <div className="flex flex-col items-center">
+            <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight">Analytics</h1>
+            <button 
+              onClick={() => navigate('/student/ai-chat')}
+              className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+              <span>AI ANALYSIS</span>
+            </button>
+          </div>
           
           <button 
             onClick={() => setShowNotifications(true)}
             className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] active:scale-95 transition-all relative"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
           </button>
         </div>
 
@@ -251,13 +374,21 @@ const Analytics = () => {
         {/* Date Range Label (Shown when not in custom mode or as header) */}
         {activeTab !== 'Custom' && (
           <div className="text-center mb-8">
-            <span className="text-[16px] font-bold text-gray-400">Oct 18 - Oct 24</span>
+            <span className="text-[16px] font-bold text-gray-400">
+               {activeTab === 'Weekly' ? 'Last 7 Days' : 'Last 30 Days'}
+            </span>
           </div>
         )}
 
         {/* Cards List */}
-        <div className="px-6 space-y-8">
-          {activitiesData.map((activity, idx) => (
+        <div className="px-6 space-y-8 min-h-[50vh]">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center pt-20 gap-3">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-gray-500 font-medium">Loading analytics...</p>
+            </div>
+          ) : activitiesData.length > 0 ? (
+            activitiesData.map((activity, idx) => (
             <motion.div
               key={activity.name}
               initial={{ opacity: 0, y: 20 }}
@@ -282,7 +413,9 @@ const Analytics = () => {
               <div className="mb-2">
                 <span className="text-[12px] font-black text-gray-300 uppercase tracking-[0.14em]">{activity.name}</span>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[48px] font-black text-[#0f172a] leading-none tracking-tight">{activity.value}</span>
+                  <span className={`${String(activity.value).length > 6 ? 'text-[32px]' : 'text-[48px]'} font-black text-[#0f172a] leading-none tracking-tight`}>
+                    {activity.value}
+                  </span>
                   <span className="text-[17px] font-bold text-gray-400">{activity.label}</span>
                 </div>
               </div>
@@ -290,11 +423,17 @@ const Analytics = () => {
               {/* Interative Premium Chart */}
               <MiniChart 
                 data={activity.data} 
+                dates={activity.dates}
                 color={activity.color} 
-                label={activity.label === 'Total Counts' ? 'Counts' : (activity.label === 'Pages' ? 'Pages' : 'Mins')}
+                label={activity.label}
               />
             </motion.div>
-          ))}
+          ))
+        ) : (
+            <div className="text-center pt-10">
+              <p className="text-gray-500 font-medium text-lg">No analytics data found</p>
+            </div>
+        )}
         </div>
 
       </div>
