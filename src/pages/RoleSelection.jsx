@@ -5,18 +5,25 @@ const RoleSelection = () => {
   const navigate = useNavigate();
 
   const handleRoleSelect = (role) => {
-    localStorage.setItem('userRole', role);
+
     
     // Maintain user as json.{} for role and other details
-    const userDetailsStr = sessionStorage.getItem('user_details');
-    const userDetails = userDetailsStr ? JSON.parse(userDetailsStr) : {};
-    userDetails.role = role;
-    sessionStorage.setItem('user_details', JSON.stringify(userDetails));
+    // const userDetailsStr = sessionStorage.getItem('user_details');
+    // const userDetails = userDetailsStr ? JSON.parse(userDetailsStr) : {};
+    // userDetails.role = role;
+    // sessionStorage.setItem('user_details', JSON.stringify(userDetails));
+    const existingUser = JSON.parse(localStorage.getItem("user_details")) || {};
+    const updatedUser = {
+    ...existingUser,
+    user_type: role
+};
 
-    if (role === 'Student') {
+localStorage.setItem("user_details", JSON.stringify(updatedUser));
+
+    if (role === 'student') {
       navigate('/student/onboarding-step-2');
-    } else {
-      navigate('/counsellor/dashboard');
+    } else if(role === 'counsellor') {
+      navigate('/counsellor/onboarding-step-2');
     }
   };
 
@@ -33,7 +40,7 @@ const RoleSelection = () => {
         
         {/* Student Card */}
         <button 
-          onClick={() => handleRoleSelect('Student')}
+          onClick={() => handleRoleSelect('student')}
           className="flex flex-col items-center justify-center py-7 px-8 bg-white border border-[#edf2f7] rounded-[16px] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] hover:border-[#4285F4] hover:shadow-md transition-all duration-200 outline-none group active:scale-[0.98]"
         >
           <div className="text-[#4285F4] mb-3">
@@ -54,7 +61,7 @@ const RoleSelection = () => {
 
         {/* Counselor Card */}
         <button 
-          onClick={() => handleRoleSelect('Counselor')}
+          onClick={() => handleRoleSelect('counsellor')}
           className="flex flex-col items-center justify-center py-7 px-8 bg-white border border-[#edf2f7] rounded-[16px] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] hover:border-[#4285F4] hover:shadow-md transition-all duration-200 outline-none group active:scale-[0.98]"
         >
           <div className="text-[#4285F4] mb-3">

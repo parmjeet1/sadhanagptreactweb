@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Dummy data for notifications (should eventually come from a backend or context)
 const dummyNotifications = [
-  { id: 1, title: 'Reminder: Chanting', message: 'You have not completed your rounds yet.', time: '10m ago', read: false },
-  { id: 2, title: 'Goal Achieved!', message: 'You completed 60m of Reading yesterday.', time: '1d ago', read: true },
-  { id: 3, title: 'New Activity', message: 'Mangal Aarti has been added to your list.', time: '2d ago', read: true },
+  
 ];
 
 const NotificationsPanel = ({ isOpen, onClose }) => {

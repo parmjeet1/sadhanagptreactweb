@@ -7,28 +7,38 @@ const GoogleCallback = () => {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const userData = params.get('user');
-        
-        if (userData) {
+        const dataParam = params.get('data');
+        const userParam = params.get('user');
+
+        const rawData = dataParam || userParam;
+
+        if (rawData) {
             try {
-                const user = JSON.parse(decodeURIComponent(userData));
-                
-                // Store profile in session
-                sessionStorage.setItem('profile', JSON.stringify({
-                    google_id: user.google_id || user.id,
-                    name: user.name,
+                const decodedData = JSON.parse(decodeURIComponent(rawData));
+                const user = decodedData.user || decodedData;
+
+                // Store all profile and auth data in localStorage
+                localStorage.setItem('user_details', JSON.stringify({
+                    ...user, // Merge all fields from backend (user_id, access_token, user_type, etc.)
+                    google_id: user.google_id || user.id || user.sub,
+                    name: user.name || user.displayName,
                     email: user.email,
-                    picture: user.picture
+                    picture: user.picture || user.avatar_url
                 }));
-                
-                // Initialize empty user details
-                sessionStorage.setItem('user_details', JSON.stringify({}));
-                
-                // Navigate to onboarding
-                navigate("/onboarding");
+
+                // Navigate based on user status/registration
+                if (user.status === 'existing_user' && user.user_type) {
+                    navigate(`/${user.user_type}/dashboard`);
+                } else if (user.user_type === 'student' || user.user_type === 'counsellor') {
+                    // If we already know the type but they aren't marked as "existing", maybe continue onboarding
+                    navigate("/onboarding");
+                } else {
+                    // Default fallback
+                    navigate("/onboarding");
+                }
             } catch (error) {
                 console.error("Failed to parse user data from URL:", error);
-                navigate("/login");
+                navigate("/");
             }
         } else {
             // Check if there's an error param
@@ -36,7 +46,7 @@ const GoogleCallback = () => {
             if (error) {
                 console.error("Auth error:", error);
             }
-            navigate("/login");
+            navigate("/");
         }
     }, [location, navigate]);
 

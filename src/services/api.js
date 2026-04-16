@@ -1,92 +1,97 @@
 import axios from 'axios';
 
-/**
- * Common generic API service for handling network requests.
- * Uses axios for requests and standardizes responses and error handling.
- */
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
+// axios.defaults.headers.common['Content-Type'] = 'application/json';
+// axios.defaults.headers.common['Authorization'] = import.meta.env.VITE_AUTHORIZATION_KEY;
+
 
 // 1. Post Request with Multipart Form Data (For File Uploads)
 export const postRequestWithFile = async (URL, requestData, callback) => {
     try {
-        // if (!requestData.country_code) {
-        //    requestData.country_code = "+91";
-        // }
+        let userDetails = JSON.parse(localStorage.getItem('user_details')) || {};
 
+        let headers = {
+            "Content-Type": "application/json",
+            "Authorization": import.meta.env.VITE_AUTHORIZATION_KEY
+        };
+        if (userDetails?.access_token || userDetails?.accesstoken) {
+            headers["accesstoken"] = userDetails.access_token || userDetails.accesstoken;
+        }
         const response = await axios({
             method: "POST",
             url: URL,
+           
             data: requestData,
-            headers: {
-                // "access_token" : sessionStorage.getItem('buyer_token') || localStorage.getItem('buyer_token'),
-                "Content-Type": "multipart/form-data"
-            }
+             headers
+            
         });
 
-        // Execute callback if provided, otherwise return promise data
         if (callback) {
-            return callback(response.data);
+            return callback(response);
         }
-        return response.data;
+        return response;
 
     } catch (err) {
-        const errorObj = { code: 500, message: 'Connection failed, please start node server' };
         if (callback) {
-            return callback(errorObj);
+            return callback(err.response || err);
         }
-        // throw err;
-        return errorObj;
+        throw err;
     }
 }
 
 // 2. Standard Post Request (JSON)
 export const postRequest = async (URL, requestData, callback) => {
     try {
+        let userDetails = JSON.parse(localStorage.getItem('user_details')) || {};
+
+        let headers = {
+            "Content-Type": "application/json",
+            "Authorization": import.meta.env.VITE_AUTHORIZATION_KEY
+        };
+        if (userDetails?.access_token || userDetails?.accesstoken) {
+            headers["accesstoken"] = userDetails.access_token || userDetails.accesstoken;
+        }
+
         const response = await axios({
             method: "POST",
             url: URL,
             data: requestData,
-            headers: {
-                // "access_token" : sessionStorage.getItem('buyer_token') || localStorage.getItem('buyer_token'),
-                "Content-Type": "application/json"
-            }
+            headers
         });
 
-        if (callback) return callback(response.data);
-        return response.data;
+        if (callback) return callback(response);
+        return response;
 
     } catch (err) {
-        const errorObj = {
-            code: err.response?.status || 500,
-            message: err.response?.data?.message || 'Connection failed, please start node server'
-        };
-        if (callback) return callback(errorObj);
-        return errorObj;
+        if (callback) return callback(err.response || err);
+        throw err;
     }
 }
 
 // 3. Standard Get Request
-export const getRequest = async (URL, callback) => {
+export const getRequest = async (URL, requestData, callback) => {
     try {
-        console.log("api url", URL);
+        let userDetails = JSON.parse(localStorage.getItem('user_details')) || {};
+        let headers = {
+            "Content-Type": "application/json",
+            "Authorization": import.meta.env.VITE_AUTHORIZATION_KEY
+        };
+        if (userDetails?.access_token || userDetails?.accesstoken) {
+            headers["accesstoken"] = userDetails.access_token || userDetails.accesstoken;
+        }
+
         const response = await axios({
             method: "GET",
             url: URL,
-            headers: {
-
-                // "access_token" : sessionStorage.getItem('buyer_token') || localStorage.getItem('buyer_token'),
-                "Content-Type": "application/json"
-            }
+            params: requestData,
+            headers
         });
 
-        if (callback) return callback(response.data);
-        return response.data;
-
+        if (callback) return callback(response);
+        return response;
     } catch (err) {
-        const errorObj = {
-            code: err.response?.status || 500,
-            message: err.response?.data?.message || 'Connection failed, please start node server'
-        };
-        if (callback) return callback(errorObj);
-        return errorObj;
+        console.log("API GET request error:", err);
+        if (callback) return callback(err.response || err);
+        throw err;
     }
 }

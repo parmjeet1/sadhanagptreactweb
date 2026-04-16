@@ -5,6 +5,7 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [trackingType, setTrackingType] = useState('Duration'); // Default select
   const [target, setTarget] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const trackingTypes = [
     {
@@ -41,24 +42,24 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
     }
   ];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Basic validation
     if (!name.trim()) return;
     
-    // In a real app we'd construct standard activity data here to pass up
+    setIsSubmitting(true);
     if (onSave) {
-      onSave({
-        title: name,
-        type: trackingType.toUpperCase(),
+      await onSave({
+        name: name,
+        trackingType: trackingType,
         target: target
       });
     }
+    setIsSubmitting(false);
     
     // Reset form
     setName('');
     setTrackingType('Duration');
     setTarget('');
-    onClose();
   };
 
   return (
@@ -86,8 +87,11 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
               right: 'max(0px, calc(50% - 224px))'
             }}
           >
-            {/* Drag Handle Area */}
-            <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10">
+            {/* Drag Handle Area - Clickable to close as requested */}
+            <div 
+              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+              onClick={onClose}
+            >
               <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
             </div>
 
@@ -110,6 +114,7 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
                   />
                 </div>
               </div>
+
 
               {/* Tracking Type Grid */}
               <div className="space-y-3">
@@ -165,15 +170,21 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
               <div className="flex items-center gap-4 pt-4 pb-4">
                 <button 
                   onClick={onClose}
-                  className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleSave}
-                  className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30"
+                  disabled={isSubmitting}
+                  className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30 flex flex-col items-center justify-center h-[56px] disabled:opacity-70 disabled:active:scale-100"
                 >
-                  Save Activity
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-[2px] border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "Save Activity"
+                  )}
                 </button>
               </div>
 

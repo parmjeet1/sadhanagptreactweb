@@ -4,6 +4,8 @@ import Login from '../pages/Login';
 import RoleSelection from '../pages/RoleSelection';
 import OnboardingStepTwo from '../pages/student/OnboardingStepTwo';
 import StudentDashboard from '../pages/student/StudentDashboard';
+import UnderConstruction from '../pages/UnderConstruction';
+
 import Analytics from '../pages/student/Analytics';
 import Inspiration from '../pages/student/Inspiration';
 import Profile from '../pages/student/Profile';
@@ -12,41 +14,56 @@ import CounsellorDashboard from '../pages/counsellor/CounsellorDashboard';
 import CounsellorProfile from '../pages/counsellor/CounsellorProfile';
 import CounsellorAnalytics from '../pages/counsellor/CounsellorAnalytics';
 import CounsellorRewardsManagement from '../pages/counsellor/CounsellorRewardsManagement';
-import CounsellorViewMentees from '../pages/counsellor/CounsellorViewMentees';
+import MenteesList from '../pages/counsellor/mentees_module/MenteesList';
+import StudentReport from '../pages/counsellor/mentees_module/StudentReport';
+import GroupMenteesList from '../pages/counsellor/group_mentees_module/GroupMenteesList';
 import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
-import CounsellorGroupMentees from '../pages/counsellor/CounsellorGroupMentees';
-import CounsellorStudentReport from '../pages/counsellor/CounsellorStudentReport';
 import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsellors';
+import CounsellorOnboardingStepTwo from '../pages/counsellor/CounsellorOnboardingStepTwo';
 import GoogleCallback from '../pages/GoogleCallback';
+import AuthGuard from '../components/shared/AuthGuard';
 
 const AppRoutes = () => {
-    return (
-        <Router>
-            <Routes>
-                {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
-                <Route path="/" element={<Login />} />
-                {/* <Route path="/auth/callback" element={<GoogleCallback />} /> */}
-                <Route path="/onboarding" element={<RoleSelection />} />
+  return (
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Login />} />
+        <Route path="/oauth-success" element={<GoogleCallback />} />
+        <Route path="/onboarding" element={<RoleSelection />} />
         <Route path="/student/onboarding-step-2" element={<OnboardingStepTwo />} />
-        <Route path="/student/dashboard" element={<StudentDashboard />} />
-        <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
-        <Route path="/counsellor/profile" element={<CounsellorProfile />} />
-        <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
-        <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} />
-        <Route path="/counsellor/mentees" element={<CounsellorViewMentees />} />
-        <Route path="/counsellor/mentee/:id" element={<CounsellorStudentReport />} />
-        <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
-        <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
-        <Route path="/counsellor/group-mentees" element={<CounsellorGroupMentees />} />
-        <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
-        <Route path="/student/analytics" element={<Analytics />} />
-        <Route path="/student/inspiration" element={<Inspiration />} />
-        <Route path="/student/profile" element={<Profile />} />
-        <Route path="/student/ai-chat" element={<AIChat />} />
+        <Route path="/counsellor/onboarding-step-2" element={<CounsellorOnboardingStepTwo />} />
+
+        {/* Protected Routes */}
+        <Route element={<AuthGuard />}>
+
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
+          <Route path="/student/profile" element={<Profile />} />
+
+          <Route path="/counsellor/profile" element={<CounsellorProfile />} />
+          <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
+          
+          <Route path="/counsellor/rewards" element={<UnderConstruction />} />
+
+          {/* <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} /> */}
+          <Route path="/counsellor/mentees" element={<MenteesList />} />
+          <Route path="/counsellor/mentee/:id" element={<StudentReport />} />
+          <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
+          <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
+          <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
+          <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
+
+          {/* <Route path="/counsellor/sub-counsellors" element={<UnderConstruction />} /> */}
+          <Route path="/student/analytics" element={<Analytics />} />
+          <Route path="/student/inspiration" element={<Inspiration />} />
+
+          <Route path="/student/ai-chat" element={<AIChat />} />
+        </Route>
 
         {/* Catch-all route to redirect back to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

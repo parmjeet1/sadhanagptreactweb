@@ -3,12 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }) => {
   const [name, setName] = useState('');
+  const [target, setTarget] = useState('');
   const [trackingType, setTrackingType] = useState('Duration');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-populate data when modal opens if editing an existing activity
   useEffect(() => {
     if (isOpen && activityToEdit) {
       setName(activityToEdit.title || '');
+      setTarget(activityToEdit.target || '');
+      
       // Example basic mapping (in real app, use enums)
       if (activityToEdit.type === 'COUNT') setTrackingType('Count');
       else if (activityToEdit.type === 'DURATION') setTrackingType('Duration');
@@ -52,16 +56,19 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
     }
   ];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
+    setIsSubmitting(true);
     if (onSave) {
-      onSave({
+      await onSave({
         ...activityToEdit,
-        title: name,
-        type: trackingType.toUpperCase(),
+        id: activityToEdit.id,
+        name: name,
+        target: target,
+        trackingType: trackingType
       });
     }
-    onClose();
+    setIsSubmitting(false);
   };
 
   return (
@@ -152,19 +159,42 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                   </div>
                 </div>
 
+                {/* Target Input */}
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Target</label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-gray-400">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Enter target (optional)"
+                      value={target}
+                      onChange={(e) => setTarget(e.target.value)}
+                      className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer"
+                    />
+                  </div>
+                </div>
+
                 {/* Actions */}
                 <div className="flex items-center gap-4 pt-4 pb-2">
                   <button 
                     onClick={onClose}
-                    className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={handleSave}
-                    className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30"
+                    disabled={isSubmitting}
+                    className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30 flex flex-col items-center justify-center h-[56px] disabled:opacity-70 disabled:active:scale-100"
                   >
-                    Save Changes
+                    {isSubmitting ? (
+                      <div className="w-5 h-5 border-[2px] border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      "Save Changes"
+                    )}
                   </button>
                 </div>
               </div>
@@ -174,7 +204,6 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                 <button 
                   onClick={() => {
                     if (onDelete) onDelete(activityToEdit?.id);
-                    onClose();
                   }}
                   className="flex items-center gap-2 text-red-500 font-bold hover:text-red-600 transition-colors py-2 px-4 rounded-xl hover:bg-red-50"
                   aria-label="Delete Activity"
