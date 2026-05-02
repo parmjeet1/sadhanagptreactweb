@@ -1,60 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
+import { getRequest } from '../../services/api';
+
+// Helper to extract YouTube Thumbnail instantly
+const getYouTubeThumbnail = (url) => {
+  if (!url) return '';
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11)
+    ? `https://img.youtube.com/vi/${match[2]}/maxresdefault.jpg`
+    : '';
+};
+
+// Helper for native Web Share API
+const handleShare = async (title, url) => {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: title || 'Inspiration', text: 'Check this out!', url: url });
+    } catch (err) {
+      console.log('Error sharing', err);
+    }
+  } else {
+    navigator.clipboard.writeText(url);
+    alert("Link copied to clipboard!");
+  }
+};
 
 const Inspiration = () => {
+  const { userDetails } = useOutletContext();
   const [activeFilter, setActiveFilter] = useState('All');
-  const filters = ['All', 'Quotes', 'Videos', 'Audio'];
+  const [inspirations, setInspirations] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const wisdomContent = [
-    {
-      type: 'quote',
-      category: 'Quotes',
-      tag: 'QUOTE',
-      text: '"The only way to do great work is to love what you do."',
-      author: 'Steve Jobs',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-      likes: '1.2k'
-    },
-    {
-      type: 'video',
-      category: 'Videos',
-      recommendedBy: 'Mentor Alice',
-      expertTag: 'Mindfulness Expert',
-      mentorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-      thumbnail: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=450&fit=crop',
-      duration: '05:00',
-      title: '5 Minute Morning Meditation',
-      description: 'Start your day with clarity and peace.',
-      tag: 'Video'
-    },
-    {
-      type: 'imageQuote',
-      category: 'Quotes',
-      tag: 'Daily Focus',
-      text: '"Clarity comes from action."',
-      backgroundImage: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=1000&fit=crop',
-      likes: '845'
-    },
-    {
-      type: 'podcast',
-      category: 'Audio',
-      label: 'PODCAST',
-      episode: 'Episode 4',
-      title: 'Productivity Hacking',
-      description: 'Simple tricks to double your output.',
-      duration: '12:30'
-    }
-  ];
+  const filters = ['All', 'Quote', 'Video', 'Link', 'Image']; // Adjusted to match potential content_types
 
-  const filteredContent = activeFilter === 'All' 
-    ? wisdomContent 
-    : wisdomContent.filter(item => item.category === activeFilter);
+  const fetchInspirations = (pageNum = 1, append = false) => {
+    if (!userDetails?.user_id) return;
+
+    if (append) setIsFetchingMore(true);
+    else setIsLoading(true);
+
+    let typeParam = "";
+    if (activeFilter === 'Quote') typeParam = "quote";
+    else if (activeFilter === 'Video') typeParam = "youtube";
+    else if (activeFilter === 'Link') typeParam = "url";
+    else if (activeFilter === 'Image') typeParam = "image";
+
+    const payload = {
+      user_id: userDetails.user_id,
+      page_no: pageNum,
+      search_text: "",
+      content_type: typeParam
+    };
+
+    getRequest('/student-content-list', payload, (res) => {
+      const resData = res?.data;
+      if (resData && resData.status === 1) {
+        const newData = Array.isArray(resData.data) ? resData.data : (resData.data?.data || []);
+
+        if (append) {
+          setInspirations(prev => [...prev, ...newData]);
+        } else {
+          setInspirations(newData);
+        }
+
+        // If less than 5 items returned, assume no more content
+        if (newData.length < 5) setHasMore(false);
+        else setHasMore(true);
+      }
+      setIsLoading(false);
+      setIsFetchingMore(false);
+    });
+  };
+
+  useEffect(() => {
+    setPage(1);
+    fetchInspirations(1, false);
+  }, [userDetails, activeFilter]);
+
+  const loadMore = () => {
+    if (isFetchingMore || !hasMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchInspirations(nextPage, true);
+  };
+
+  const observerRef = useRef();
+  const lastElementRef = useCallback(node => {
+    if (isFetchingMore) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => {
+          const nextPage = prevPage + 1;
+          fetchInspirations(nextPage, true);
+          return nextPage;
+        });
+      }
+    });
+    if (node) observerRef.current.observe(node);
+  }, [isFetchingMore, hasMore, activeFilter, userDetails]);
+
+  const extractYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const filteredContent = inspirations; // Filtering now handled by API
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-32 relative overflow-x-hidden">
       <div className="w-full max-w-md mx-auto">
-        
+
         {/* Header */}
         <header className="px-6 pt-10 pb-6 flex items-start justify-between">
           <div>
@@ -72,11 +136,10 @@ const Inspiration = () => {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${
-                activeFilter === filter 
-                  ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md' 
-                  : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
-              }`}
+              className={`px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
+                ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md'
+                : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
+                }`}
             >
               {filter}
             </button>
@@ -84,135 +147,130 @@ const Inspiration = () => {
         </div>
 
         {/* Content Feed */}
-        <div className="px-6 space-y-8">
-          <AnimatePresence mode="popLayout">
-            {filteredContent.map((item, idx) => (
-              <motion.div
-                key={item.title || item.text}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: idx * 0.1 }}
-                className="w-full"
-              >
-                {item.type === 'quote' && (
-                  <div className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
-                    <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg inline-block mb-6">{item.tag}</span>
-                    <h2 className="text-[20px] font-bold text-[#1e293b] leading-snug mb-8">{item.text}</h2>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img src={item.avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
-                        <span className="text-[14px] font-bold text-gray-700">{item.author}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 text-gray-400">
-                          <svg className="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" /></svg>
-                          <span className="text-[13px] font-bold">{item.likes}</span>
+        <div className="px-6 space-y-8 min-h-[50vh]">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center pt-20 gap-3">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-gray-500 font-medium">Loading inspiration...</p>
+            </div>
+          ) : filteredContent.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {filteredContent.map((item, idx) => {
+                const isLast = idx === filteredContent.length - 1;
+                return (
+                  <motion.div
+                    ref={isLast ? lastElementRef : null}
+                    key={item.id || item.title || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="w-full"
+                  >
+                    {/* Quote / Text Format */}
+                    {(!item.content_type || item.content_type === 'text' || item.content_type === 'quote' || item.type === 'text') && (
+                      <div className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 border-l-8 border-l-blue-500">
+                        <div className="mb-6 opacity-20">
+                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
                         </div>
-                        <svg className="w-5 h-5 text-gray-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                        <h2 className="text-[22px] font-bold text-[#1e293b] leading-relaxed italic mb-8">
+                          {item.content}
+                        </h2>
+                        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                          <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg">Daily Wisdom</span>
+                          <button onClick={() => handleShare(item.content, window.location.href)} className="text-gray-400 hover:text-[#1e293b] p-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {item.type === 'video' && (
-                  <div className="bg-white rounded-[40px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 p-3">
-                    <div className="px-5 pt-5 pb-4 flex items-center gap-3">
-                      <img src={item.mentorAvatar} className="w-10 h-10 rounded-xl object-cover shadow-sm" alt="" />
-                      <div>
-                        <h4 className="text-[14px] font-bold text-[#1e293b]">Recommended by {item.recommendedBy}</h4>
-                        <p className="text-[12px] font-medium text-gray-400">{item.expertTag}</p>
-                      </div>
-                    </div>
-                    <div className="relative rounded-[32px] overflow-hidden group">
-                      <img src={item.thumbnail} className="w-full aspect-video object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                      <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                        <motion.button 
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-14 h-14 bg-white/95 rounded-full flex items-center justify-center text-[#1e293b] shadow-xl backdrop-blur-sm"
-                        >
-                          <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5.14v14c0 .86.84 1.4 1.58.97l11-7a1 1 0 0 0 0-1.72l-11-7A1 1 0 0 0 8 5.14z" /></svg>
-                        </motion.button>
-                      </div>
-                      <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-black px-3 py-1 rounded-lg">
-                        {item.duration}
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-[18px] font-black text-[#1e293b]">{item.title}</h3>
-                      <p className="text-[14px] font-medium text-gray-400 mt-1 mb-6">{item.description}</p>
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-lg">{item.tag}</span>
-                        <div className="flex items-center gap-5">
-                          <svg className="w-5 h-5 text-gray-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                          <svg className="w-5 h-5 text-gray-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    {/* Image Format */}
+                    {(item.content_type === 'image' || item.content_type === 'image_quote') && (
+                      <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl group border-4 border-white">
+                        <img
+                          src={item.content.startsWith('http')
+                            ? item.content
+                            : `${import.meta.env.VITE_IMAGE_URL}${item.content.includes('/') ? item.content : '/uploads/content/' + item.content}`}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                          alt=""
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-10 flex flex-col justify-end">
+                          <div className="flex justify-end pt-6">
+                    ``        <button onClick={() => handleShare("Shared Image", item.content)} className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 hover:bg-white/30 transition-all">
+                              <svg className="w-5 h-5 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {item.type === 'imageQuote' && (
-                  <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl group cursor-pointer">
-                    <img src={item.backgroundImage} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-10 flex flex-col justify-end">
-                      <span className="w-max px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-[11px] font-black text-white uppercase tracking-widest mb-4 border border-white/30">{item.tag}</span>
-                      <h2 className="text-[26px] font-bold text-white leading-tight mb-8">{item.text}</h2>
-                      <div className="flex items-center justify-between border-t border-white/20 pt-6">
-                        <div className="flex items-center gap-2 text-white">
-                          <svg className="w-6 h-6 text-red-500 fill-current" viewBox="0 0 20 20"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" /></svg>
-                          <span className="text-[15px] font-bold">{item.likes} likes</span>
+                    {/* YouTube Format */}
+                    {(item.content_type === 'youtube') && (
+                      <div className="bg-white rounded-[40px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
+                        <div className="aspect-video bg-black">
+                          {extractYouTubeId(item.content) ? (
+                            <iframe
+                              className="w-full h-full"
+                              src={`https://www.youtube.com/embed/${extractYouTubeId(item.content)}`}
+                              title="YouTube video player"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            ></iframe>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">
+                              Invalid Video URL
+                            </div>
+                          )}
                         </div>
-                        <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                        <div className="p-8">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black text-red-600 uppercase tracking-widest bg-red-50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                              YouTube Lesson
+                            </span>
+                            <button onClick={() => handleShare("YouTube Inspiration", item.content)} className="text-gray-400 p-2">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {item.type === 'podcast' && (
-                  <div className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
-                    <div className="flex items-start justify-between mb-8">
-                       <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-[#1e293b]">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.label}</span>
-                          <h4 className="text-[13px] font-bold text-gray-400">{item.episode}</h4>
-                        </div>
-                       </div>
-                       <span className="text-[12px] font-bold text-gray-300">{item.duration}</span>
-                    </div>
-                    <h3 className="text-[20px] font-black text-[#1e293b] mb-2">{item.title}</h3>
-                    <p className="text-[14px] font-medium text-gray-400 mb-8">{item.description}</p>
-                    
-                    <div className="bg-[#f8fafc] rounded-[24px] p-4 flex items-center gap-6">
-                      <motion.button 
-                        whileTap={{ scale: 0.9 }}
-                        className="w-12 h-12 bg-[#1e293b] rounded-full flex items-center justify-center text-white shadow-lg"
+                    {/* URL / Link Format */}
+                    {(item.content_type === 'url') && (
+                      <div
+                        onClick={() => window.open(item.content, '_blank')}
+                        className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 flex items-center gap-6 cursor-pointer active:scale-[0.98] transition-all"
                       >
-                        <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5.14v14c0 .86.84 1.4 1.58.97l11-7a1 1 0 0 0 0-1.72l-11-7A1 1 0 0 0 8 5.14z" /></svg>
-                      </motion.button>
-                      <div className="flex-1 flex items-center justify-between gap-1 h-8">
-                        {[40, 60, 30, 80, 50, 70, 40, 90, 60, 80, 40, 60, 30, 70].map((h, i) => (
-                          <div 
-                            key={i} 
-                            style={{ height: `${h}%` }} 
-                            className={`w-0.5 rounded-full ${i % 3 === 0 ? 'bg-[#1e293b]' : 'bg-gray-200'}`}
-                          />
-                        ))}
+                        <div className="w-16 h-16 rounded-[24px] bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-[17px] font-black text-[#1e293b] leading-tight mb-2">Internal Resource</h3>
+                          <p className="text-[13px] font-medium text-gray-400 truncate max-w-[180px]">{item.content}</p>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                       </div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          ) : (
+            <div className="text-center pt-10">
+              <p className="text-gray-500 font-medium text-lg">No content found</p>
+            </div>
+          )}
         </div>
 
+        {/* Loading Spinner for Infinite Scroll */}
+        {isFetchingMore && (
+          <div className="flex justify-center pt-4 pb-10">
+            <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
 
       <BottomNavigation />

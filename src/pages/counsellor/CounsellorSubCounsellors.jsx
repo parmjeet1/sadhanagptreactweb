@@ -1,240 +1,235 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
-
-const generateSubCounsellors = () => [
-  'All Sub-Counsellors', 'Ramesh Sharma', 'Suresh Verma', 'Amit Singh', 'Neha Gupta', 'Pooja Kumar'
-];
-
-const generateDummyGroups = () => {
-  const baseNames = ['Karanpur', 'DIT', 'UIT', 'Graphic Era', 'Devbhoomi', 'Doon', 'Law College', 'Selaqui'];
-  const subCounsellors = ['Ramesh Sharma', 'Suresh Verma', 'Amit Singh', 'Neha Gupta', 'Pooja Kumar'];
-  
-  return Array.from({ length: 30 }).map((_, i) => ({
-    id: i + 1,
-    name: `${baseNames[i % baseNames.length]} Base ${Math.floor(i/baseNames.length) + 1}`,
-    subCounsellor: subCounsellors[i % subCounsellors.length],
-    members: Math.floor(Math.random() * 20) + 10,
-    avgWakeup: `${Math.floor(Math.random() * 2) + 4}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} AM`,
-    chantingScore: Math.floor(Math.random() * 50) + 50, // percentage
-    image: `https://ui-avatars.com/api/?name=${encodeURIComponent(baseNames[i % baseNames.length])}&background=f8fafc&color=1a73e8`,
-  }));
-};
-
-const initialGroups = generateDummyGroups();
-const subCounsellorList = generateSubCounsellors();
+import { getRequest } from '../../services/api';
 
 const CounsellorSubCounsellors = () => {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState(initialGroups);
+  const { userDetails } = useOutletContext();
+
+  const [subCounsellorList, setSubCounsellorList] = useState([]);
+  const [selectedSubCounsellor, setSelectedSubCounsellor] = useState('');
+  const [groups, setGroups] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubCounsellor, setSelectedSubCounsellor] = useState('All Sub-Counsellors');
-  const [visibleCount, setVisibleCount] = useState(10);
   const [toast, setToast] = useState(null);
 
-  const showToast = (g) => {
-    setToast({ groupName: g.name, subCounsellor: g.subCounsellor });
-    setTimeout(() => setToast(null), 3500);
-  };
-  
   const observerTarget = useRef(null);
 
-  // Filter Logic
-  const allFiltered = groups.filter(g => {
-    const matchesSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSC = selectedSubCounsellor === 'All Sub-Counsellors' || g.subCounsellor === selectedSubCounsellor;
-    return matchesSearch && matchesSC;
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Fetch sub-counsellor list
+  useEffect(() => {
+    getRequest('/sub-counsellor-list', { user_id: userDetails.user_id }, (response) => {
+      const res = response?.data;
+      if (res?.status === 1 && Array.isArray(res.data)) {
+        setSubCounsellorList(res.data);
+      }
+    });
+  }, [userDetails.user_id]);
+
+  // Fetch groups based on selected sub-counsellor
+  const fetchGroups = useCallback((pageNum = 1, append = false) => {
+    if (!selectedSubCounsellor) {
+      setGroups([]);
+      return;
+    }
+    setIsLoading(true);
+    const payload = {
+      user_id: userDetails.user_id,
+      sub_counsellor_id: selectedSubCounsellor,
+      page_no: pageNum,
+      search_text: searchQuery,
+      rowSelected: 10
+    };
+
+    getRequest('/group-list-sub-counslor', payload, (response) => {
+      const res = response?.data;
+      if (res?.status === 1 && Array.isArray(res.data)) {
+        setGroups(prev => append ? [...prev, ...res.data] : res.data);
+        setTotalPages(res.total_page || 1);
+      } else {
+        if (!append) setGroups([]);
+      }
+      setIsLoading(false);
+    });
+  }, [userDetails.user_id, selectedSubCounsellor, searchQuery]);
+
+  useEffect(() => {
+    setPage(1);
+    fetchGroups(1, false);
+  }, [fetchGroups]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isLoading && page < totalPages) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchGroups(nextPage, true);
+      }
+    }, { threshold: 0.1 });
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => { if (observerTarget.current) observer.unobserve(observerTarget.current); };
+  }, [page, totalPages, isLoading, fetchGroups]);
+
+  const filteredGroups = groups.filter(g => {
+    const name = g.name || g.center_name || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const filteredVisible = allFiltered.slice(0, visibleCount);
-
-  // Intersection Observer for Infinite Scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount(prev => Math.min(prev + 10, allFiltered.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-    return () => {
-      if (observerTarget.current) observer.unobserve(observerTarget.current);
-    };
-  }, [allFiltered.length]);
-
-  // Reset pagination on filter or search change
-  useEffect(() => {
-    setVisibleCount(10);
-  }, [searchQuery, selectedSubCounsellor]);
+  const selectedSCName = subCounsellorList.find(sc => sc.user_id === selectedSubCounsellor)?.name || '';
 
   return (
-    <div className="min-h-screen bg-white font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans relative">
 
       {/* Toast */}
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: -24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -16, scale: 0.96 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 260 }}
-            className="fixed top-6 left-4 right-4 z-[100] flex justify-center pointer-events-none"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-6 left-4 right-4 z-[100] flex justify-center"
           >
-            <div className="bg-[#0f172a] text-white px-5 py-4 rounded-2xl shadow-2xl flex items-start gap-3 max-w-sm w-full">
-              <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V20H3V19L5 17V11C5 7.9 7.03 5.17 10 4.29C10 4.19 10 4.1 10 4A2 2 0 0 1 12 2A2 2 0 0 1 14 4C14 4.1 14 4.19 14 4.29C16.97 5.17 19 7.9 19 11V17L21 19M14 21A2 2 0 0 1 12 23A2 2 0 0 1 10 21" /></svg>
-              </div>
-              <div>
-                <p className="text-[14px] font-extrabold leading-snug">Report Requested</p>
-                <p className="text-[12px] text-gray-400 font-medium mt-0.5 leading-snug">
-                  {toast.subCounsellor} has been asked to submit a report for <span className="text-white font-bold">{toast.groupName}</span>. You'll be notified once it's ready.
-                </p>
-              </div>
+            <div className={`px-6 py-3 rounded-2xl shadow-xl font-bold text-sm text-white ${toast.type === 'error' ? 'bg-red-500' : 'bg-gray-900'}`}>
+              {toast.msg}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
       <div className="w-full max-w-md mx-auto pb-[100px]">
-        
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white z-20 border-b border-gray-100">
-          <button 
-            onClick={() => navigate(-1)}
-            className="text-[#64748b] font-bold text-[16px] hover:text-[#0f172a] transition-colors"
-          >
-            Back
-          </button>
-          
-          <h1 className="text-[18px] font-extrabold text-[#0f172a] tracking-tight">Sub Counsellors</h1>
-          
-          <div className="w-10"></div> {/* Spacer */}
+          <button onClick={() => navigate(-1)} className="text-[#64748b] font-bold text-[16px]">Back</button>
+          <h1 className="text-[18px] font-extrabold text-[#0f172a]">Sub Counsellors</h1>
+          <div className="w-10" />
         </div>
 
         {/* Search */}
         <div className="px-6 py-4">
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search by group name..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f8fafc] rounded-full py-3.5 pl-12 pr-6 text-[15px] font-medium text-[#0f172a] placeholder:text-[#94a3b8] outline-none border border-transparent focus:border-blue-100 transition-all"
-            />
-            <svg className="absolute left-4 top-3.5 w-5 h-5 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </div>
+          <input
+            type="text"
+            placeholder="Search by group name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#f8fafc] rounded-full py-3.5 px-6 text-[15px] font-medium text-[#0f172a] placeholder:text-[#94a3b8] outline-none"
+          />
         </div>
 
-        {/* Sub Counsellor Filter Box */}
-        <div className="px-6 pb-2">
+        {/* Sub Counsellor Filter */}
+        <div className="px-6 pb-4">
           <div className="relative">
             <select
               value={selectedSubCounsellor}
               onChange={(e) => setSelectedSubCounsellor(e.target.value)}
-              className={`w-full appearance-none font-bold text-[14px] rounded-2xl py-3.5 pl-5 pr-9 border-2 outline-none transition-colors cursor-pointer ${
-                selectedSubCounsellor !== 'All Sub-Counsellors' ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] border-transparent text-[#0f172a] focus:bg-white focus:border-blue-100'
+              className={`w-full appearance-none font-bold text-[14px] rounded-2xl py-4 pl-5 pr-10 border-2 outline-none transition-all cursor-pointer ${
+                selectedSubCounsellor ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] border-transparent text-[#0f172a]'
               }`}
             >
+              <option value="">All Sub-Counsellors</option>
               {subCounsellorList.map(sc => (
-                <option key={sc} value={sc}>{sc}</option>
+                <option key={sc.user_id} value={sc.user_id}>{sc.name}</option>
               ))}
             </select>
-            <div className={`absolute right-4 top-[18px] pointer-events-none ${selectedSubCounsellor !== 'All Sub-Counsellors' ? 'text-white' : 'text-[#64748b]'}`}>
+            <div className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none ${selectedSubCounsellor ? 'text-white' : 'text-[#64748b]'}`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
             </div>
           </div>
         </div>
 
-        {/* List */}
+        {/* Stats Banner */}
+        {selectedSubCounsellor && (
+          <div className="mx-6 mb-4 p-4 bg-blue-50 rounded-2xl flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-7 9a7 7 0 1 1 14 0H5z"/></svg>
+            </div>
+            <div>
+              <p className="font-black text-blue-900 text-sm">{selectedSCName}</p>
+              <p className="text-blue-600 font-bold text-xs">Viewing assigned groups</p>
+            </div>
+          </div>
+        )}
+
+        {/* Group List */}
         <div className="px-2 mt-2">
-          {filteredVisible.length === 0 ? (
-            <div className="text-center py-10 text-gray-400 font-medium">No groups found.</div>
+          {!selectedSubCounsellor ? (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-blue-50 rounded-[28px] flex items-center justify-center mx-auto mb-5">
+                <svg className="w-10 h-10 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-7 9a7 7 0 1 1 14 0H5z"/></svg>
+              </div>
+              <p className="font-black text-gray-800 text-lg">Select a Sub-Counsellor</p>
+              <p className="text-gray-400 font-bold text-sm mt-2">Choose from the dropdown above<br/>to view their assigned groups</p>
+            </div>
+          ) : isLoading && groups.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-gray-400 font-bold text-sm mt-3">Loading groups...</p>
+            </div>
+          ) : filteredGroups.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+              </div>
+              <p className="font-black text-gray-400">No groups found</p>
+              <p className="text-gray-300 text-sm font-bold mt-1">
+                {selectedSubCounsellor ? 'This sub-counsellor has no groups assigned' : 'No groups available'}
+              </p>
+            </div>
           ) : (
-            filteredVisible.map(g => (
-              <div 
-                key={g.id} 
+            filteredGroups.map((g, idx) => (
+              <motion.div
+                key={g.center_id || g.id || idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.04 }}
                 className="flex items-center px-4 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 {/* Avatar */}
-                <div className="relative shrink-0">
-                  <img src={g.image} alt={g.name} className="w-14 h-14 rounded-full object-cover shadow-sm bg-gray-100" />
-                </div>
-                
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(g.name || g.center_name || 'G')}&background=eff6ff&color=1a73e8&bold=true`}
+                  className="w-12 h-12 rounded-full mr-4 border border-blue-50"
+                />
+
                 {/* Details */}
-                <div className="ml-4 flex-1 pr-2">
-                  <h3 className="font-extrabold text-[16px] text-[#0f172a] leading-tight mb-1">{g.name}</h3>
-                  <div className="flex gap-3 text-[12px] font-bold text-[#64748b]">
-                    <span className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-extrabold text-[16px] text-[#0f172a] truncate">{g.name || g.center_name || '—'}</h3>
+                  <div className="flex gap-2 mt-1.5 flex-wrap">
+                    <span className="text-[12px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-xl flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                      {g.members}
+                      {g.total_student ?? 0} students
                     </span>
-                    <span className="flex items-center gap-1.5 bg-green-50 text-green-600 px-2 py-1 rounded-lg">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" /></svg>
-                      {g.avgWakeup} avg
-                    </span>
-                  </div>
-                  <div className="text-[12px] font-bold text-gray-500 mt-1.5">
-                    Sub-Counsellor: <span className="text-[#0f172a]">{g.subCounsellor}</span>
+                    {g.city && (
+                      <span className="text-[12px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-xl flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+                        {g.city}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Request Report Icon + Performance Ring */}
-                <div className="flex flex-col items-center shrink-0 ml-2 gap-2">
-                  {/* Request Report Button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); showToast(g); }}
-                    title="Request Report"
-                    className="w-9 h-9 rounded-full bg-amber-50 hover:bg-amber-100 active:scale-90 flex items-center justify-center transition-all"
-                  >
-                    <svg className="w-4.5 h-4.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </button>
-
-                  {/* Performance Ring */}
-                  <div className="relative w-12 h-12 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        className="text-gray-100"
-                        strokeWidth="3"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className="text-[#1a73e8]"
-                        strokeWidth="3"
-                        strokeDasharray={`${g.chantingScore}, 100`}
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <div className="absolute flex items-center justify-center text-[10px] font-extrabold text-[#1a73e8]">
-                      {g.chantingScore}%
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-bold text-gray-400 mt-1 uppercase">Metrics</span>
-                </div>
-              </div>
+                {/* Arrow */}
+                <svg className="w-5 h-5 text-gray-200 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </motion.div>
             ))
           )}
-          
-          {/* Intersection Observer Target */}
-          {filteredVisible.length < allFiltered.length && (
-            <div ref={observerTarget} className="py-6 flex justify-center">
-              <div className="w-6 h-6 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
+
+          {/* Infinite Scroll Target */}
+          <div ref={observerTarget} className="h-10 flex items-center justify-center">
+            {isLoading && groups.length > 0 && (
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
         </div>
       </div>
-      
+
       <CounsellorBottomNavigation />
     </div>
   );

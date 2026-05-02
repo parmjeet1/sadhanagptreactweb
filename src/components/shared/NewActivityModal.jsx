@@ -5,6 +5,9 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [trackingType, setTrackingType] = useState('Duration'); // Default select
   const [target, setTarget] = useState('');
+  const [period, setPeriod] = useState('AM');
+  const [status, setStatus] = useState('0');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const trackingTypes = [
     {
@@ -41,24 +44,26 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
     }
   ];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Basic validation
     if (!name.trim()) return;
     
-    // In a real app we'd construct standard activity data here to pass up
+    setIsSubmitting(true);
     if (onSave) {
-      onSave({
-        title: name,
-        type: trackingType.toUpperCase(),
-        target: target
+      await onSave({
+        name: name,
+        trackingType: trackingType,
+        target: target,
+        status: status
       });
     }
+    setIsSubmitting(false);
     
     // Reset form
     setName('');
     setTrackingType('Duration');
     setTarget('');
-    onClose();
+    setStatus('0');
   };
 
   return (
@@ -86,8 +91,11 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
               right: 'max(0px, calc(50% - 224px))'
             }}
           >
-            {/* Drag Handle Area */}
-            <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10">
+            {/* Drag Handle Area - Clickable to close as requested */}
+            <div 
+              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+              onClick={onClose}
+            >
               <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
             </div>
 
@@ -110,6 +118,7 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
                   />
                 </div>
               </div>
+
 
               {/* Tracking Type Grid */}
               <div className="space-y-3">
@@ -145,19 +154,70 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
               </div>
 
               {/* Target Input */}
-              <div className="space-y-2">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Target</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-4 text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Enter target duration (mins)"
-                    value={target}
-                    onChange={(e) => setTarget(e.target.value)}
-                    className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all"
-                  />
+              {trackingType.toLowerCase() !== 'yes/no' && (
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Target</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-grow flex items-center">
+                      <span className="absolute left-4 text-gray-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>
+                      </span>
+                      <input
+                        key={trackingType}
+                        type={trackingType.toLowerCase() === 'time' ? 'time' : 'number'}
+                        min="0"
+                        placeholder={
+                          trackingType.toLowerCase() === 'count' ? 'Enter target rounds' :
+                          trackingType.toLowerCase() === 'duration' ? 'Enter target duration (mins)' :
+                          trackingType.toLowerCase() === 'time' ? '05:00' :
+                          'Enter target'
+                        }
+                        value={target}
+                        onChange={(e) => setTarget(e.target.value)}
+                        className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Visibility Options */}
+              <div className="space-y-3">
+                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                  Visibility
+                  <div className="group relative flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] cursor-help">
+                    ?
+                    <div className="absolute bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-[10px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg text-center z-50 normal-case font-medium">
+                      Private activities are unlisted and hidden from your mentor completely.
+                    </div>
+                  </div>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setStatus('0')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
+                      status === '0' 
+                        ? 'border-[#1a73e8] bg-[#eff6ff] text-[#1a73e8]' 
+                        : 'border-transparent bg-[#f8fafc] text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span className="font-bold text-[14px]">Public</span>
+                    <span className="text-[10px] font-medium opacity-80 mt-0.5 text-center">Share with Mentor</span>
+                  </button>
+
+                  <button
+                    onClick={() => setStatus('1')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
+                      status === '1' 
+                        ? 'border-[#f59e0b] bg-[#fffbeb] text-[#f59e0b]' 
+                        : 'border-transparent bg-[#f8fafc] text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    <span className="font-bold text-[14px]">Private</span>
+                    <span className="text-[10px] font-medium opacity-80 mt-0.5 text-center">Unlisted / Hidden</span>
+                  </button>
                 </div>
               </div>
 
@@ -165,15 +225,21 @@ const NewActivityModal = ({ isOpen, onClose, onSave }) => {
               <div className="flex items-center gap-4 pt-4 pb-4">
                 <button 
                   onClick={onClose}
-                  className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleSave}
-                  className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30"
+                  disabled={isSubmitting}
+                  className="flex-[2] py-4 bg-[#1a73e8] hover:bg-[#155fc3] text-white text-[15px] font-bold rounded-full transition-all active:scale-[0.98] shadow-lg shadow-[#1a73e8]/30 flex flex-col items-center justify-center h-[56px] disabled:opacity-70 disabled:active:scale-100"
                 >
-                  Save Activity
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-[2px] border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "Save Activity"
+                  )}
                 </button>
               </div>
 
