@@ -19,6 +19,7 @@ const OnboardingStepTwo = () => {
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [userDetails, setUserDetails] = useState(JSON.parse(localStorage.getItem('user_details') || 'null'));
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [counselorEmailError, setCounselorEmailError] = useState('');
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message: message, type });
@@ -78,11 +79,15 @@ const OnboardingStepTwo = () => {
     });
   };
 
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
     if (name === 'counselorEmail') {
+      // Always clear error while user is actively typing/searching
+      setCounselorEmailError('');
       fetchCounselors(value);
       // Reset selected counselor if user is typing a new search
       if (selectedCounselor) setSelectedCounselor(null);
@@ -91,12 +96,20 @@ const OnboardingStepTwo = () => {
 
   const handleSelectCounselor = (counselor) => {
     setSelectedCounselor(counselor);
+    setCounselorEmailError(''); // Clear any error when a counsellor is picked from search
     setFormData({ ...formData, counselorEmail: counselor.email || counselor.name });
     setCounselors([]);
   };
  const referred_counsellor_id=localStorage.getItem('referred_counsellor_id');
  
   const handleContinue = async () => {
+    // Validate counsellor field before submitting
+    const counselorVal = formData.counselorEmail.trim();
+    if (!referred_counsellor_id && counselorVal && !selectedCounselor && !isValidEmail(counselorVal)) {
+      setCounselorEmailError('Please enter a valid email address or select a counsellor from the search results.');
+      showToast('Invalid counsellor input. Please enter an email or pick from search.', 'error');
+      return;
+    }
     const userRole = userDetails?.user_type || 'student';
 
     // Construct the payload — if no counsellor selected, send the raw email for backend to auto-create
@@ -251,7 +264,10 @@ const OnboardingStepTwo = () => {
 
             {/* Counselor Email Input */}
            {!referred_counsellor_id && ( <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">Counselor Name|Email</label>
+              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">
+                Counsellor
+                <span className="ml-1 text-[13px] font-normal text-[#64748b]">(search by name or enter email)</span>
+              </label>
               <div className="relative">
                 <div className="relative flex items-center">
                   <input
@@ -259,8 +275,12 @@ const OnboardingStepTwo = () => {
                     name="counselorEmail"
                     value={formData.counselorEmail}
                     onChange={handleChange}
-                    placeholder="Search by name or email"
-                    className="w-full border border-[#cbd5e1] rounded-2xl pl-5 pr-12 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                    placeholder="Search by name or enter counsellor email"
+                    className={`w-full border rounded-2xl pl-5 pr-12 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:ring-1 outline-none transition-all ${
+                      counselorEmailError
+                        ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
+                        : 'border-[#cbd5e1] focus:border-[#1a73e8] focus:ring-[#1a73e8]'
+                    }`}
                   />
                   <div className="absolute right-4 text-[#64748b]">
                     {isSearching ? (
@@ -293,8 +313,18 @@ const OnboardingStepTwo = () => {
                   </div>
                 )}
 
-                {/* Selected Indicator */}
-                {(selectedCounselor || (!selectedCounselor && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.counselorEmail))) && (
+                {/* Inline Error Message */}
+                {counselorEmailError && (
+                  <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm border bg-red-50 text-red-600 border-red-100 animate-in fade-in slide-in-from-top-1">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{counselorEmailError}</span>
+                  </div>
+                )}
+
+                {/* Selected / Invited Indicator */}
+                {!counselorEmailError && (selectedCounselor || (!selectedCounselor && isValidEmail(formData.counselorEmail))) && (
                   <div className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm border animate-in fade-in slide-in-from-top-1 ${
                     selectedCounselor ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-green-50 text-green-700 border-green-100'
                   }`}>
@@ -305,6 +335,7 @@ const OnboardingStepTwo = () => {
                     <button
                       onClick={() => {
                         setSelectedCounselor(null);
+                        setCounselorEmailError('');
                         setFormData({ ...formData, counselorEmail: '' });
                       }}
                       className={`ml-auto ${selectedCounselor ? 'text-blue-400 hover:text-blue-600' : 'text-green-400 hover:text-green-600'}`}

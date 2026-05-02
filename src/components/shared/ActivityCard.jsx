@@ -9,14 +9,50 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
   const { userDetails } = useOutletContext();
   const [isCompleted, setIsCompleted] = useState(activity.status === 'Completed');
 
-  const extractMax = (progStr) => {
+  const minutesToTime = (totalMinutes) => {
+    let hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+  };
+
+  const minutesTo24HourTime = (totalMinutes) => {
+    if (isNaN(totalMinutes) || totalMinutes == null) return '';
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = Math.floor(totalMinutes % 60);
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+
+  const timeToMinutesOffset = (timeStr) => {
+    if (!timeStr || !timeStr.includes(':')) return 480;
+    try {
+      const parts = timeStr.trim().split(' ');
+      const [hPart, mPart] = parts[0].split(':').map(Number);
+      const period = parts[1] || (hPart >= 12 ? 'PM' : 'AM');
+      let hours = hPart;
+      if (period === 'PM' && hours < 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
+      return hours * 60 + (mPart || 0);
+    } catch (e) {
+      return 480;
+    }
+  };
+
+  const extractMax = (progStr, type) => {
+    if (type === 'TIME') return 1440; // 24 hours in minutes
     if (!progStr) return 1;
     const parts = progStr.split('/');
     if (parts.length === 2) return parseFloat(parts[1]) || 1;
     return 1;
   };
 
-  const extractCurrent = (progStr) => {
+  const extractCurrent = (progStr, type) => {
+    if (type === 'TIME') {
+      const parts = progStr.split('/');
+      return timeToMinutesOffset(parts[0] || '');
+    }
     if (!progStr) return 0;
     const parts = progStr.split('/');
     if (parts.length > 0) return parseFloat(parts[0]) || 0;
@@ -33,10 +69,17 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
     return '';
   };
 
-  const isBoolean = activity.type === 'YES/NO';
-  const maxVal = extractMax(activity.progress);
-  const initialCurrent = isCompleted ? maxVal : extractCurrent(activity.progress);
+  const isBoolean = activity.type === 'YES/NO' || activity.type === 'boolean';
+  const isTimeType = activity.type === 'TIME' || activity.type === 'time';
+  const maxVal = extractMax(activity.progress, activity.type);
+  const initialCurrent = isCompleted && !isTimeType ? maxVal : extractCurrent(activity.progress, activity.type);
   const suffix = extractSuffix(activity.progress);
+
+  const formatTime = (timeStr) => {
+    if (!timeStr || typeof timeStr !== 'string') return timeStr || '';
+    if (timeStr.toLowerCase().includes('am') || timeStr.toLowerCase().includes('pm')) return timeStr.toUpperCase();
+    return timeStr; // Fallback
+  };
 
   const [currentVal, setCurrentVal] = useState(initialCurrent);
 
@@ -45,8 +88,9 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
 
   // Sync internal state if parent prop data changes asynchronously (e.g. from /report-as-per-date)
   useEffect(() => {
-    const newMax = extractMax(activity.progress);
-    const newCurrent = activity.status === 'Completed' ? newMax : extractCurrent(activity.progress);
+    const isThisTimeType = activity.type === 'TIME' || activity.type === 'time';
+    const newMax = extractMax(activity.progress, activity.type);
+    const newCurrent = (activity.status === 'Completed' && !isThisTimeType) ? newMax : extractCurrent(activity.progress, activity.type);
     setCurrentVal(newCurrent);
     setIsCompleted(activity.status === 'Completed');
     setLastSavedVal(newCurrent);
@@ -97,11 +141,13 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
         setToastMessage({ type: 'success', text: 'Saved!' });
 
         if (onProgressUpdate) {
-          const isComplete = finalVal >= maxVal;
-          let newProgressStr = `${finalVal}${suffix || ''} / ${maxVal}${suffix || ''}`;
-          if (activity?.type === 'YES/NO' || activity?.type === 'boolean' || activity?.type === 'TIME') {
+          const isComplete = isTimeType ? true : finalVal >= maxVal;
+          let newProgressStr = isTimeType ? `${minutesToTime(finalVal)} / ${activity.target || '10:00 AM'}` : `${finalVal}${suffix || ''} / ${maxVal}${suffix || ''}`;
+
+          if (activity?.type === 'YES/NO' || activity?.type === 'boolean') {
             newProgressStr = '';
           }
+
           onProgressUpdate(activity?.id, {
             progress: newProgressStr,
             status: isComplete ? 'Completed' : 'Pending',
@@ -157,7 +203,10 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
   const handlePointerUpOrLeave = () => {
     if (isBoolean || !isDragging) return;
     setIsDragging(false);
-    submitDailyReport(currentValRef.current);
+
+    // For time activities, we calculate based on step
+    const finalVal = isTimeType ? (Math.round(currentValRef.current / 5) * 5) : currentValRef.current;
+    submitDailyReport(finalVal);
   };
 
   const updateScrubber = (clientX) => {
@@ -205,9 +254,10 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
     cardControls.start({ x: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } });
   };
 
-  let displayPercentage = isCompleted ? 100 : (maxVal > 0 ? (currentVal / maxVal) * 100 : 0);
+  let displayPercentage = isCompleted && !isTimeType ? 100 : (maxVal > 0 ? (currentVal / maxVal) * 100 : 0);
   if (isBoolean && !isCompleted) displayPercentage = 0;
   if (isBoolean && isCompleted) displayPercentage = 100;
+  if (isTimeType) displayPercentage = (currentVal / 1440) * 100;
 
   return (
     <div className="relative w-full max-w-md mx-auto mb-4 rounded-2xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 bg-white group">
@@ -237,9 +287,16 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
             <div className={`w-12 h-12 rounded-full flex items-center justify-center`} style={{ backgroundColor: activity?.iconBgColor || '#f1f5f9', color: activity?.iconColor || '#64748b' }}>
               {activity?.iconSvg}
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="text-[17px] font-bold text-[#0f172a] leading-tight mb-0.5">{activity?.title || 'Activity'}</h3>
-              <p className="text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">{activity?.type || 'Other'}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">{activity?.type || 'Other'}</p>
+                {String(activity?.visibility) === '1' ? (
+                  <span className="bg-[#fffbeb] text-[#f59e0b] border border-[#f59e0b]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg></span>
+                ) : (
+                  <span className="bg-[#eff6ff] text-[#1a73e8] border border-[#1a73e8]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -270,50 +327,115 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
           </div>
         </div>
 
-        <div
-          className="w-full bg-[#f1f5f9] h-[8px] rounded-full mb-3 relative cursor-pointer group-active:cursor-ew-resize touch-pan-y"
-          ref={sliderRef}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUpOrLeave}
-          onPointerLeave={handlePointerUpOrLeave}
-          onPointerCancel={handlePointerUpOrLeave}
-        >
-            <motion.div
-            initial={false}
-            animate={{ width: `${displayPercentage}%` }}
-            transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-            className="absolute top-0 left-0 h-full rounded-full"
-            style={{ backgroundColor: isCompleted ? '#20c997' : (activity?.barColor || '#1a73e8') }}
-          />
-          {!isBoolean && (
+        {isTimeType ? (
+          <div className="w-full mb-3 mt-1 rounded-xl overflow-hidden shadow-sm border border-[#1a73e8]/20 bg-[#f8fafc] ring-2 ring-transparent focus-within:ring-[#1a73e8] transition-all">
+            <input 
+              type="time" 
+              value={minutesTo24HourTime(currentVal)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) return;
+                const [h, m] = val.split(':').map(Number);
+                const totalMins = h * 60 + m;
+                setCurrentVal(totalMins);
+                currentValRef.current = totalMins;
+                setIsCompleted(true);
+                submitDailyReport(totalMins);
+              }}
+              className="w-full bg-transparent text-[22px] font-black tracking-widest text-center text-[#1a73e8] px-4 py-3 outline-none"
+            />
+          </div>
+        ) : isBoolean ? (
+          <div className="bg-[#f1f5f9] p-1 rounded-[20px] flex items-center mb-4 mt-1 relative overflow-hidden h-[54px]">
             <motion.div
               initial={false}
-              animate={{ left: `${displayPercentage}%` }}
-              transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-              className="absolute top-1/2 -ml-2.5 -mt-2.5 w-5 h-5 bg-white border-2 rounded-full shadow-md z-10 pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
-              style={{ borderColor: isCompleted ? '#20c997' : (activity?.barColor || '#1a73e8') }}
+              animate={{ 
+                x: currentVal === 1 ? '0%' : '100%',
+                backgroundColor: currentVal === 1 ? '#dcfce7' : '#fee2e2'
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] rounded-[16px] shadow-sm z-0"
             />
-          )}
-        </div>
+            <button
+              onClick={() => {
+                if (currentVal === 1) return;
+                setCurrentVal(1);
+                setIsCompleted(true);
+                submitDailyReport(1);
+              }}
+              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 1 ? 'text-[#166534]' : 'text-[#94a3b8]'}`}
+            >
+              {currentVal === 1 && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+              YES
+            </button>
+            <button
+              onClick={() => {
+                if (currentVal === 0) return;
+                setCurrentVal(0);
+                setIsCompleted(false);
+                submitDailyReport(0);
+              }}
+              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 0 ? 'text-[#991b1b]' : 'text-[#94a3b8]'}`}
+            >
+              {currentVal === 0 && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>}
+              NO
+            </button>
+          </div>
+        ) : (
+          <div
+            className="w-full py-4 -my-4 mb-3 relative cursor-pointer touch-none"
+            ref={sliderRef}
+            onPointerDown={(e) => { 
+                e.target.setPointerCapture(e.pointerId); 
+                handlePointerDown(e); 
+            }}
+            onPointerMove={handlePointerMove}
+            onPointerUp={(e) => { 
+                if (e.target.hasPointerCapture(e.pointerId)) {
+                    e.target.releasePointerCapture(e.pointerId); 
+                }
+                handlePointerUpOrLeave(e); 
+            }}
+            onPointerCancel={handlePointerUpOrLeave}
+          >
+            <div className="w-full bg-[#f1f5f9] h-[8px] rounded-full relative pointer-events-none">
+              <motion.div
+                initial={false}
+                animate={{ width: `${Math.max(displayPercentage, 0.5)}%` }}
+                transition={{ type: "spring", bounce: 0, duration: 0.1 }}
+                className="absolute top-0 left-0 h-full rounded-full"
+                style={{ backgroundColor: isCompleted ? '#20c997' : (activity?.barColor || '#1a73e8') }}
+              />
+              {!isBoolean && (
+                <motion.div
+                  initial={false}
+                  animate={{ left: `${displayPercentage}%` }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.1 }}
+                  className="absolute top-1/2 -ml-3.5 -mt-3.5 w-7 h-7 bg-white border-[3px] rounded-full shadow-lg z-10 drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]"
+                  style={{ borderColor: isCompleted ? '#20c997' : (activity?.barColor || '#1a73e8') }}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mt-1">
-          {isCompleted ? (
+          {isCompleted && !isDragging ? (
             <div className="flex items-center gap-1.5 text-[#20c997] font-bold text-[14px]">
               <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              Completed
+              {isTimeType ? `Logged: ${minutesToTime(currentVal)}` : 'Completed'}
             </div>
           ) : (
             <div className="text-[14px] font-bold text-[#0f172a]">
-              {!isBoolean ? `${currentVal}${suffix} / ${maxVal}${suffix}` : (activity.progress || '')}
+              {isTimeType ? `Pending Time Log` : (!isBoolean ? `${currentVal}${suffix} / ${maxVal}${suffix}` : (activity.progress || ''))}
             </div>
           )}
 
-          {!isCompleted && activity.hint && (
+          {!isCompleted && activity.hint && !isTimeType && (
             <div className="text-[10px] font-bold text-[#a78bfa] uppercase tracking-wider flex items-center gap-1 select-none">
-              {!isBoolean ? 'DRAG SLIDER TO UPDATE' : activity.hint}
+              {!isBoolean ? 'DRAG SLIDER TO UPDATE' : (activity.hint || 'TAP TO SELECT')}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </div>
           )}

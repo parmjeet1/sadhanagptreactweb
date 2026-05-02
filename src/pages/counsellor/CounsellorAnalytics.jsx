@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import AddGroupModal from '../../components/shared/AddGroupModal';
+import ReportSettingsModal from '../../components/counsellor/ReportSettingsModal';
 import { useOutletContext } from 'react-router-dom';
 import { postRequest, getRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
@@ -12,13 +13,14 @@ const CounsellorAnalytics = () => {
   const navigate = useNavigate();
   const { userDetails } = useOutletContext();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
   const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [groups, setGroups] = useState([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
   const [isLoadingLabels, setIsLoadingLabels] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, total_page: 1, total: 0 });
-  
+
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
   const showToast = (message, type = 'success') => {
     const msg = Array.isArray(message) ? message[0] : message;
@@ -83,7 +85,7 @@ const CounsellorAnalytics = () => {
             total_page: res.total_page || 1,
             total: res.total || 0
           });
-          
+
           if (fetchedGroups.length > 0 && !selectedGroupForLabels) {
             setSelectedGroupForLabels(fetchedGroups[0].id);
           }
@@ -130,31 +132,40 @@ const CounsellorAnalytics = () => {
     <div className="min-h-screen bg-[#fafbfc] font-sans pb-28 relative overflow-x-hidden text-[#0f172a]">
       {/* Container holding the mobile width cleanly if opened on desktop */}
       <div className="w-full max-w-md mx-auto">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
           <div>
-            <h2 className="text-[#64748b] text-[15px] font-semibold mb-1">Hello,</h2>
+            <h2 className="text-[#64748b] text-[15px] font-semibold mb-1">Hare Krsna,</h2>
             <h1 className="text-[28px] leading-tight font-extrabold text-[#0f172a] tracking-tight">
-              Welcome, Manavantar<br />Prabhu Ji!
+              {userDetails.name.split(' ')[0]}
             </h1>
           </div>
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all self-start"
-          >
-            {/* Bell Icon */}
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 22A2 2 0 0 0 14 20H10A2 2 0 0 0 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
-            </svg>
-            {/* Notification Badge */}
-            <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
-          </button>
+          <div className="flex items-center gap-3 self-start">
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center justify-center w-12 h-12 bg-white text-[#64748b] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
+              title="Report Settings"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </button>
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+            >
+              {/* Bell Icon */}
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22A2 2 0 0 0 14 20H10A2 2 0 0 0 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
+              </svg>
+              {/* Notification Badge */}
+              <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
+            </button>
+          </div>
         </div>
 
         {/* Big Blue Card - View Mentees */}
         <div className="px-6 mb-4">
-          <div 
+          <div
             onClick={() => navigate('/counsellor/mentees')}
             className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-3xl p-6 shadow-lg shadow-blue-500/30 relative overflow-hidden text-white flex flex-col justify-between items-start cursor-pointer active:scale-[0.98] transition-all min-h-[160px]"
           >
@@ -167,7 +178,7 @@ const CounsellorAnalytics = () => {
               <h2 className="text-[22px] font-bold mb-1">View Mentees</h2>
               <p className="text-white/80 text-[14px]">Manage your students & check progress</p>
             </div>
-            
+
             <div className="absolute top-1/2 -translate-y-1/2 right-6 w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-md">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
             </div>
@@ -176,7 +187,7 @@ const CounsellorAnalytics = () => {
 
         {/* Two smaller cards block - Rewards and Labels */}
         <div className="px-6 flex gap-4 mb-8">
-          <div 
+          <div
             onClick={() => navigate('/counsellor/rewards')}
             className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
@@ -187,8 +198,8 @@ const CounsellorAnalytics = () => {
             </div>
             <span className="font-bold text-[#0f172a]">Rewards</span>
           </div>
-          
-          <div 
+
+          <div
             onClick={() => setIsLabelsModalOpen(true)}
             className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
@@ -203,7 +214,7 @@ const CounsellorAnalytics = () => {
 
         {/* Full Width Card - Sub Counsellors */}
         <div className="px-6 mb-8">
-          <div 
+          <div
             onClick={() => navigate('/counsellor/sub-counsellors')}
             className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
           >
@@ -259,7 +270,7 @@ const CounsellorAnalytics = () => {
                       title: 'Join SadhanaGPT',
                       text: 'Track your spiritual progress with SadhanaGPT! Join using my referral link:',
                       url: link
-                    }).catch(() => {});
+                    }).catch(() => { });
                   } else {
                     navigator.clipboard.writeText(link).then(() => {
                       toast.success("Link copied (sharing not supported on this device)");
@@ -276,7 +287,7 @@ const CounsellorAnalytics = () => {
         </div>        {/* My Groups Header */}
         <div className="px-6 flex items-center justify-between mb-4">
           <h2 className="text-[22px] font-extrabold text-[#0f172a]">My Groups</h2>
-          <button 
+          <button
             onClick={() => setIsAddGroupOpen(true)}
             className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform"
           >
@@ -293,15 +304,19 @@ const CounsellorAnalytics = () => {
             </div>
           ) : groups.length > 0 ? (
             groups.map(group => (
-              <div key={group.id} className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer hover:shadow-md transition-shadow">
+              <div
+                key={group.id}
+                onClick={() => navigate('/counsellor/group-mentees', { state: { groupName: group.name, centerId: group.id } })}
+                className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
+              >
                 <div className="relative w-16 h-16 mr-4 shrink-0">
                   <img src={group.image} alt={group.name} className="w-full h-full rounded-full object-cover shadow-sm bg-gray-100" />
                   <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white ${group.iconColor}`}>
                     {group.statusIcon === 'NEW' ? 'NEW' : (
                       group.statusIcon === '⚡' ? (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 15H6L13 1V9H18L11 23V15Z"/></svg>
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 15H6L13 1V9H18L11 23V15Z" /></svg>
                       ) : (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"/></svg>
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" /></svg>
                       )
                     )}
                   </div>
@@ -310,23 +325,8 @@ const CounsellorAnalytics = () => {
                   <h3 className="font-bold text-[16px] text-[#0f172a] whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</h3>
                   <p className="text-[#64748b] text-[13px] mt-0.5">{group.members} Members • {group.status}</p>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V218Z" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/counsellor/group-mentees', { state: { groupName: group.name, centerId: group.id } });
-                    }}
-                    className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-[#475569] hover:bg-gray-100 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
-                    </svg>
-                  </button>
+                <div className="shrink-0 text-gray-300">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
             ))
@@ -345,7 +345,14 @@ const CounsellorAnalytics = () => {
         onClose={() => setShowNotifications(false)}
       />
 
-      <AddGroupModal 
+      <ReportSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        userDetails={userDetails}
+        showToast={showToast}
+      />
+
+      <AddGroupModal
         isOpen={isAddGroupOpen}
         onClose={() => setIsAddGroupOpen(false)}
         onSave={handleAddGroup}
@@ -355,14 +362,14 @@ const CounsellorAnalytics = () => {
       <AnimatePresence>
         {isLabelsModalOpen && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsLabelsModalOpen(false)}
               className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -371,7 +378,7 @@ const CounsellorAnalytics = () => {
             >
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-[22px] font-extrabold text-[#0f172a]">Mentee Labels</h2>
-                <button 
+                <button
                   onClick={() => setIsLabelsModalOpen(false)}
                   className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-95 transition-all"
                 >
@@ -410,7 +417,7 @@ const CounsellorAnalytics = () => {
                       {(groupLabels[selectedGroupForLabels] || []).map((label, idx) => (
                         <div key={label.id || idx} className="bg-blue-50 text-[#1a73e8] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">
                           {label.name}
-                          <button 
+                          <button
                             onClick={() => {
                               if (label.id && window.confirm(`Are you sure you want to delete the label "${label.name}"?`)) {
                                 postRequest('/delete-lable', { user_id: userDetails.user_id, label_id: label.id }, (response) => {
@@ -434,14 +441,14 @@ const CounsellorAnalytics = () => {
                   )}
 
                   <div className="flex gap-2">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Add custom label..."
                       value={newLabelName}
                       onChange={(e) => setNewLabelName(e.target.value)}
                       className="flex-1 bg-[#f8fafc] rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] outline-none border-2 border-transparent focus:border-blue-100 transition-all placeholder:text-gray-300"
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         if (newLabelName.trim() && selectedGroupForLabels) {
                           const payload = {
@@ -455,6 +462,7 @@ const CounsellorAnalytics = () => {
                             if (type === 'success') {
                               fetchLabels(selectedGroupForLabels); // Refresh list from server
                               setNewLabelName('');
+                              setIsLabelsModalOpen(false); // Close modal automatically
                               toast.success(message);
                             } else {
                               toast.error(message);

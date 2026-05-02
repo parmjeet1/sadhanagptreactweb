@@ -11,7 +11,6 @@ export const postRequestWithFile = async (URL, requestData, callback) => {
         let userDetails = JSON.parse(localStorage.getItem('user_details')) || {};
 
         let headers = {
-            "Content-Type": "application/json",
             "Authorization": import.meta.env.VITE_AUTHORIZATION_KEY
         };
         if (userDetails?.access_token || userDetails?.accesstoken) {

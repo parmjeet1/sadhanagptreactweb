@@ -11,7 +11,7 @@ import { processResponse } from '../../utils/apiUtils';
 
 // Dummy data for notifications (Shared temporarily until context/API is built)
 const dummyNotifications = [
- 
+
 ];
 
 // Helper to map activity names/ids to icons
@@ -54,6 +54,32 @@ const CounsellorDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isPushEnabled, setIsPushEnabled] = useState(true); // Default true to avoid flash
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setIsPushEnabled(true); // hide if not supported
+        return;
+      }
+      if (Notification.permission !== 'granted') {
+        setIsPushEnabled(false);
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          setIsPushEnabled(!!subscription);
+        } else {
+          setIsPushEnabled(false);
+        }
+      } catch (e) {
+        setIsPushEnabled(false);
+      }
+    };
+    checkSubscription();
+  }, []);
 
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
   const showToast = (message, type = 'success') => {
@@ -94,7 +120,8 @@ const CounsellorDashboard = () => {
             const report = reports.find(r => String(r.activity_id) === String(act.id));
             const count = report ? report.count : 0;
 
-            const target = act.target || 10;
+            const isTimeType = act.type === 'TIME' || act.type === 'time';
+            const target = act.target || (isTimeType ? '05:00 AM' : 10);
             const isBoolean = act.type === 'YES/NO' || act.type === 'boolean';
 
             let newProgress = '';
@@ -103,6 +130,10 @@ const CounsellorDashboard = () => {
             if (isBoolean) {
               newProgress = '';
               newStatus = count > 0 ? 'Completed' : 'Pending';
+            } else if (isTimeType) {
+              // Return 'actual / target', so the slider receives '5:00 AM / 08:00 AM'
+              newProgress = `${count || '00:00 AM'} / ${target}`;
+              newStatus = count ? 'Completed' : 'Pending'; // Time activities are complete if they have any logged time
             } else {
               newProgress = `${count} / ${target}`;
               newStatus = count >= target ? 'Completed' : 'Pending';
@@ -113,11 +144,12 @@ const CounsellorDashboard = () => {
         } else {
           // No reports for this day or API failed, reset all counts to 0
           setActivities(prev => prev.map(act => {
-            const target = act.target || 10;
+            const isTimeType = act.type === 'TIME' || act.type === 'time';
+            const target = act.target || (isTimeType ? '05:00 AM' : 10);
             const isBoolean = act.type === 'YES/NO' || act.type === 'boolean';
             return {
               ...act,
-              progress: isBoolean ? '' : `0 / ${target}`,
+              progress: isBoolean ? '' : (isTimeType ? `0 / ${target}` : `0 / ${target}`),
               status: 'Pending'
             };
           }));
@@ -154,13 +186,13 @@ const CounsellorDashboard = () => {
         if (Array.isArray(acctvtines_list) && acctvtines_list.length > 0) {
           const transformed = acctvtines_list.map((act, index) => {
             const colors = getColors(index);
-            const typeMap = { 'numb': 'COUNT', 'min': 'DURATION', 'time': 'TIME', 'boolean': 'YES/NO' };
+            const typeMap = { 'numb': 'COUNT', 'min': 'DURATION', 'time': 'TIME', 'boolean': 'YES/NO', 'yes_no': 'YES/NO' };
 
             return {
               id: act.activity_id,
               title: act.name,
               type: typeMap[act.activity_type] || 'COUNT',
-              progress: act.activity_type === 'time' ? '0 / 1' : `0 / ${act.target || 10}`,
+              progress: act.activity_type === 'time' ? `0 / ${act.target || '05:00'}` : `0 / ${act.target || 10}`,
               status: 'Pending',
               iconBgColor: colors.bg,
               iconColor: colors.text,
@@ -168,7 +200,8 @@ const CounsellorDashboard = () => {
               iconSvg: getActivityIcon(act.name),
               unit: act.unit,
               description: act.description,
-              target: act.target
+              target: act.target,
+              visibility: act.status
             };
           });
 
@@ -254,16 +287,17 @@ const CounsellorDashboard = () => {
         case 'Count': unit = 'rounds'; activityType = 'numb'; break;
         case 'Duration': unit = 'min'; activityType = 'min'; break;
         case 'Time': unit = 'time'; activityType = 'time'; break;
-        case 'Yes/No': unit = 'count'; activityType = 'boolean'; break;
+        case 'Yes/No': unit = 'boolean'; activityType = 'yes_no'; break;
       }
 
       const payload = {
         activity_id: updatedActivityData.id,
         user_id: userDetails.user_id,
         name: updatedActivityData.name,
-        target: updatedActivityData.target ? Number(updatedActivityData.target) : null,
+        target: activityType === 'yes_no' ? 0 : (updatedActivityData.target ? (activityType === 'time' ? updatedActivityData.target : Number(updatedActivityData.target)) : null),
         unit: unit,
-        activity_type: activityType
+        activity_type: activityType,
+        status: updatedActivityData.status || '0'
       };
 
       const response = await new Promise((resolve) => {
@@ -319,6 +353,70 @@ const CounsellorDashboard = () => {
     }
   };
 
+  const handleEnablePushNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Push notifications are not supported by your browser.');
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast.error('Permission for notifications was denied');
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered');
+
+      // Get the VAPID key from your .env file
+      const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+      if (!publicVapidKey) {
+        toast.error('VAPID Public Key is missing in .env');
+        return;
+      }
+
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/\-/g, '+')
+          .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+      });
+
+      // Send to backend
+      postRequest('/notifications-subscribe', {
+        user_id: userDetails.user_id,
+        subscription: subscription
+      }, (response) => {
+        const { message, type } = processResponse(response.data);
+        if (type === 'success' || response.data?.status === 1) {
+          toast.success('Push notifications enabled!');
+          setIsPushEnabled(true);
+        } else {
+          toast.error(message || 'Failed to save subscription.');
+        }
+      });
+
+    } catch (error) {
+      console.error(error);
+      toast.error('Error enabling push notifications');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
 
@@ -328,19 +426,28 @@ const CounsellorDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
           <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight">Activities</h1>
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
-          >
-            {/* Bell Icon */}
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            {/* Notification Badge */}
-            {dummyNotifications.filter(n => !n.read).length > 0 && (
-              <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white">
-                {dummyNotifications.filter(n => !n.read).length}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/counsellor/personal-analytics')}
+              className="flex items-center justify-center w-12 h-12 bg-white text-[#1a73e8] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
+              title="My Personal Analytics"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" /></svg>
+            </button>
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+            >
+              {/* Bell Icon */}
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              {/* Notification Badge */}
+              {dummyNotifications.filter(n => !n.read).length > 0 && (
+                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white">
+                  {dummyNotifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Dynamic Date Selector (Native Smooth Swiping) */}
@@ -362,6 +469,29 @@ const CounsellorDashboard = () => {
             </button>
           ))}
         </div>
+
+        {/* Push Notification Enable Banner */}
+        {!isPushEnabled && (
+          <div className="px-6 mt-2 mb-4">
+            <div className="bg-white border border-[#1a73e8]/20 shadow-sm rounded-[16px] p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1a73e8]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                </div>
+                <div>
+                  <p className="text-[#0f172a] font-bold text-sm">Enable Reminders</p>
+                  <p className="text-gray-500 text-[11px]">Get  push notifications</p>
+                </div>
+              </div>
+              <button
+                onClick={handleEnablePushNotifications}
+                className="px-4 py-2 bg-[#1a73e8] text-white text-xs font-bold rounded-full hover:bg-[#155fc3] transition-colors shadow-md shadow-[#1a73e8]/20"
+              >
+                Allow
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Activities List */}
         <div className="px-6 mt-4">
@@ -417,19 +547,20 @@ const CounsellorDashboard = () => {
               case 'Count': unit = 'rounds'; activityType = 'numb'; break;
               case 'Duration': unit = 'min'; activityType = 'min'; break;
               case 'Time': unit = 'time'; activityType = 'time'; break;
-              case 'Yes/No': unit = 'count'; activityType = 'boolean'; break;
+              case 'Yes/No': unit = 'boolean'; activityType = 'yes_no'; break;
             }
 
             const payload = {
               user_id: userDetails.user_id,
               name: activityData.name,
-              target: activityData.target ? Number(activityData.target) : null,
+              target: activityType === 'yes_no' ? 0 : (activityData.target ? (activityType === 'time' ? activityData.target : Number(activityData.target)) : null),
               unit: unit,
-              activity_type: activityType
+              activity_type: activityType,
+              status: activityData.status || '0'
             };
 
             postRequest('/add-acitivity', payload, (response) => {
-              const { message, type } = processResponse(response);
+              const { message, type } = processResponse(response?.data);
               if (type === 'success') {
                 toast.success(message);
                 setTimeout(() => {

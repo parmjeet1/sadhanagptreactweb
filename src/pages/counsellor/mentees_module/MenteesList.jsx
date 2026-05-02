@@ -14,7 +14,7 @@ const MenteesList = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('All');
+  const [selectedGroup, setSelectedGroup] = useState('Uncategorized');
   const [selectedLabel, setSelectedLabel] = useState('All');
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [page, setPage] = useState(1);
@@ -43,7 +43,7 @@ const MenteesList = () => {
   });
   const [aiDateTo, setAiDateTo] = useState(new Date().toISOString().split('T')[0]);
   
-  const SELECTION_LIMIT = 5;
+  const SELECTION_LIMIT = 50;
   const observerTarget = useRef(null);
 
   const fetchCenters = useCallback(() => {
@@ -76,8 +76,9 @@ const MenteesList = () => {
     setIsLoading(true);
     const payload = {
       user_id: userDetails.user_id,
+      categroy: selectedGroup === 'Uncategorized' ? 'un-categorized' : (selectedGroup === 'All' ? 'all' : ''),
       page_no: pageNum,
-      center_id: selectedGroup === 'All' ? "" : selectedGroup,
+      center_id: (selectedGroup === 'All' || selectedGroup === 'Uncategorized') ? "" : selectedGroup,
       label_id: selectedLabel === 'All' ? "" : selectedLabel,
       search_text: searchQuery
     };
@@ -137,7 +138,8 @@ const MenteesList = () => {
   };
 
   const handleBulkAssign = () => {
-    if (!bulkGroup || !bulkLabel) return showError("Select both group and label");
+    //!bulkLabel
+    if (!bulkGroup) return showError("Select  group for assignment");
     const payload = {
       user_id: userDetails.user_id,
       student_ids: selectedStudents,
@@ -199,7 +201,7 @@ const MenteesList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[100px]">
+    <div className="min-h-screen bg-white font-sans pb-[84px]">
       <AnimatePresence>
         {errorMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-red-50 text-red-600 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-red-100">{errorMessage}</div></motion.div>)}
         {successMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-green-50 text-green-700 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-green-100">{successMessage}</div></motion.div>)}
@@ -217,13 +219,21 @@ const MenteesList = () => {
         </div>
 
         <div className="px-6 pb-4 flex gap-3 overflow-x-auto hide-scrollbar">
-          <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} className={`bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] outline-none ${selectedGroup !== 'All' ? 'bg-blue-600 text-white' : ''}`}>
+          <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); setSelectedLabel('All'); setLabels([]); }} className={`shrink-0 bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' && selectedGroup !== 'Uncategorized' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+            <option value="Uncategorized">Uncategorized</option>
             <option value="All">All Groups</option>
             {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
           </select>
-          <button onClick={() => setIsLabelPopupOpen(true)} className={`bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] hover:bg-gray-200 transition-colors ${selectedLabel !== 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : ''}`}>
-            {selectedLabel === 'All' ? 'All Labels' : labels.find(l => l.id === selectedLabel)?.name || 'Label'}
+          
+          <button onClick={() => setSelectedLabel('All')} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
+            All Labels
           </button>
+
+          {labels.map(l => (
+             <button key={l.id} onClick={() => setSelectedLabel(l.id)} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === l.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
+               {l.name}
+             </button>
+          ))}
         </div>
 
         <div className="px-2">
@@ -247,19 +257,35 @@ const MenteesList = () => {
         </div>
       </div>
 
-      {/* Premium Bottom Bar */}
+      {/* Premium Bottom Bar — draggable up/down to reveal hidden students */}
       <AnimatePresence>
         {selectedStudents.length > 0 && (
-          <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-[84px] left-0 right-0 max-w-md mx-auto z-40 px-4">
-            <div className="bg-[#1a73e8] rounded-[32px] p-5 shadow-2xl shadow-blue-500/40 w-full relative">
-              <div className="flex justify-between items-center mb-4 text-white px-2">
-                <span className="font-extrabold text-[15px]">Selected: {selectedStudents.length} Students</span>
-                <button onClick={() => setSelectedStudents([])} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
+          <motion.div
+            drag="y"
+            dragConstraints={{ top: -340, bottom: 0 }}
+            dragElastic={0.08}
+            dragMomentum={false}
+            initial={{ y: 200, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 200, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed bottom-[84px] left-0 right-0 max-w-md mx-auto z-40 px-4 touch-none select-none"
+          >
+            <div className="bg-[#1a73e8] rounded-[32px] shadow-2xl shadow-blue-500/40 w-full relative">
+              {/* Drag handle pill */}
+              <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
+                <div className="w-10 h-1.5 rounded-full bg-white/40" />
               </div>
-              <button onClick={() => setIsAiAnalysisModalOpen(true)} className="w-full bg-white text-[#1a73e8] rounded-2xl py-3.5 mb-3 font-black text-[15px] flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
-              <div className="flex gap-3">
-                <button onClick={() => setIsBulkAssignOpen(true)} className="flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Assign</button>
-                <button onClick={() => setIsDownloadModalOpen(true)} className="flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
+              <div className="px-5 pb-5 pt-2">
+                <div className="flex justify-between items-center mb-4 text-white px-2">
+                  <span className="font-extrabold text-[15px]">Selected: {selectedStudents.length} Students</span>
+                  <button onClick={() => setSelectedStudents([])} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center touch-auto"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+                <button onClick={() => setIsAiAnalysisModalOpen(true)} className="touch-auto w-full bg-white text-[#1a73e8] rounded-2xl py-3.5 mb-3 font-black text-[15px] flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
+                <div className="flex gap-3">
+                  <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Assign</button>
+                  <button onClick={() => setIsDownloadModalOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
+                </div>
               </div>
             </div>
           </motion.div>

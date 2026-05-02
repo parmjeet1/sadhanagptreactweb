@@ -11,10 +11,6 @@ const AddGroupModal = ({ isOpen, onClose, onSave }) => {
       setError('Please enter a group name');
       return;
     }
-    if (!city.trim()) {
-      setError('Please enter a city');
-      return;
-    }
     setError('');
     onSave({ name: groupName, city: city });
     setGroupName('');
@@ -94,16 +90,16 @@ const AddGroupModal = ({ isOpen, onClose, onSave }) => {
               </div>
 
               <div>
-                <label className="block text-[14px] font-medium text-[#1e293b] mb-2">City</label>
+                <label className="block text-[14px] font-medium text-[#1e293b] mb-2">
+                  City
+                  <span className="ml-1 text-[12px] font-normal text-gray-400">(optional)</span>
+                </label>
                 <input
                   type="text"
                   value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                    if (e.target.value.trim()) setError('');
-                  }}
+                  onChange={(e) => setCity(e.target.value)}
                   placeholder="Enter city"
-                  className={`w-full border ${error && !city.trim() ? 'border-red-200 focus:border-red-400 focus:ring-red-400' : 'border-[#e2e8f0] focus:border-[#1a73e8] focus:ring-[#1a73e8]'} rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-400 focus:ring-1 outline-none transition-all`}
+                  className="w-full border border-[#e2e8f0] focus:border-[#1a73e8] focus:ring-[#1a73e8] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-400 focus:ring-1 outline-none transition-all"
                 />
               </div>
 

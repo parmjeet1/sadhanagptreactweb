@@ -90,6 +90,22 @@ const showToast = (message, type) => {
       </p>
 
       <GoogleButton />
+      
+      <div className="w-full flex items-center gap-3 my-6">
+        <div className="flex-1 h-[1px] bg-slate-200"></div>
+        <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">or</span>
+        <div className="flex-1 h-[1px] bg-slate-200"></div>
+      </div>
+
+      <button 
+        onClick={() => navigate('/email-login')} 
+        className="w-full py-4 px-6 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-50 hover:border-orange-200 transition-all active:scale-[0.98] group"
+      >
+        <svg className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <span className="text-[15px] font-bold text-[#7c2d12]">Login with Email</span>
+      </button>
 
       <FooterNote />
 
