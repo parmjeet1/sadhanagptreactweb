@@ -98,7 +98,50 @@ Open `http://localhost:5173` in the browser.
 - Run `npm run lint` before committing.
 - Keep `src/services/api.js` as the single source of truth for base URL and auth headers.
 - When adding new API endpoints, create a wrapper in `api.js` and a corresponding response processor in `apiUtils.js`.
+- Ensure each new task is isolated and does not affect existing functionality.
 - Update this `agent.md` whenever new route patterns, naming conventions, or UI components are introduced.
+---
+
+## 📦 Reusable Functions & API Layer
+- All HTTP calls must go through `src/services/api.js`. This file holds the base URL, default headers, and request timeout.
+- Create a thin wrapper for each endpoint that injects `Authorization` / `accesstoken` headers and returns a promise.
+- Centralise response normalisation in `src/utils/apiUtils.js` (`processResponse`). Every wrapper should call this helper to produce a consistent `{status, message, data}` shape.
+- When adding a new API endpoint, add a function in `api.js` and a matching processor in `apiUtils.js`.
+
+## 🚨 Error & Toast Handling
+- UI components must use the returned object from `processResponse` to decide success or error.
+- Show toast notifications via the existing toast system (`setToast`) with appropriate styling.
+
+## 🗂️ State Management Conventions
+- Use React `useState` / `useReducer` for local component state.
+- For shared state, employ a lightweight Context (`React.createContext`) placed under `src/context/`.
+- Avoid mutating props directly; always create new objects.
+
+## 🧩 Component Reusability
+- Store reusable UI primitives (Button, Card, Modal, Input) in `src/components/shared/`.
+- Export them as named components with clear prop‑type JSDoc comments.
+
+## ✅ Testing
+- Add a `tests/` folder with Jest + React Testing Library.
+- Write unit tests for every utility function and integration tests for new pages/routes.
+
+## ⚙️ CI / Linting
+- Keep the GitHub Actions workflow that runs `npm run lint` and `npm test` on every push.
+- Enforce Prettier formatting via a pre‑commit hook (e.g., `husky`).
+
+## ♿ Accessibility
+- All interactive elements must have ARIA labels and visible focus outlines.
+- Verify colour contrast meets WCAG AA using Lighthouse or VS Code extensions.
+
+## ⚡ Performance & Bundle Size
+- Use code‑splitting (`React.lazy` + `Suspense`) for heavy routes.
+- Ensure Tailwind CSS purges unused classes via the `purge` config in `tailwind.config.js`.
+
+## 📦 Environment Variables
+- Document any new env var in `.env.example` and update the **Environment Configuration** section of this `agent.md`.
+
+## 📚 Documentation Updates
+- Whenever a new route, component, or utility is added, immediately append a short entry to this `agent.md` so future agents have the latest conventions.
 
 ---
 
