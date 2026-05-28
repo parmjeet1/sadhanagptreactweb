@@ -20,6 +20,7 @@ const CounsellorAnalytics = () => {
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
   const [isLoadingLabels, setIsLoadingLabels] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, total_page: 1, total: 0 });
+  const [irregularCount, setIrregularCount] = useState(0);
 
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
   const showToast = (message, type = 'success') => {
@@ -101,6 +102,14 @@ const CounsellorAnalytics = () => {
   React.useEffect(() => {
     if (userDetails?.user_id) {
       fetchGroups(1);
+      
+      // Fetch irregular mentees count
+      getRequest('/irregular-mentees', { user_id: userDetails.user_id }, (response) => {
+        if (response.data?.status === 1 || response.data?.code === 200) {
+          const total = response.data.total || (Array.isArray(response.data.data) ? response.data.data.length : 0);
+          setIrregularCount(total);
+        }
+      });
     }
   }, [userDetails?.user_id]);
 
@@ -211,6 +220,32 @@ const CounsellorAnalytics = () => {
             <span className="font-bold text-[#0f172a]">Manage Labels</span>
           </div>
         </div>
+        
+        {/* Full Width Card - Irregular Mentees Alert - ONLY SHOW IF COUNT > 0 */}
+        {irregularCount > 0 && (
+          <div className="px-6 mb-8">
+            <div
+              onClick={() => navigate('/counsellor/irregular-mentees')}
+              className="bg-red-50 rounded-3xl p-6 shadow-sm border border-red-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M13 17H11V15H13V17M13 13H11V7H13V13Z" /></svg>
+                </div>
+                <div>
+                  <h2 className="font-bold text-[18px] text-red-700 mb-0.5">Mentee Alerts</h2>
+                  <p className="text-red-600/70 text-[13px] font-medium">{irregularCount} students need attention</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                 <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
+                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                 </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Full Width Card - Sub Counsellors */}
         <div className="px-6 mb-8">

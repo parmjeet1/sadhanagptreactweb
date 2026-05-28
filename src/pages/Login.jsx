@@ -8,11 +8,11 @@ import { processResponse } from '../utils/apiUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Login = () => {
- 
+
   const navigate = useNavigate();
-    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-  
-const showToast = (message, type) => {
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type) => {
     setToast({ show: true, message: message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
@@ -26,7 +26,7 @@ const showToast = (message, type) => {
         const counsellorId = atob(ref);
         postRequest('/verify-counsellor', { counsellor_id: counsellorId }, (response) => {
           const data = response?.data;
-          
+
           if (data?.status === 1) {
             // ✅ Valid counsellor → store in localStorage
             localStorage.setItem('referred_counsellor_id', counsellorId);
@@ -39,7 +39,7 @@ const showToast = (message, type) => {
             const msg = Array.isArray(data?.message) ? data.message[0] : (data?.message || "Invalid referral link.");
             showToast(msg, "error");
           }
-          
+
           // Clean URL
           window.history.replaceState({}, document.title, window.location.pathname);
         });
@@ -55,9 +55,9 @@ const showToast = (message, type) => {
   useEffect(() => {
     try {
       const rawStorage = localStorage.getItem('user_details');
-      
+
       const user = JSON.parse(rawStorage || '{}');
-      
+
       // If we have at least an email or token, the user has already authenticated with Google
       if (user.access_token || user.email) {
         if (user.user_type) {
@@ -78,7 +78,7 @@ const showToast = (message, type) => {
   }, [navigate]);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans px-6">
-      
+
       <LogoIcon />
 
       <h1 className="text-[32px] font-bold text-[#0f172a] mb-4 tracking-tight text-center">
@@ -90,15 +90,15 @@ const showToast = (message, type) => {
       </p>
 
       <GoogleButton />
-      
+
       <div className="w-full flex items-center gap-3 my-6">
         <div className="flex-1 h-[1px] bg-slate-200"></div>
         <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">or</span>
         <div className="flex-1 h-[1px] bg-slate-200"></div>
       </div>
 
-      <button 
-        onClick={() => navigate('/email-login')} 
+      <button
+        onClick={() => navigate('/email-login')}
         className="w-full py-4 px-6 bg-white border-2 border-orange-100 rounded-2xl flex items-center justify-center gap-3 hover:bg-orange-50 hover:border-orange-200 transition-all active:scale-[0.98] group"
       >
         <svg className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,11 +115,10 @@ const showToast = (message, type) => {
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
-              toast.type === 'error' 
-                ? 'bg-red-50 border-red-100 text-red-700' 
+            className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${toast.type === 'error'
+                ? 'bg-red-50 border-red-100 text-red-700'
                 : 'bg-green-50 border-green-100 text-green-700'
-            }`}
+              }`}
           >
             {toast.type === 'error' ? (
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

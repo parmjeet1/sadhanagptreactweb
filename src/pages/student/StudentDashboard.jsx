@@ -62,24 +62,37 @@ const StudentDashboard = () => {
         setIsPushEnabled(true); // hide if not supported
         return;
       }
-      if (Notification.permission !== 'granted') {
-        setIsPushEnabled(false);
-        return;
-      }
+      
       try {
         const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          const subscription = await registration.pushManager.getSubscription();
-          setIsPushEnabled(!!subscription);
+        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
+
+        if (userDetails?.user_id) {
+          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+            const backendHasSub = response.data?.isSubscribed;
+            
+            if (browserSubscription && !backendHasSub) {
+              // DB deleted it, force unsubscribe on browser
+              await browserSubscription.unsubscribe();
+              setIsPushEnabled(false);
+            } else if (browserSubscription && backendHasSub) {
+              setIsPushEnabled(true);
+            } else {
+              setIsPushEnabled(false);
+            }
+          });
         } else {
-          setIsPushEnabled(false);
+          setIsPushEnabled(!!browserSubscription);
         }
       } catch (e) {
         setIsPushEnabled(false);
       }
     };
-    checkSubscription();
-  }, []);
+
+    if (userDetails?.user_id) {
+      checkSubscription();
+    }
+  }, [userDetails?.user_id]);
 
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
   const showToast = (message, type = 'success') => {

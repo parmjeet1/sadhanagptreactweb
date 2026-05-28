@@ -57,6 +57,43 @@ const CounsellorProfile = () => {
   const [feedbackText, setFeedbackText] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setIsPushEnabled(true);
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
+
+        if (userDetails?.user_id) {
+          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+            const backendHasSub = response.data?.isSubscribed;
+            if (browserSubscription && !backendHasSub) {
+              await browserSubscription.unsubscribe();
+              setIsPushEnabled(false);
+            } else if (browserSubscription && backendHasSub) {
+              setIsPushEnabled(true);
+            } else {
+              setIsPushEnabled(false);
+            }
+          });
+        } else {
+          setIsPushEnabled(!!browserSubscription);
+        }
+      } catch (e) {
+        setIsPushEnabled(false);
+      }
+    };
+
+    if (userDetails?.user_id) {
+      checkSubscription();
+    }
+  }, [userDetails?.user_id]);
+
   const handlePostFeedback = () => {
     if (!feedbackText.trim() || !userDetails?.user_id) return;
     setIsSubmittingFeedback(true);
@@ -94,7 +131,7 @@ const CounsellorProfile = () => {
           mobile: profile.mobile || profile.phone || '',
           email: profile.email || '',
           profile_image: profile.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-          reminder_enabled: profile.reminder_enabled || false,
+          reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true,
           reminder_days: profile.reminder_days || 3
         });
 
@@ -107,6 +144,28 @@ const CounsellorProfile = () => {
 
   useEffect(() => {
     fetchCounsellorProfile();
+
+    // Sync browser subscription with backend
+    const syncSubscription = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
+
+        if (userDetails?.user_id) {
+          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+            const backendHasSub = response.data?.isSubscribed;
+            if (browserSubscription && !backendHasSub) {
+              await browserSubscription.unsubscribe();
+              setUserInfo(prev => ({ ...prev, reminder_enabled: false }));
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Sync error:", e);
+      }
+    };
+    syncSubscription();
   }, [userDetails]);
 
   const handleAddMentor = (counselorData) => {
@@ -203,16 +262,6 @@ const CounsellorProfile = () => {
                 {/* Avatar edit pencil removed as per request */}
               </div>
               <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
-
-              {/* <button 
-            onClick={() => navigate('/student/ai-chat')}
-            className="mt-4 px-6 py-2.5 bg-white border-2 border-[#1a73e8]/10 rounded-full flex items-center gap-2.5 text-[#1a73e8] font-black text-[14px] shadow-sm hover:bg-[#1a73e8]/5 hover:border-[#1a73e8]/20 active:scale-95 transition-all"
-          >
-            <div className="w-5 h-5 bg-[#1a73e8] rounded-md flex items-center justify-center text-white">
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.535 4h5.07a1 1 0 01.99 1.145C11.205 14.505 9.715 15.5 8 15.5s-3.205-.995-4.525-2.355A1 1 0 014.465 12z" clipRule="evenodd" /></svg>
-            </div>
-            Chat with AI
-          </button> */}
             </div>
 
             {/* Personal Info */}
@@ -288,6 +337,7 @@ const CounsellorProfile = () => {
             </section>
 
             {/* Notification Preferences */}
+            {isPushEnabled && (
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
                 <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Notification Preferences</h3>
@@ -299,7 +349,10 @@ const CounsellorProfile = () => {
                     <p className="text-[13px] font-bold text-gray-400 mt-1">Get notified if you miss your Sadhana activities</p>
                   </div>
                   <button
-                    onClick={() => handleSavePreferences(!userInfo.reminder_enabled, userInfo.reminder_days)}
+                    onClick={() => {
+                      const newEnabled = !userInfo.reminder_enabled;
+                      handleSavePreferences(newEnabled, userInfo.reminder_days || 3);
+                    }}
                     className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 ${userInfo.reminder_enabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
                   >
                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${userInfo.reminder_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
@@ -328,16 +381,25 @@ const CounsellorProfile = () => {
                             <input
                               type="number"
                               min="1"
-                              max="30"
+                              max="10"
                               value={userInfo.reminder_days}
                               onChange={(e) => {
+                                if (e.target.value === '') {
+                                  setUserInfo(prev => ({ ...prev, reminder_days: '' }));
+                                  return;
+                                }
                                 const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0) handleSavePreferences(userInfo.reminder_enabled, val);
+                                if (!isNaN(val) && val > 0 && val <= 10) handleSavePreferences(!!userInfo.reminder_enabled, val);
+                              }}
+                              onBlur={() => {
+                                if (userInfo.reminder_days === '' || userInfo.reminder_days < 1) {
+                                  handleSavePreferences(!!userInfo.reminder_enabled, 3);
+                                }
                               }}
                               className="w-12 text-center bg-transparent text-[#1e293b] font-black text-[14px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
-                              onClick={() => handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days + 1)}
+                              onClick={() => userInfo.reminder_days < 10 && handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days + 1)}
                               className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -351,6 +413,7 @@ const CounsellorProfile = () => {
                 </AnimatePresence>
               </div>
             </section>
+            )}
 
             {/* App Feedback Section */}
             <section className="px-8 mb-10">

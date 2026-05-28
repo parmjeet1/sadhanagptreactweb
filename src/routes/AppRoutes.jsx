@@ -23,6 +23,7 @@ import GroupMenteesList from '../pages/counsellor/group_mentees_module/GroupMent
 import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
 import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsellors';
+import IrregularMentees from '../pages/counsellor/mentees_module/IrregularMentees';
 import CounsellorOnboardingStepTwo from '../pages/counsellor/CounsellorOnboardingStepTwo';
 import GoogleCallback from '../pages/GoogleCallback';
 import AuthGuard from '../components/shared/AuthGuard';
@@ -49,7 +50,7 @@ const AppRoutes = () => {
           <Route path="/counsellor/profile" element={<CounsellorProfile />} />
           <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
           <Route path="/counsellor/personal-analytics" element={<PersonalSadhanaAnalytics />} />
-          
+
           <Route path="/counsellor/rewards" element={<UnderConstruction />} />
 
           {/* <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} /> */}
@@ -60,6 +61,7 @@ const AppRoutes = () => {
           <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
           <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
           <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
+          <Route path="/counsellor/irregular-mentees" element={<IrregularMentees />} />
 
           {/* <Route path="/counsellor/sub-counsellors" element={<UnderConstruction />} /> */}
           <Route path="/student/analytics" element={<Analytics />} />

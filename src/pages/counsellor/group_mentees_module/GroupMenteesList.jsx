@@ -33,6 +33,7 @@ const GroupMenteesList = () => {
   const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
   const [bulkLabel, setBulkLabel] = useState('');
   
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isAiAnalysisModalOpen, setIsAiAnalysisModalOpen] = useState(false);
   const [aiDateFrom, setAiDateFrom] = useState(() => {
     const d = new Date();
@@ -77,6 +78,7 @@ const GroupMenteesList = () => {
           label: s.label_name || 'N/A',
           center_id: s.center_id,
           label_id: s.label_id,
+          notificationStatus: s.notification_status,
           avatar: s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random`,
           activities: s.activities || []
         }));
@@ -143,6 +145,33 @@ const GroupMenteesList = () => {
     });
   };
 
+  const handleToggleNotifications = (enable) => {
+    const payload = {
+      user_id: userDetails.user_id,
+      student_ids: selectedStudents,
+      status: enable ? 1 : 0
+    };
+    
+    postRequest('/toggle-mentee-notification', payload, (res) => {
+      const data = res.data;
+      if (data?.status === 1) {
+        showSuccess(data.message || `Notifications ${enable ? 'enabled' : 'disabled'} successfully`);
+        
+        // Update local state for instant feedback
+        setStudents(prev => prev.map(student => 
+          selectedStudents.includes(student.id) 
+            ? { ...student, notificationStatus: enable ? 1 : 0 } 
+            : student
+        ));
+        
+        setIsNotificationModalOpen(false);
+        setSelectedStudents([]);
+      } else {
+        showError(data?.message || 'Failed to update notification settings');
+      }
+    });
+  };
+
   const handleSingleAssign = () => {
     if (!editLabel) return showError("Select a label");
     const payload = {
@@ -204,9 +233,16 @@ const GroupMenteesList = () => {
           {students.map(student => (
             <div key={student.id} onClick={() => toggleStudent(student.id)} className="flex items-center px-4 py-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors">
               <img src={student.avatar} className="w-12 h-12 rounded-full mr-4 border border-gray-100" />
-              <div className="flex-1">
-                <h3 className="font-bold text-[16px] text-[#0f172a]">{student.name}</h3>
-                <p className="text-[12px] text-gray-400 font-medium">{student.label}</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[16px] text-[#0f172a] flex items-center gap-2 truncate">
+                  {student.name}
+                  {student.notificationStatus === 1 && (
+                    <svg className="w-4 h-4 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+                    </svg>
+                  )}
+                </h3>
+                <p className="text-[12px] text-gray-400 font-medium truncate">{student.label}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={(e) => { e.stopPropagation(); navigate(`/counsellor/mentee/${student.id}`, { state: { student } }); }} className="p-2 text-gray-300 hover:text-blue-600 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
@@ -245,7 +281,10 @@ const GroupMenteesList = () => {
                   <span className="font-extrabold text-[15px]">Selected: {selectedStudents.length} Students</span>
                   <button onClick={() => setSelectedStudents([])} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center touch-auto"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
-                <button onClick={() => setIsAiAnalysisModalOpen(true)} className="touch-auto w-full bg-white text-[#1a73e8] rounded-2xl py-3.5 mb-3 font-black text-[15px] flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
+                <div className="flex gap-3 mb-3">
+                  <button onClick={() => setIsAiAnalysisModalOpen(true)} className="touch-auto flex-[2] bg-white text-[#1a73e8] rounded-2xl py-3.5 font-black text-[15px] flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
+                  <button onClick={() => setIsNotificationModalOpen(true)} className="touch-auto flex-1 bg-white/20 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/30 active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>Alerts</button>
+                </div>
                 <div className="flex gap-3">
                   <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Change Label</button>
                   <button onClick={() => setIsDownloadModalOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
@@ -258,6 +297,30 @@ const GroupMenteesList = () => {
 
       {/* Modals Bundle */}
       <AnimatePresence>
+
+        {isNotificationModalOpen && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setIsNotificationModalOpen(false)}>
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
+               <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
+                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+               </div>
+               <h2 className="text-2xl font-black mb-2">Performance Alerts</h2>
+               <p className="text-gray-400 font-bold mb-8 text-[15px] leading-relaxed">
+                 Receive push notifications when these {selectedStudents.length} students miss their sadhana or fall below their target average.
+               </p>
+               <div className="space-y-4">
+                  <button onClick={() => handleToggleNotifications(true)} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    Enable Notifications
+                  </button>
+                  <button onClick={() => handleToggleNotifications(false)} className="w-full bg-gray-50 text-gray-900 py-5 rounded-2xl font-black active:scale-[0.98] transition-all">
+                    Disable Notifications
+                  </button>
+                  <button onClick={()=>setIsNotificationModalOpen(false)} className="w-full py-4 text-gray-400 font-bold">Maybe Later</button>
+               </div>
+            </motion.div>
+          </motion.div>
+        )}
 
 
         {isAiAnalysisModalOpen && (

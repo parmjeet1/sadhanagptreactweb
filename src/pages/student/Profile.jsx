@@ -57,6 +57,43 @@ const Profile = () => {
   const [feedbackText, setFeedbackText] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setIsPushEnabled(true);
+        return;
+      }
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
+
+        if (userDetails?.user_id) {
+          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+            const backendHasSub = response.data?.isSubscribed;
+            if (browserSubscription && !backendHasSub) {
+              await browserSubscription.unsubscribe();
+              setIsPushEnabled(false);
+            } else if (browserSubscription && backendHasSub) {
+              setIsPushEnabled(true);
+            } else {
+              setIsPushEnabled(false);
+            }
+          });
+        } else {
+          setIsPushEnabled(!!browserSubscription);
+        }
+      } catch (e) {
+        setIsPushEnabled(false);
+      }
+    };
+
+    if (userDetails?.user_id) {
+      checkSubscription();
+    }
+  }, [userDetails?.user_id]);
+
   const handlePostFeedback = () => {
     if (!feedbackText.trim() || !userDetails?.user_id) return;
     setIsSubmittingFeedback(true);
@@ -93,7 +130,7 @@ const Profile = () => {
           mobile: dataObj.user.mobile || dataObj.user.phone || '',
           email: dataObj.user.email || '',
           profile_image: dataObj.user.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-          reminder_enabled: dataObj.user.reminder_enabled || false,
+          reminder_enabled: dataObj.user.reminder_enabled === 1 || dataObj.user.reminder_enabled === true,
           reminder_days: dataObj.user.reminder_days || 3
         });
       }
@@ -107,6 +144,28 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    
+    // Sync browser subscription with backend
+    const syncSubscription = async () => {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
+
+        if (userDetails?.user_id) {
+          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+            const backendHasSub = response.data?.isSubscribed;
+            if (browserSubscription && !backendHasSub) {
+              await browserSubscription.unsubscribe();
+              setUserInfo(prev => ({ ...prev, reminder_enabled: false }));
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Sync error:", e);
+      }
+    };
+    syncSubscription();
   }, [userDetails]);
 
   const handleAddMentor = (counselorData) => {
@@ -291,10 +350,9 @@ const Profile = () => {
             </section>
 
             {/* Notification Preferences */}
+            {/* Notification Preferences */}
+            {isPushEnabled && (
             <section className="px-8 mb-10">
-              <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Notification Preferences</h3>
-              </div>
               <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -302,7 +360,10 @@ const Profile = () => {
                     <p className="text-[13px] font-bold text-gray-400 mt-1">Get notified if you miss your Sadhana activities</p>
                   </div>
                   <button
-                    onClick={() => handleSavePreferences(!userInfo.reminder_enabled, userInfo.reminder_days)}
+                    onClick={() => {
+                      const newEnabled = !userInfo.reminder_enabled;
+                      handleSavePreferences(newEnabled, userInfo.reminder_days || 3);
+                    }}
                     className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 ${userInfo.reminder_enabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
                   >
                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${userInfo.reminder_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
@@ -331,16 +392,25 @@ const Profile = () => {
                             <input
                               type="number"
                               min="1"
-                              max="30"
+                              max="10"
                               value={userInfo.reminder_days}
                               onChange={(e) => {
+                                if (e.target.value === '') {
+                                  setUserInfo(prev => ({ ...prev, reminder_days: '' }));
+                                  return;
+                                }
                                 const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0) handleSavePreferences(userInfo.reminder_enabled, val);
+                                if (!isNaN(val) && val > 0 && val <= 10) handleSavePreferences(!!userInfo.reminder_enabled, val);
+                              }}
+                              onBlur={() => {
+                                if (userInfo.reminder_days === '' || userInfo.reminder_days < 1) {
+                                  handleSavePreferences(!!userInfo.reminder_enabled, 3);
+                                }
                               }}
                               className="w-12 text-center bg-transparent text-[#1e293b] font-black text-[14px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
-                              onClick={() => handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days + 1)}
+                              onClick={() => userInfo.reminder_days < 10 && handleSavePreferences(!!userInfo.reminder_enabled, userInfo.reminder_days + 1)}
                               className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -354,6 +424,7 @@ const Profile = () => {
                 </AnimatePresence>
               </div>
             </section>
+            )}
 
             {/* App Feedback Section */}
             <section className="px-8 mb-10">
