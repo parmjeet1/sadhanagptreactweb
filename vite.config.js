@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     envPrefix: ['VITE_', 'GOOGLE_'],
     plugins: [react()],
+    base: env.VITE_BASE_PATH || '/',
 
     server: {
       host: true,           // expose on local network (for mobile testing)
