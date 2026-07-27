@@ -2,11 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../../../components/shared/ThemeToggle';
-import { getSchemes, getSchemeActivities, getSchemeGroups, saveScheme, deleteActivityFromScheme, deleteScheme, toggleSchemeStatus, getCenters, getLabels, getLabelsRaw, getGroupSubgroupList, createScheme } from '../../../api/markingSchemes';
+import { getSchemes, getSchemeActivities, getSchemeGroups, saveScheme, deleteActivityFromScheme, deleteScheme, toggleSchemeStatus, getCenters, getLabels, getLabelsRaw, getGroupSubgroupList, createScheme, updateMarkingScheme } from '../../../api/markingSchemes';
 import SchemeGroupsPanel from './SchemeGroupsPanel';
 import SchemeActivityPickerModal from './SchemeActivityPickerModal';
 import SchemeNameModal from './SchemeNameModal';
-import EditChoiceModal from './EditChoiceModal';
 import ConfirmModal from '../../../components/shared/ConfirmModal';
 
 const MarkingScheme = () => {
@@ -23,7 +22,7 @@ const MarkingScheme = () => {
   // Modal States
   const [showPickerModal, setShowPickerModal] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [showEditChoiceModal, setShowEditChoiceModal] = useState(null);
+  const [editSchemeTarget, setEditSchemeTarget] = useState(null);
   const [schemeActivitiesCache, setSchemeActivitiesCache] = useState({});
   const [schemeGroupsCache, setSchemeGroupsCache] = useState({});
   const [schemeLabelsCache, setSchemeLabelsCache] = useState({});
@@ -32,6 +31,7 @@ const MarkingScheme = () => {
   const [groupSubgroups, setGroupSubgroups] = useState([]);
   const [filterCenterId, setFilterCenterId] = useState('all');
   const [filterLabelId, setFilterLabelId] = useState('all');
+  const [toastMessage, setToastMessage] = useState('');
 
   // Confirmation Modal States
   const [deleteSchemeTarget, setDeleteSchemeTarget] = useState(null);
@@ -46,21 +46,59 @@ const MarkingScheme = () => {
       const groupsCache = {};
       const labelsCache = {};
 
-      const [rawLabels, list] = await Promise.all([
-        getLabelsRaw(),
-        getGroupSubgroupList()
-      ]);
-
+      const list = await getGroupSubgroupList();
       setGroupSubgroups(list || []);
+
+      const isDefaultSubgroup = (l, g) => {
+        const lMsId = l.marking_scheme_id ? Number(l.marking_scheme_id) : null;
+        const gMsId = g.marking_scheme_id ? Number(g.marking_scheme_id) : null;
+        if (lMsId === 1) return true;
+        if (lMsId === null && (gMsId === null || gMsId === 1)) return true;
+        return false;
+      };
+
+      const isCustomSubgroup = (l, g, schemeId) => {
+        const lMsId = l.marking_scheme_id ? Number(l.marking_scheme_id) : null;
+        const gMsId = g.marking_scheme_id ? Number(g.marking_scheme_id) : null;
+        if (lMsId === schemeId) return true;
+        if (lMsId === null && gMsId === schemeId) return true;
+        return false;
+      };
 
       for (const s of res.schemes) {
         const actRes = await getSchemeActivities(s.id);
         cache[s.id] = actRes.activities || [];
 
-        const groupRes = await getSchemeGroups(s.id);
-        groupsCache[s.id] = groupRes.groups || [];
+        // DB-backed groups assigned to this scheme (directly or via subgroups)
+        groupsCache[s.id] = (list || [])
+          .filter(g => {
+            if (s.id === 1) {
+              return !(g.labels || []).length || (g.labels || []).some(l => isDefaultSubgroup(l, g));
+            }
+            const msId = Number(g.marking_scheme_id);
+            return msId === s.id || (g.labels || []).some(l => isCustomSubgroup(l, g, s.id));
+          })
+          .map(g => {
+            if (s.id === 1) {
+              const total = g.labels?.length || 0;
+              const defCount = (g.labels || []).filter(l => isDefaultSubgroup(l, g)).length;
+              if (defCount < total && defCount > 0) {
+                return { id: g.center_id, name: `${g.name} (${defCount}/${total})` };
+              }
+            }
+            return { id: g.center_id, name: g.name };
+          });
 
-        labelsCache[s.id] = (rawLabels || []).filter(l => l.marking_scheme_id === s.id);
+        // DB-backed subgroups (labels) assigned to this scheme
+        labelsCache[s.id] = (list || [])
+          .flatMap(g => (g.labels || []).map(l => ({ ...l, group: g })))
+          .filter(item => {
+            if (s.id === 1) {
+              return isDefaultSubgroup(item, item.group);
+            }
+            return isCustomSubgroup(item, item.group, s.id);
+          })
+          .map(item => ({ id: item.id, name: item.name }));
       }
       setSchemeActivitiesCache(cache);
       setSchemeGroupsCache(groupsCache);
@@ -110,12 +148,34 @@ const MarkingScheme = () => {
       // Save as a new Custom Scheme
       const res = await saveScheme('Custom Marking Scheme', defaultActivitiesArray, null, false);
       const newClone = res.scheme;
-      
+
       // Navigate to the edit view of the new clone
       navigate(`/counsellor/marking-scheme/${newClone.id}`, { state: { autoEdit: true } });
     } else {
-      setShowEditChoiceModal(scheme.id);
+      const centerObj = (schemeGroupsCache[scheme.id] || [])[0];
+      const labelObj = (schemeLabelsCache[scheme.id] || [])[0];
+      setEditSchemeTarget({
+        id: scheme.id,
+        name: scheme.name,
+        center_id: centerObj?.id || '',
+        label_id: labelObj?.id || ''
+      });
     }
+  };
+
+  const handleUpdateScheme = async (name, centerId, labelId) => {
+    if (!editSchemeTarget) return;
+    try {
+      await updateMarkingScheme(editSchemeTarget.id, name, centerId, labelId);
+      setToastMessage(`Scheme updated successfully!`);
+      setTimeout(() => setToastMessage(''), 3000);
+      fetchSchemes();
+    } catch (err) {
+      console.error(err);
+      setToastMessage(err.message || 'Failed to update marking scheme.');
+      setTimeout(() => setToastMessage(''), 3000);
+    }
+    setEditSchemeTarget(null);
   };
 
   const handleDeleteSchemeAction = async (schemeId, name) => {
@@ -124,8 +184,16 @@ const MarkingScheme = () => {
 
   const confirmDeleteScheme = async () => {
     if (!deleteSchemeTarget) return;
-    await deleteScheme(deleteSchemeTarget.id);
-    fetchSchemes();
+    try {
+      await deleteScheme(deleteSchemeTarget.id);
+      setToastMessage(`Scheme '${deleteSchemeTarget.name}' deleted successfully!`);
+      setTimeout(() => setToastMessage(''), 3000);
+      fetchSchemes();
+    } catch (err) {
+      console.error(err);
+      setToastMessage('Failed to delete scheme.');
+      setTimeout(() => setToastMessage(''), 3000);
+    }
     setDeleteSchemeTarget(null);
   };
 
@@ -174,12 +242,21 @@ const MarkingScheme = () => {
   };
 
   const handleCreateScheme = async (name, assignCenterId = null, assignLabelId = null) => {
-    const res = await createScheme(name, assignCenterId, assignLabelId);
-    const newSchemeId = res.scheme.id;
-    setShowNameModal(false);
-    
-    // Navigate straight to the detail page in edit mode
-    navigate(`/counsellor/marking-scheme/${newSchemeId}`, { state: { autoEdit: true } });
+    try {
+      const res = await createScheme(name, assignCenterId, assignLabelId);
+      setShowNameModal(false);
+
+      setToastMessage(`Scheme '${name}' created successfully!`);
+      fetchSchemes();
+
+      setTimeout(() => {
+        setToastMessage('');
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      setToastMessage('Failed to create marking scheme.');
+      setTimeout(() => setToastMessage(''), 3000);
+    }
   };
 
   const renderActivitiesList = (schemeId, isEditing) => {
@@ -251,8 +328,8 @@ const MarkingScheme = () => {
   );
 
   const labelOptions = filterCenterId === 'all'
-    ? groupSubgroups.flatMap(g => g.labels || [])
-    : (groupSubgroups.find(g => Number(g.center_id) === Number(filterCenterId))?.labels || []);
+    ? groupSubgroups.flatMap(g => (g.labels || []).map(l => ({ ...l, displayName: `${l.name} (${g.name})` })))
+    : (groupSubgroups.find(g => Number(g.center_id) === Number(filterCenterId))?.labels || []).map(l => ({ ...l, displayName: l.name }));
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] font-sans pb-28 transition-colors duration-300 flex flex-col">
@@ -313,13 +390,13 @@ const MarkingScheme = () => {
             <label className="block text-[10px] font-bold text-slate-400 dark:text-[#6b7a99] uppercase tracking-wider mb-1.5">Filter by Sub Group</label>
             <select
               value={filterLabelId}
-              disabled={filterCenterId !== 'all' && labelOptions.length === 0}
+              disabled={labelOptions.length === 0}
               onChange={(e) => setFilterLabelId(e.target.value)}
               className="w-full bg-slate-50 dark:bg-[#0b1628] border border-slate-200 dark:border-[rgba(255,255,255,0.1)] rounded-[10px] p-2 text-[13px] text-slate-800 dark:text-white focus:outline-none focus:border-[#1d4ed8] dark:focus:border-[#1de9b6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="all">All Sub Groups</option>
               {labelOptions.map(l => (
-                <option key={l.id} value={l.id}>{l.name}</option>
+                <option key={l.id} value={l.id}>{l.displayName || l.name}</option>
               ))}
             </select>
           </div>
@@ -350,17 +427,16 @@ const MarkingScheme = () => {
 
             let statusText = 'Active';
             let statusClasses = 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-[#1de9b6] dark:border-[#1de9b6]/15';
-            
+
             if (!isEnabled) {
               statusText = 'Inactive';
               statusClasses = 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-[rgba(255,255,255,0.05)] dark:text-[#6b7a99] dark:border-[rgba(255,255,255,0.1)]';
             }
 
-            const iconBoxClasses = `w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${
-              scheme.isSystemDefault
-                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400'
-                : 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400'
-            }`;
+            const iconBoxClasses = `w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0 ${scheme.isSystemDefault
+              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400'
+              : 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400'
+              }`;
 
             const cardClasses = `relative bg-white dark:bg-[#112240] rounded-[16px] p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col border border-slate-100 dark:border-[#1e293b] ${!isEnabled ? 'opacity-65 grayscale-[10%]' : ''}`;
 
@@ -421,9 +497,9 @@ const MarkingScheme = () => {
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold text-slate-700 dark:text-white uppercase tracking-wider">
-                      {totalGroupsLinked} Groups Associated
+                      {groups.length} Groups Associated
                     </span>
-                    {totalGroupsLinked > 0 && (
+                    {groups.length > 0 && (
                       <div className="flex -space-x-1.5 overflow-hidden">
                         <span className="inline-block h-5.5 w-5.5 rounded-full ring-2 ring-white dark:ring-[#112240] bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-500">A</span>
                         <span className="inline-block h-5.5 w-5.5 rounded-full ring-2 ring-white dark:ring-[#112240] bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-[9px] font-bold text-slate-500">B</span>
@@ -511,9 +587,9 @@ const MarkingScheme = () => {
                         <button
                           onClick={() => navigate(`/counsellor/marking-scheme/add-rules/${scheme.id}`)}
                           title="Add Rules"
-                          className="group flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-500 dark:hover:bg-[#1de9b6] text-teal-600 dark:text-[#1de9b6] hover:text-white dark:hover:text-[#042C53] border border-teal-200 dark:border-teal-700/40 hover:border-teal-500 transition-all duration-150 active:scale-95 text-[12px] font-bold"
+                          className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-teal-50 dark:bg-teal-950/30 hover:bg-teal-500 dark:hover:bg-[#1de9b6] text-teal-600 dark:text-[#1de9b6] hover:text-white dark:hover:text-[#042C53] border border-teal-200/50 dark:border-teal-500/20 hover:border-teal-500 transition-all duration-150 active:scale-95 text-[11px] font-bold"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                           </svg>
                           <span>Add Rules</span>
@@ -524,9 +600,9 @@ const MarkingScheme = () => {
                       <button
                         onClick={() => handleEditInitiate(scheme)}
                         title="Edit Scheme"
-                        className="group flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-200 dark:border-blue-700/40 hover:border-blue-600 transition-all duration-150 active:scale-95 text-[12px] font-bold"
+                        className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-200/50 dark:border-blue-500/20 hover:border-blue-600 transition-all duration-150 active:scale-95 text-[11px] font-bold"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         <span>Edit</span>
@@ -537,7 +613,7 @@ const MarkingScheme = () => {
                         <button
                           onClick={() => handleDeleteSchemeAction(scheme.id, scheme.name)}
                           title="Delete Scheme"
-                          className="group flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-500 dark:hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white border border-rose-200 dark:border-rose-700/40 hover:border-rose-500 transition-all duration-150 active:scale-95 text-[12px] font-bold"
+                          className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-500 dark:hover:bg-rose-500 text-rose-500 dark:text-rose-400 hover:text-white border border-rose-200/50 dark:border-rose-500/20 hover:border-rose-500 transition-all duration-150 active:scale-95 text-[11px] font-bold"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -573,25 +649,13 @@ const MarkingScheme = () => {
         </div>
       </div>
 
-      {/* Modals */}
-      {showEditChoiceModal && (
-        <EditChoiceModal
-          schemeName={schemes.find(s => s.id === showEditChoiceModal)?.name}
-          onClose={() => setShowEditChoiceModal(null)}
-          onEditInPlace={() => {
-            navigate(`/counsellor/marking-scheme/${showEditChoiceModal}`, { state: { autoEdit: true } });
-            setShowEditChoiceModal(null);
-          }}
-          onFork={async () => {
-            const originalScheme = schemes.find(s => s.id === showEditChoiceModal);
-            const originalActs = schemeActivitiesCache[showEditChoiceModal] || [];
-            
-            const res = await saveScheme(`Copy of ${originalScheme.name}`, originalActs, null, false);
-            const newSchemeId = res.scheme.id;
-            
-            navigate(`/counsellor/marking-scheme/${newSchemeId}`, { state: { autoEdit: true } });
-            setShowEditChoiceModal(null);
-          }}
+      {editSchemeTarget && (
+        <SchemeNameModal
+          editingSchemeId={editSchemeTarget.id}
+          initialCenterId={editSchemeTarget.center_id}
+          initialLabelId={editSchemeTarget.label_id}
+          onClose={() => setEditSchemeTarget(null)}
+          onCreate={handleUpdateScheme}
         />
       )}
 
@@ -630,6 +694,16 @@ const MarkingScheme = () => {
         confirmText="Remove"
         cancelText="Cancel"
       />
+
+      {/* Success Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="flex items-center gap-2 bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53] px-5 py-3 rounded-full shadow-lg">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            <span className="text-[13px] font-bold">{toastMessage}</span>
+          </div>
+        </div>
+      )}
 
     </div>
   );

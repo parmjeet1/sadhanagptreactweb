@@ -489,3 +489,29 @@ export const deleteActivityFromScheme = async (schemeId, activityId) => {
   return { success: true };
 };
 
+export const updateMarkingScheme = async (schemeId, name, centerId, labelId) => {
+  const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
+  const counsellorId = userDetails.user_id;
+  if (!counsellorId) throw new Error('User not authenticated.');
+
+  return new Promise((resolve, reject) => {
+    postRequest(
+      '/update-marking-scheme',
+      {
+        scheme_id: schemeId,
+        counsellor_id: counsellorId,
+        name: name,
+        center_id: centerId,
+        label_id: labelId
+      },
+      (response) => {
+        if (response?.data?.code === 200) {
+          resolve({ success: true });
+        } else {
+          reject(new Error(response?.data?.message?.[0] || 'Failed to update scheme.'));
+        }
+      }
+    );
+  });
+};
+

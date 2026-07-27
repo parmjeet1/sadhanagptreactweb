@@ -495,16 +495,23 @@ const SchemeDetail = () => {
     try {
       setLoading(true);
       const res = await saveScheme(name, schemeDraft, 'new', true, centerId, labelId);
+      const newSchemeId = res.scheme?.id || res.scheme_id;
       setShowNameModal(false);
       setIsEditing(false);
       setSchemeDraft([]);
       setIsDirty(false);
-      
-      if (res.scheme_id) {
-        navigate(`/counsellor/marking-scheme/${res.scheme_id}`);
-      } else {
-        navigate('/counsellor/marking-scheme');
-      }
+      setLoading(false);
+
+      setToastMessage(`Scheme '${name}' created successfully!`);
+
+      setTimeout(() => {
+        setToastMessage('');
+        if (newSchemeId) {
+          navigate(`/counsellor/marking-scheme/${newSchemeId}`);
+        } else {
+          navigate('/counsellor/marking-scheme');
+        }
+      }, 1500);
     } catch (err) {
       console.error(err);
       setLoading(false);
@@ -550,9 +557,9 @@ const SchemeDetail = () => {
               <>
                 <button
                   onClick={() => navigate(`/counsellor/marking-scheme/add-rules/${schemeId}`)}
-                  className="flex items-center gap-1.5 px-[14px] py-[6px] bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53] rounded-[8px] text-[13px] font-bold shadow-md hover:opacity-90 active:scale-95 transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53] rounded-[8px] text-[12px] font-bold shadow-md hover:opacity-90 active:scale-95 transition-all"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                   </svg>
                   Add Rules
