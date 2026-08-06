@@ -8,6 +8,7 @@ import NewActivityModal from '../../components/shared/NewActivityModal';
 import EditActivityModal from '../../components/shared/EditActivityModal';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 
 // Dummy data for notifications (Shared with Student view)
 const dummyNotifications = [
@@ -56,6 +57,8 @@ const StudentDashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isPushEnabled, setIsPushEnabled] = useState(true); // Default true to avoid flash
   const [dateColors, setDateColors] = useState({});
+  const [dailyScore, setDailyScore] = useState(null);
+  const [isScoreLoading, setIsScoreLoading] = useState(true);
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -111,17 +114,17 @@ const StudentDashboard = () => {
   const hasScrolledRef = useRef(false);
 
   // Exact Match to Mentor Logic: fetchDailyReport inside fetchActivities chain
-  const fetchDailyReport = async (dateObj, currentActivities) => {
+  const fetchDailyReport = async (dateObj, currentActivities, isBackground = false) => {
     const resolveActivities = currentActivities || activities;
     if (!resolveActivities || !Array.isArray(resolveActivities) || resolveActivities.length === 0) {
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
       return;
     }
 
     if (!userDetails?.user_id) return;
 
     try {
-      setIsLoading(true);
+      if (!isBackground) setIsLoading(true);
       const yyyy = dateObj.getFullYear();
       const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
       const dd = String(dateObj.getDate()).padStart(2, '0');
@@ -131,7 +134,7 @@ const StudentDashboard = () => {
 
       postRequest('/report-as-per-date', payload, (response) => {
         if (!response?.data) {
-          setIsLoading(false);
+          if (!isBackground) setIsLoading(false);
           return;
         }
         const res = response.data;
@@ -156,15 +159,15 @@ const StudentDashboard = () => {
             let newStatus = 'Pending';
 
             if (isBoolean) {
-              newProgress = '';
-              newStatus = count > 0 ? 'Completed' : 'Pending';
+               newProgress = '';
+               newStatus = count > 0 ? 'Completed' : 'Pending';
             } else if (isTimeType) {
-              // Return 'actual / target', so the slider receives '5:00 AM / 08:00 AM'
-              newProgress = `${count || '00:00 AM'} / ${target}`;
-              newStatus = count ? 'Completed' : 'Pending'; // Time activities are complete if they have any logged time
+               // Return 'actual / target', so the slider receives '5:00 AM / 08:00 AM'
+               newProgress = `${count || '00:00 AM'} / ${target}`;
+               newStatus = count ? 'Completed' : 'Pending'; // Time activities are complete if they have any logged time
             } else {
-              newProgress = `${count} / ${target}`;
-              newStatus = count >= target ? 'Completed' : 'Pending';
+               newProgress = `${count} / ${target}`;
+               newStatus = count >= target ? 'Completed' : 'Pending';
             }
 
             return { ...act, progress: newProgress, status: newStatus };
@@ -177,16 +180,16 @@ const StudentDashboard = () => {
             const isBoolean = act.type === 'YES/NO' || act.type === 'boolean';
             return {
               ...act,
-              progress: isBoolean ? '' : (isTimeType ? `0 / ${target}` : `0 / ${target}`),
-              status: 'Pending'
+               progress: isBoolean ? '' : (isTimeType ? `0 / ${target}` : `0 / ${target}`),
+               status: 'Pending'
             };
           }));
         }
-        setIsLoading(false);
+        if (!isBackground) setIsLoading(false);
       });
     } catch (e) {
       console.error(e);
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
     }
   };
 
@@ -251,10 +254,28 @@ const StudentDashboard = () => {
     }
   };
 
+  const fetchDailyScore = (targetDate, isBackground = false) => {
+    if (!userDetails?.user_id) return;
+    if (!isBackground) setIsScoreLoading(true);
+    const activeDateObj = targetDate || dates?.find(d => d.active)?.fullDate || new Date();
+    const yyyy = activeDateObj.getFullYear();
+    const mm = String(activeDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(activeDateObj.getDate()).padStart(2, '0');
+    const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+    getRequest('/daily-score', { user_id: userDetails.user_id, activity_date: formattedDate }, (response) => {
+      if (response?.data?.status === 1) {
+        setDailyScore(response.data.data);
+      }
+      setIsScoreLoading(false);
+    });
+  };
+
   const hasFetchedNotif = useRef(false);
   useEffect(() => {
     if (userDetails?.user_id && !hasFetchedNotif.current) {
       fetchActivities();
+      fetchDailyScore();
 
       // Initial notification check for badge
       hasFetchedNotif.current = true;
@@ -332,7 +353,8 @@ const StudentDashboard = () => {
   const handleProgressUpdate = (id, newProps) => {
     setActivities(prev => prev.map(act => act.id === id ? { ...act, ...newProps } : act));
     const activeDateObj = dates?.find(d => d.active)?.fullDate || new Date();
-    fetchDailyReport(activeDateObj);
+    fetchDailyReport(activeDateObj, null, true);
+    fetchDailyScore(activeDateObj, true);
   };
 
   const handleDateSelect = (id) => {
@@ -341,6 +363,7 @@ const StudentDashboard = () => {
       const selected = newDates.find(d => d.active);
       if (selected) {
         fetchDailyReport(selected.fullDate);
+        fetchDailyScore(selected.fullDate);
       }
       return newDates;
     });
@@ -686,12 +709,10 @@ const StudentDashboard = () => {
         onDelete={handleDeleteActivity}
       />
 
-      <button
-        onClick={() => setIsNewActivityOpen(true)}
-        className="fixed bottom-[100px] right-[calc(50%-180px)] lg:right-10 w-[64px] h-[64px] bg-[#1a73e8] hover:bg-[#155fc3] text-white rounded-full flex items-center justify-center shadow-xl shadow-[#1a73e8]/30 transition-transform active:scale-90 z-40 lg:ml-auto"
-      >
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-      </button>
+      {/* Floating Action Button (FAB) Replaced by Score Indicator */}
+      <div>
+        <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+      </div>
 
       <BottomNavigation />
 

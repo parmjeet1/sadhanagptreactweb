@@ -300,10 +300,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
             </div>
           </div>
 
-          <div className="relative flex items-center h-[26px]">
-            {isSubmitting ? (
-              <div className="w-[18px] h-[18px] border-[2px] border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
-            ) : toastMessage ? (
+            {toastMessage ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -324,7 +321,6 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                 </svg>
               </button>
             )}
-          </div>
         </div>
 
         {isTimeType ? (

@@ -8,6 +8,7 @@ import NewActivityModal from '../../components/shared/NewActivityModal';
 import EditActivityModal from '../../components/shared/EditActivityModal';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 
 // Dummy data for notifications (Shared temporarily until context/API is built)
 const dummyNotifications = [
@@ -56,6 +57,8 @@ const CounsellorDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(true); // Default true to avoid flash
   const [dateColors, setDateColors] = useState({});
+  const [dailyScore, setDailyScore] = useState(null);
+  const [isScoreLoading, setIsScoreLoading] = useState(true);
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -110,15 +113,15 @@ const CounsellorDashboard = () => {
   const dateContainerRef = useRef(null);
   const hasScrolledRef = useRef(false);
 
-  const fetchDailyReport = async (dateObj, currentActivities) => {
+  const fetchDailyReport = async (dateObj, currentActivities, isBackground = false) => {
     const resolveActivities = currentActivities || activities;
     if (!resolveActivities || resolveActivities.length === 0) {
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
       return;
     }
 
     try {
-      setIsLoading(true);
+      if (!isBackground) setIsLoading(true);
       const yyyy = dateObj.getFullYear();
       const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
       const dd = String(dateObj.getDate()).padStart(2, '0');
@@ -175,11 +178,11 @@ const CounsellorDashboard = () => {
             };
           }));
         }
-        setIsLoading(false);
+        if (!isBackground) setIsLoading(false);
       });
     } catch (e) {
       console.error(e);
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
     }
   };
 
@@ -244,9 +247,30 @@ const CounsellorDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  const fetchDailyScore = (targetDate, isBackground = false) => {
+    if (!userDetails?.user_id) return;
+    if (!isBackground) setIsScoreLoading(true);
+    const activeDateObj = targetDate || dates?.find(d => d.active)?.fullDate || new Date();
+    const yyyy = activeDateObj.getFullYear();
+    const mm = String(activeDateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(activeDateObj.getDate()).padStart(2, '0');
+    const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+    getRequest('/daily-score', { user_id: userDetails.user_id, activity_date: formattedDate }, (response) => {
+      if (response?.data?.status === 1) {
+        setDailyScore(response.data.data);
+      }
+      setIsScoreLoading(false);
+    });
+  };
+
   useEffect(() => {
-    fetchActivities();
-  }, []);
+    if (userDetails?.user_id) {
+      fetchActivities();
+      fetchDailyScore();
+    }
+  }, [userDetails?.user_id]);
   // 2. Generate dates logic...
   // Generate the last 30 days starting with 30 days ago, ending at Today
   useEffect(() => {
@@ -312,7 +336,8 @@ const CounsellorDashboard = () => {
   const handleProgressUpdate = (id, newProps) => {
     setActivities(prev => prev.map(act => act.id === id ? { ...act, ...newProps } : act));
     const activeDateObj = dates.find(d => d.active)?.fullDate || new Date();
-    fetchDailyReport(activeDateObj);
+    fetchDailyReport(activeDateObj, null, true);
+    fetchDailyScore(activeDateObj, true);
   };
 
   const handleDateSelect = (id) => {
@@ -321,6 +346,7 @@ const CounsellorDashboard = () => {
       const selected = newDates.find(d => d.active);
       if (selected) {
         fetchDailyReport(selected.fullDate);
+        fetchDailyScore(selected.fullDate);
       }
       return newDates;
     });
@@ -693,13 +719,10 @@ const CounsellorDashboard = () => {
         onDelete={handleDeleteActivity}
       />
 
-      {/* Floating Action Button (FAB) */}
-      <button
-        onClick={() => setIsNewActivityOpen(true)}
-        className="fixed bottom-[100px] right-[calc(50%-180px)] lg:right-10 w-[64px] h-[64px] bg-[#1a73e8] hover:bg-[#155fc3] text-white rounded-full flex items-center justify-center shadow-xl shadow-[#1a73e8]/30 transition-transform active:scale-90 z-40 lg:ml-auto"
-      >
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-      </button>
+      {/* Floating Action Button (FAB) Replaced by Score Indicator */}
+      <div>
+        <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+      </div>
 
       {/* Reusable Bottom Navigation */}
       <CounsellorBottomNavigation />

@@ -40,7 +40,7 @@ const CustomActivities = () => {
 
     // Fetch all assigned activities (status === 1)
     const fetchAssignedActivities = useCallback(() => {
-        if (!selectedGroup) return;
+        if (!selectedGroup || !selectedLabel) return;
         const payload = {
             user_id: userDetails.user_id,
             page_no: 1,
@@ -68,7 +68,7 @@ const CustomActivities = () => {
 
     // Fetch paginated available activities (status !== 1)
     const fetchAvailableActivities = useCallback((pageNum = 1, shouldAppend = false) => {
-        if (!selectedGroup) return;
+        if (!selectedGroup || !selectedLabel) return;
         setIsLoading(true);
         const payload = {
             user_id: userDetails.user_id,
@@ -106,12 +106,6 @@ const CustomActivities = () => {
     useEffect(() => { fetchCenters(); }, [fetchCenters]);
 
     useEffect(() => {
-        if (centers.length > 0 && !selectedGroup) {
-            setSelectedGroup(String(centers[0].center_id));
-        }
-    }, [centers, selectedGroup]);
-
-    useEffect(() => {
         if (selectedGroup) {
             const center = centers.find(c => String(c.center_id) === String(selectedGroup));
             setLabels(center?.labels || []);
@@ -122,7 +116,7 @@ const CustomActivities = () => {
     }, [selectedGroup, centers]);
 
     useEffect(() => {
-        if (selectedGroup) {
+        if (selectedGroup && selectedLabel) {
             fetchAssignedActivities();
             fetchAvailableActivities(1, false);
             setPage(1);
@@ -145,8 +139,8 @@ const CustomActivities = () => {
     };
 
     const handleBulkAssign = () => {
-        if (!selectedGroup) {
-            return showError("Please select a Group first.");
+        if (!selectedGroup || !selectedLabel) {
+            return showError("Please select both a Group and a Sub-Group first.");
         }
         const payload = {
             user_id: userDetails.user_id,
@@ -169,8 +163,8 @@ const CustomActivities = () => {
     };
 
     const handleRemoveGroupCustomActivity = (activityId, name) => {
-        if (!selectedGroup) {
-            return showError("Please select a Group first.");
+        if (!selectedGroup || !selectedLabel) {
+            return showError("Please select both a Group and a Sub-Group first.");
         }
         if (window.confirm(`Remove "${name}" from this group? This will delete all student logs for it in this group.`)) {
             const payload = {
@@ -297,13 +291,13 @@ const CustomActivities = () => {
                     </div>
                 </div>
 
-                {!selectedGroup ? (
+                {!selectedGroup || !selectedLabel ? (
                     <div className="flex-1 flex flex-col items-center justify-center py-20 bg-white dark:bg-[#112240] border border-gray-200 dark:border-[rgba(255,255,255,0.05)] rounded-[20px] shadow-sm text-center px-6 transition-all duration-300">
                         <div className="w-16 h-16 bg-teal-50 dark:bg-[rgba(29,233,182,0.12)] text-teal-500 dark:text-[#1de9b6] rounded-full flex items-center justify-center mb-4">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <h3 className="text-[#0f172a] dark:text-[#ffffff] font-extrabold text-lg mb-2">Select a Group First</h3>
-                        <p className="text-gray-500 dark:text-[#6b7a99] text-sm max-w-sm">Please select a group and optional sub-group in the panel above to view, assign, and remove custom activities.</p>
+                        <h3 className="text-[#0f172a] dark:text-[#ffffff] font-extrabold text-lg mb-2">Select Group and Sub-Group</h3>
+                        <p className="text-gray-500 dark:text-[#6b7a99] text-sm max-w-sm">Please select both a group and a sub-group in the panel above to view, assign, and remove custom activities.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">

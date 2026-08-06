@@ -102,7 +102,7 @@ const CounsellorAnalytics = () => {
   React.useEffect(() => {
     if (userDetails?.user_id) {
       fetchGroups(1);
-      
+
       // Fetch irregular mentees count
       getRequest('/irregular-mentees', { user_id: userDetails.user_id }, (response) => {
         if (response.data?.status === 1 || response.data?.code === 200) {
@@ -217,7 +217,7 @@ const CounsellorAnalytics = () => {
                 <path d="M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Manage Labels</span>
+            <span className="font-bold text-[#0f172a]">Sub Groups</span>
           </div>
         </div>
 
@@ -247,7 +247,7 @@ const CounsellorAnalytics = () => {
             <span className="font-bold text-[#0f172a]">Custom Activities</span>
           </div>
         </div>
-        
+
         {/* Full Width Card - Irregular Mentees Alert - ONLY SHOW IF COUNT > 0 */}
         {irregularCount > 0 && (
           <div className="px-6 mb-8">
@@ -265,10 +265,10 @@ const CounsellorAnalytics = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                 <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                 </div>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </div>
               </div>
             </div>
           </div>
