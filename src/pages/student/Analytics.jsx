@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
 
@@ -84,10 +85,10 @@ const DailyTooltip = ({ dateStr, value, label, position }) => {
         transform: 'translateX(-50%)'
       }}
     >
-      <div className="bg-[#0f172a]/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl shadow-2xl relative border border-white/10 flex flex-col items-center">
-        <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-0.5">{displayDate}</div>
-        <div className="text-[15px] font-black whitespace-nowrap leading-tight">{value} <span className="text-[11px] font-bold text-gray-400">{label}</span></div>
-        <div className="absolute -bottom-1 w-3 h-3 bg-[#0f172a] rotate-45 border-r border-b border-white/5"></div>
+      <div className="bg-[#0f172a]/95 dark:bg-[#1E293B]/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl shadow-2xl relative border border-white/10 flex flex-col items-center">
+        <div className="text-[9px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-[0.2em] mb-0.5">{displayDate}</div>
+        <div className="text-[15px] font-black whitespace-nowrap leading-tight">{value} <span className="text-[11px] font-bold text-gray-400 dark:text-gray-300">{label}</span></div>
+        <div className="absolute -bottom-1 w-3 h-3 bg-[#0f172a] dark:bg-[#1E293B] rotate-45 border-r border-b border-white/5"></div>
       </div>
     </motion.div>
   );
@@ -181,7 +182,7 @@ const MiniChart = ({ data, dates, color, label }) => {
         </defs>
 
         {/* X and Y Axes Grid and Label Rendering */}
-        <g className="opacity-60">
+        <g className="opacity-60 dark:opacity-40">
           {yTicks.map((yVal, idx) => {
             const yPos = margin.top + height - ((yVal - min) / range) * height;
             const fVal = formatYValue(yVal);
@@ -232,9 +233,10 @@ const MiniChart = ({ data, dates, color, label }) => {
           fill={`url(#${gradId})`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         />
 
-        {/* Premium Smooth Line */}
+        {/* Dynamic Curved Line */}
         <motion.path
           d={pathData}
           fill="none"
@@ -244,42 +246,48 @@ const MiniChart = ({ data, dates, color, label }) => {
           strokeLinejoin="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="drop-shadow-md"
+          transition={{ duration: 1.2, ease: "easeInOut" }}
         />
 
-        {/* Interaction Selected State Tracking */}
-        <AnimatePresence>
-          {points.map((p, i) => (
-            (hoverIndex === i || (i === points.length - 1 && hoverIndex === null)) && (
-              <motion.g
-                key={`point-${i}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <line
-                  x1={p.x}
-                  y1={margin.top}
-                  x2={p.x}
-                  y2={margin.top + height}
-                  stroke={color}
-                  strokeWidth="1.5"
-                  strokeOpacity={hoverIndex === i ? 0.4 : 0.1}
-                />
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r="5"
-                  fill="white"
-                  stroke={color}
-                  strokeWidth="2.5"
-                  className="drop-shadow-lg"
-                />
-              </motion.g>
-            )
-          ))}
-        </AnimatePresence>
+        {/* Data Points / Pulsing End Node */}
+        {points.map((p, idx) => {
+          const isHovered = hoverIndex === idx;
+          const isLast = idx === points.length - 1 && hoverIndex === null;
+
+          if (!isHovered && !isLast) return null;
+
+          return (
+            <g key={idx}>
+              {/* Outer pulsing ring for current point */}
+              <motion.circle
+                cx={p.x}
+                cy={p.y}
+                r="10"
+                fill={color}
+                initial={{ opacity: 0.4, scale: 0.8 }}
+                animate={{ opacity: 0, scale: 2 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+              />
+              {/* Glow backdrop */}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r="6"
+                fill={color}
+                opacity="0.3"
+              />
+              {/* Core Solid Point */}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r="4.5"
+                fill="#ffffff"
+                stroke={color}
+                strokeWidth="2.5"
+              />
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
@@ -288,16 +296,18 @@ const MiniChart = ({ data, dates, color, label }) => {
 const Analytics = () => {
   const navigate = useNavigate();
   const { userDetails } = useOutletContext();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('Weekly');
-
-  const todayDate = new Date().toISOString().split('T')[0];
-  const lastWeekDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-  const [fromDate, setFromDate] = useState(lastWeekDate);
-  const [toDate, setToDate] = useState(todayDate);
   const [activitiesData, setActivitiesData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Custom range state (Defaults: start of week to today)
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const tabs = ['Weekly', '30 Days', 'Custom'];
 
@@ -305,26 +315,19 @@ const Analytics = () => {
     if (!userDetails?.user_id) return;
     setIsLoading(true);
 
-    const filterMap = {
-      'Weekly': '7days',
-      '30 Days': '30days',
-      'Custom': 'custom'
-    };
+    let payload = { user_id: userDetails.user_id };
 
-    const params = {
-      user_id: userDetails.user_id,
-      filter: filterMap[activeTab] || '7days',
-    };
-
-    if (activeTab === 'Custom') {
-      params.start_date = fromDate;
-      params.end_date = toDate;
+    if (activeTab === 'Weekly') {
+      payload.duration = 7;
+    } else if (activeTab === '30 Days') {
+      payload.duration = 30;
+    } else if (activeTab === 'Custom') {
+      payload.from_date = fromDate;
+      payload.to_date = toDate;
     }
 
-    getRequest('/student-activities-analytics', params, (response) => {
-      console.log("Analytics response:", response);
-      const res = response.data;
-      const dataObj = res?.data || res;
+    getRequest('/student-activities-analytics', payload, (response) => {
+      const dataObj = response?.data?.data;
       let payloadArray = [];
 
       if (Array.isArray(dataObj)) payloadArray = dataObj;
@@ -406,20 +409,20 @@ const Analytics = () => {
   }, [activeTab, fromDate, toDate, userDetails]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans pb-28 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] dark:from-[#0F172A] dark:via-[#1E293B] dark:to-[#0F172A] font-sans pb-28 relative overflow-x-hidden transition-colors duration-300">
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
           <button
             onClick={() => navigate('/student/dashboard')}
-            className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] active:scale-95 transition-all"
+            className="w-12 h-12 rounded-full bg-white dark:bg-[#1E293B] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] active:scale-95 transition-all border border-gray-100 dark:border-[#334155]"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
 
           <div className="flex flex-col items-center">
-            <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight">Analytics</h1>
+            <h1 className="text-[20px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight">Analytics</h1>
             <button
               onClick={() => navigate('/student/ai-chat')}
               className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
@@ -429,24 +432,27 @@ const Analytics = () => {
             </button>
           </div>
 
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] active:scale-95 transition-all relative"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#1E293B] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] active:scale-95 transition-all relative border border-gray-100 dark:border-[#334155]"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            </button>
+          </div>
         </div>
 
         {/* Tabs / Segmented Control */}
         <div className="px-6 mb-6">
-          <div className="bg-white p-1.5 rounded-[24px] shadow-sm flex items-center justify-between">
+          <div className="bg-white dark:bg-[#1E293B] p-1.5 rounded-[24px] shadow-sm flex items-center justify-between border border-gray-100 dark:border-[#334155] transition-colors duration-300">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-3 rounded-[20px] text-[15px] font-bold transition-all ${activeTab === tab
                     ? 'bg-[#1a73e8] text-white shadow-md shadow-blue-500/20'
-                    : 'text-gray-400 hover:text-gray-600'
+                    : 'text-gray-400 dark:text-[#CBD5E1] hover:text-gray-600 dark:hover:text-white'
                   }`}
               >
                 {tab}
@@ -464,26 +470,26 @@ const Analytics = () => {
               exit={{ height: 0, opacity: 0 }}
               className="px-6 mb-8 overflow-hidden"
             >
-              <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-50 flex items-center gap-4">
+              <div className="bg-white dark:bg-[#1E293B] p-6 rounded-[32px] shadow-sm border border-gray-50 dark:border-[#334155] flex items-center gap-4 transition-colors duration-300">
                 <div className="flex-1 space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">From</label>
+                  <label className="text-[10px] font-black text-gray-400 dark:text-[#CBD5E1] uppercase tracking-widest ml-2">From</label>
                   <input
                     type="date"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
-                    className="w-full bg-[#f8fafc] text-[#0f172a] font-bold text-[14px] rounded-2xl py-3 px-4 outline-none border border-transparent focus:border-blue-100 transition-all cursor-pointer"
+                    className="w-full bg-[#f8fafc] dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] font-bold text-[14px] rounded-2xl py-3 px-4 outline-none border border-transparent focus:border-blue-100 dark:focus:border-blue-800 transition-all cursor-pointer"
                   />
                 </div>
-                <div className="text-gray-300 pt-5">
+                <div className="text-gray-300 dark:text-gray-600 pt-5">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">To</label>
+                  <label className="text-[10px] font-black text-gray-400 dark:text-[#CBD5E1] uppercase tracking-widest ml-2">To</label>
                   <input
                     type="date"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
-                    className="w-full bg-[#f8fafc] text-[#0f172a] font-bold text-[14px] rounded-2xl py-3 px-4 outline-none border border-transparent focus:border-blue-100 transition-all cursor-pointer"
+                    className="w-full bg-[#f8fafc] dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] font-bold text-[14px] rounded-2xl py-3 px-4 outline-none border border-transparent focus:border-blue-100 dark:focus:border-blue-800 transition-all cursor-pointer"
                   />
                 </div>
               </div>
@@ -494,7 +500,7 @@ const Analytics = () => {
         {/* Date Range Label (Shown when not in custom mode or as header) */}
         {activeTab !== 'Custom' && (
           <div className="text-center mb-8">
-            <span className="text-[16px] font-bold text-gray-400">
+            <span className="text-[16px] font-bold text-gray-400 dark:text-[#CBD5E1]">
               {activeTab === 'Weekly' ? 'Last 7 Days' : 'Last 30 Days'}
             </span>
           </div>
@@ -505,7 +511,7 @@ const Analytics = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center pt-20 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading analytics...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Loading analytics...</p>
             </div>
           ) : activitiesData.length > 0 ? (
             activitiesData.map((activity, idx) => (
@@ -514,13 +520,13 @@ const Analytics = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 flex flex-col relative overflow-visible group"
+                className="bg-white dark:bg-[#1E293B] rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 dark:border-[#334155] flex flex-col relative overflow-visible group transition-colors duration-300"
               >
                 {/* Badge */}
                 <div className="absolute top-8 right-8">
                   <span className={`px-4 py-1.5 rounded-full text-[12px] font-extrabold flex items-center gap-1.5 ${activity.trend === 'Stable'
-                      ? 'bg-[#f0f7ff] text-[#1a73e8]'
-                      : 'bg-[#f0fdf4] text-[#16a34a]'
+                      ? 'bg-[#f0f7ff] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-400'
+                      : 'bg-[#f0fdf4] dark:bg-emerald-900/30 text-[#16a34a] dark:text-emerald-400'
                     }`}>
                     {activity.trend !== 'Stable' && (
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" /></svg>
@@ -530,12 +536,12 @@ const Analytics = () => {
                 </div>
 
                 <div className="mb-2">
-                  <span className="text-[12px] font-black text-gray-300 uppercase tracking-[0.14em]">{activity.name}</span>
+                  <span className="text-[12px] font-black text-gray-300 dark:text-[#94A3B8] uppercase tracking-[0.14em]">{activity.name}</span>
                   <div className="mt-2 flex items-baseline gap-2">
-                    <span className={`${String(activity.value).length > 6 ? 'text-[32px]' : 'text-[48px]'} font-black text-[#0f172a] leading-none tracking-tight`}>
+                    <span className={`${String(activity.value).length > 6 ? 'text-[32px]' : 'text-[48px]'} font-black text-[#0f172a] dark:text-[#F8FAFC] leading-none tracking-tight`}>
                       {activity.value}
                     </span>
-                    <span className="text-[17px] font-bold text-gray-400">{activity.label}</span>
+                    <span className="text-[17px] font-bold text-gray-400 dark:text-[#CBD5E1]">{activity.label}</span>
                   </div>
                 </div>
 
@@ -550,7 +556,7 @@ const Analytics = () => {
             ))
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No analytics data found</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">No analytics data found</p>
             </div>
           )}
         </div>

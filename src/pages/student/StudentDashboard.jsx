@@ -9,6 +9,7 @@ import EditActivityModal from '../../components/shared/EditActivityModal';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 
 // Dummy data for notifications (Shared with Student view)
 const dummyNotifications = [
@@ -507,26 +508,29 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] dark:from-[#0F172A] dark:via-[#1E293B] dark:to-[#0F172A] font-sans pb-28 relative overflow-x-hidden transition-colors duration-300">
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
-          <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight">Activities</h1>
-          <button
-            onClick={() => {
-              setShowNotifications(true);
-              setUnreadCount(0);
-            }}
-            className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 border-2 border-white text-[10px] font-black text-white shadow-lg animate-bounce">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <h1 className="text-[28px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight transition-colors duration-300">Activities</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => {
+                setShowNotifications(true);
+                setUnreadCount(0);
+              }}
+              className="relative w-12 h-12 rounded-full bg-white dark:bg-[#1E293B] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] hover:bg-gray-50 dark:hover:bg-[#334155] active:scale-95 transition-all border border-gray-100 dark:border-[#334155]"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 border-2 border-white dark:border-[#1E293B] text-[10px] font-black text-white shadow-lg animate-bounce">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Date Selector */}
@@ -539,35 +543,35 @@ const StudentDashboard = () => {
             const color = dateColors[dateStr];
 
             let fillClass = '';
-            let bgClass = 'bg-white';
-            let borderClass = 'border border-slate-200/80';
-            let textColor = 'text-[#1e293b]';
-            let monthColor = 'text-[#94a3b8]';
+            let bgClass = 'bg-white dark:bg-slate-800';
+            let borderClass = 'border border-slate-200/80 dark:border-slate-700/80';
+            let textColor = 'text-[#1e293b] dark:text-slate-50';
+            let monthColor = 'text-[#94a3b8] dark:text-slate-300';
 
             if (color === '#10B981') {
-              fillClass = 'bg-[#d1fae5] h-full';
-              bgClass = 'bg-[#f4fdf8]';
-              borderClass = 'border border-[#a7f3d0]';
-              textColor = 'text-[#065f46]';
-              monthColor = 'text-[#047857]';
+              fillClass = 'bg-[#d1fae5] dark:bg-emerald-500/20 h-full';
+              bgClass = 'bg-[#f4fdf8] dark:bg-slate-800';
+              borderClass = 'border border-[#a7f3d0] dark:border-emerald-500/50';
+              textColor = 'text-[#065f46] dark:text-emerald-400';
+              monthColor = 'text-[#047857] dark:text-emerald-500';
             } else if (color === '#F59E0B') {
-              fillClass = 'bg-[#fef3c7] h-1/2';
-              bgClass = 'bg-[#fffdf5]';
-              borderClass = 'border border-[#fde68a]';
-              textColor = 'text-[#1e293b]';
-              monthColor = 'text-[#b45309]';
+              fillClass = 'bg-[#fef3c7] dark:bg-amber-500/20 h-1/2';
+              bgClass = 'bg-[#fffdf5] dark:bg-slate-800';
+              borderClass = 'border border-[#fde68a] dark:border-amber-500/50';
+              textColor = 'text-[#1e293b] dark:text-amber-300';
+              monthColor = 'text-[#b45309] dark:text-amber-500';
             } else if (color === '#EF4444') {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-dashed border-rose-300';
-              textColor = 'text-[#475569]';
-              monthColor = 'text-[#f43f5e]';
+              bgClass = 'bg-white dark:bg-slate-800';
+              borderClass = 'border border-dashed border-rose-300 dark:border-rose-500/50';
+              textColor = 'text-[#475569] dark:text-slate-50';
+              monthColor = 'text-[#f43f5e] dark:text-rose-400';
             } else {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-slate-200/80';
-              textColor = 'text-[#0f172a]';
-              monthColor = 'text-[#94a3b8]';
+              bgClass = 'bg-white dark:bg-slate-800';
+              borderClass = 'border border-slate-200/80 dark:border-slate-700/80';
+              textColor = 'text-[#0f172a] dark:text-slate-50';
+              monthColor = 'text-[#94a3b8] dark:text-slate-300';
             }
 
             return (
@@ -576,7 +580,7 @@ const StudentDashboard = () => {
                 onClick={() => handleDateSelect(item.id)}
                 className={`relative flex-shrink-0 flex flex-col items-center justify-center w-[72px] h-[90px] rounded-[20px] transition-all shadow-sm select-none overflow-hidden ${item.active
                     ? 'bg-[#1a73e8] text-white shadow-[#1a73e8]/30 shadow-md border border-[#1a73e8]'
-                    : `${bgClass} ${borderClass}`
+                    : `${bgClass} ${borderClass} hover:bg-gray-50 dark:hover:bg-[#334155]`
                   }`}
               >
                 {!item.active && (
@@ -600,14 +604,14 @@ const StudentDashboard = () => {
         {/* Push Notification Enable Banner */}
         {!isPushEnabled && (
           <div className="px-6 mt-2 mb-4">
-            <div className="bg-white border border-[#1a73e8]/20 shadow-sm rounded-[16px] p-4 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#1E293B] border border-[#1a73e8]/20 dark:border-[#334155] shadow-sm rounded-[16px] p-4 flex items-center justify-between transition-colors duration-300">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1a73e8]">
+                <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] dark:text-blue-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 </div>
                 <div>
-                  <p className="text-[#0f172a] font-bold text-sm">Enable Reminders</p>
-                  <p className="text-gray-500 text-[11px]">Get weekly push notifications</p>
+                  <p className="text-[#0f172a] dark:text-[#F8FAFC] font-bold text-sm">Enable Reminders</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[11px]">Get weekly push notifications</p>
                 </div>
               </div>
               <button
@@ -625,7 +629,7 @@ const StudentDashboard = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center pt-10 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading activities...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Loading activities...</p>
             </div>
           ) : activities?.length > 0 ? (
             activities.map((act) => {
@@ -648,8 +652,8 @@ const StudentDashboard = () => {
             })
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No activities found</p>
-              <p className="text-gray-400 text-sm">Tap the + button to add one</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">No activities found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Tap the + button to add one</p>
             </div>
           )}
         </div>

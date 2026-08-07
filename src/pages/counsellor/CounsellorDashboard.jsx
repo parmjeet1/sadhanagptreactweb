@@ -6,14 +6,13 @@ import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NewActivityModal from '../../components/shared/NewActivityModal';
 import EditActivityModal from '../../components/shared/EditActivityModal';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 
 // Dummy data for notifications (Shared temporarily until context/API is built)
-const dummyNotifications = [
-
-];
+const dummyNotifications = [];
 
 // Helper to map activity names/ids to icons
 const getActivityIcon = (name) => {
@@ -76,7 +75,6 @@ const CounsellorDashboard = () => {
             const backendHasSub = response.data?.isSubscribed;
             
             if (browserSubscription && !backendHasSub) {
-              // DB deleted it, force unsubscribe on browser
               await browserSubscription.unsubscribe();
               setIsPushEnabled(false);
             } else if (browserSubscription && backendHasSub) {
@@ -155,9 +153,8 @@ const CounsellorDashboard = () => {
               newProgress = '';
               newStatus = count > 0 ? 'Completed' : 'Pending';
             } else if (isTimeType) {
-              // Return 'actual / target', so the slider receives '5:00 AM / 08:00 AM'
               newProgress = `${count || '00:00 AM'} / ${target}`;
-              newStatus = count ? 'Completed' : 'Pending'; // Time activities are complete if they have any logged time
+              newStatus = count ? 'Completed' : 'Pending';
             } else {
               newProgress = `${count} / ${target}`;
               newStatus = count >= target ? 'Completed' : 'Pending';
@@ -166,7 +163,6 @@ const CounsellorDashboard = () => {
             return { ...act, progress: newProgress, status: newStatus };
           }));
         } else {
-          // No reports for this day or API failed, reset all counts to 0
           setActivities(prev => prev.map(act => {
             const isTimeType = act.type === 'TIME' || act.type === 'time';
             const target = act.target || (isTimeType ? '05:00 AM' : 10);
@@ -185,8 +181,6 @@ const CounsellorDashboard = () => {
       if (!isBackground) setIsLoading(false);
     }
   };
-
-  // 1. Fetch activities from API
 
   const fetchActivities = async () => {
     try {
@@ -231,7 +225,6 @@ const CounsellorDashboard = () => {
 
           setActivities(transformed);
 
-          // Fetch progress for currently active date
           setDates(prevDates => {
             const activeDateObj = prevDates.find(d => d.active)?.fullDate || new Date();
             fetchDailyReport(activeDateObj, transformed);
@@ -271,14 +264,11 @@ const CounsellorDashboard = () => {
       fetchDailyScore();
     }
   }, [userDetails?.user_id]);
-  // 2. Generate dates logic...
-  // Generate the last 30 days starting with 30 days ago, ending at Today
+
   useEffect(() => {
     const generatedDates = [];
     const today = new Date();
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
-    // Ascend from -29 to 0 so the array is chronological (Today is last)
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
@@ -289,13 +279,12 @@ const CounsellorDashboard = () => {
         date: d.getDate().toString(),
         month: months[d.getMonth()],
         fullDate: d,
-        active: i === 0 // Today is active by default
+        active: i === 0
       });
     }
     setDates(generatedDates);
   }, []);
 
-  // Fetch status colors for the generated 30 days range in a single request
   useEffect(() => {
     if (userDetails?.user_id && dates.length > 0) {
       const formatDateString = (dateObj) => {
@@ -325,7 +314,6 @@ const CounsellorDashboard = () => {
     }
   }, [userDetails?.user_id, dates.length]);
 
-  // Auto-scroll to the right so "Today" is visible on mount
   useEffect(() => {
     if (dates.length > 0 && !hasScrolledRef.current && dateContainerRef.current) {
       dateContainerRef.current.scrollLeft = dateContainerRef.current.scrollWidth;
@@ -384,7 +372,6 @@ const CounsellorDashboard = () => {
       });
 
       const { message, type } = processResponse(response.data);
-      const res = response.data;
 
       if (type === 'success') {
         toast.success(message);
@@ -417,7 +404,6 @@ const CounsellorDashboard = () => {
       });
 
       const { message, type } = processResponse(response.data);
-      const res = response.data;
 
       if (type === 'success') {
         setActivities(prev => prev.filter(act => act.id !== id));
@@ -446,9 +432,7 @@ const CounsellorDashboard = () => {
       }
 
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered');
 
-      // Get the VAPID key from your .env file
       const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
       if (!publicVapidKey) {
@@ -476,7 +460,6 @@ const CounsellorDashboard = () => {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
 
-      // Send to backend
       postRequest('/notifications-subscribe', {
         user_id: userDetails.user_id,
         subscription: subscription
@@ -497,31 +480,32 @@ const CounsellorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] dark:from-[#0F172A] dark:via-[#1E293B] dark:to-[#0F172A] font-sans pb-28 relative overflow-x-hidden transition-colors duration-300">
 
       {/* Container holding the mobile width cleanly if opened on desktop */}
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
-          <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight">Activities</h1>
+          <h1 className="text-[28px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight">Activities</h1>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button
               onClick={() => navigate('/counsellor/personal-analytics')}
-              className="flex items-center justify-center w-12 h-12 bg-white text-[#1a73e8] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
+              className="flex items-center justify-center w-12 h-12 bg-white dark:bg-[#1E293B] text-[#1a73e8] dark:text-blue-400 rounded-full active:scale-95 transition-all shadow-sm border border-gray-50 dark:border-[#334155]"
               title="My Personal Analytics"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" /></svg>
             </button>
             <button
               onClick={() => setShowNotifications(true)}
-              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+              className="relative w-12 h-12 rounded-full bg-white dark:bg-[#1E293B] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] hover:bg-gray-50 dark:hover:bg-[#334155] border border-gray-50 dark:border-[#334155] active:scale-95 transition-all"
             >
               {/* Bell Icon */}
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {/* Notification Badge */}
               {dummyNotifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white">
+                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white dark:border-[#1E293B]">
                   {dummyNotifications.filter(n => !n.read).length}
                 </span>
               )}
@@ -542,35 +526,35 @@ const CounsellorDashboard = () => {
             const color = dateColors[dateStr];
 
             let fillClass = '';
-            let bgClass = 'bg-white';
-            let borderClass = 'border border-slate-200/80';
-            let textColor = 'text-[#1e293b]';
-            let monthColor = 'text-[#94a3b8]';
+            let bgClass = 'bg-white dark:bg-[#1E293B]';
+            let borderClass = 'border border-slate-200/80 dark:border-[#334155]';
+            let textColor = 'text-[#1e293b] dark:text-[#F8FAFC]';
+            let monthColor = 'text-[#94a3b8] dark:text-gray-400';
 
             if (color === '#10B981') {
-              fillClass = 'bg-[#d1fae5] h-full';
-              bgClass = 'bg-[#f4fdf8]';
-              borderClass = 'border border-[#a7f3d0]';
-              textColor = 'text-[#065f46]';
-              monthColor = 'text-[#047857]';
+              fillClass = 'bg-[#d1fae5] dark:bg-emerald-950/60 h-full';
+              bgClass = 'bg-[#f4fdf8] dark:bg-[#132826]';
+              borderClass = 'border border-[#a7f3d0] dark:border-emerald-700/50';
+              textColor = 'text-[#065f46] dark:text-emerald-300';
+              monthColor = 'text-[#047857] dark:text-emerald-400';
             } else if (color === '#F59E0B') {
-              fillClass = 'bg-[#fef3c7] h-1/2';
-              bgClass = 'bg-[#fffdf5]';
-              borderClass = 'border border-[#fde68a]';
-              textColor = 'text-[#1e293b]';
-              monthColor = 'text-[#b45309]';
+              fillClass = 'bg-[#fef3c7] dark:bg-amber-950/60 h-1/2';
+              bgClass = 'bg-[#fffdf5] dark:bg-[#282116]';
+              borderClass = 'border border-[#fde68a] dark:border-amber-700/50';
+              textColor = 'text-[#1e293b] dark:text-amber-200';
+              monthColor = 'text-[#b45309] dark:text-amber-400';
             } else if (color === '#EF4444') {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-dashed border-rose-300';
-              textColor = 'text-[#475569]';
-              monthColor = 'text-[#f43f5e]';
+              bgClass = 'bg-white dark:bg-[#1E293B]';
+              borderClass = 'border border-dashed border-rose-300 dark:border-rose-700/60';
+              textColor = 'text-[#475569] dark:text-[#CBD5E1]';
+              monthColor = 'text-[#f43f5e] dark:text-rose-400';
             } else {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-slate-200/80';
-              textColor = 'text-[#0f172a]';
-              monthColor = 'text-[#94a3b8]';
+              bgClass = 'bg-white dark:bg-[#1E293B]';
+              borderClass = 'border border-slate-200/80 dark:border-[#334155]';
+              textColor = 'text-[#0f172a] dark:text-[#F8FAFC]';
+              monthColor = 'text-[#94a3b8] dark:text-gray-400';
             }
 
             return (
@@ -602,14 +586,14 @@ const CounsellorDashboard = () => {
         {/* Push Notification Enable Banner */}
         {!isPushEnabled && (
           <div className="px-6 mt-2 mb-4">
-            <div className="bg-white border border-[#1a73e8]/20 shadow-sm rounded-[16px] p-4 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#1E293B] border border-[#1a73e8]/20 dark:border-blue-500/20 shadow-sm rounded-[16px] p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1a73e8]">
+                <div className="w-10 h-10 rounded-full bg-[#eff6ff] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] dark:text-blue-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 </div>
                 <div>
-                  <p className="text-[#0f172a] font-bold text-sm">Enable Reminders</p>
-                  <p className="text-gray-500 text-[11px]">Get  push notifications</p>
+                  <p className="text-[#0f172a] dark:text-[#F8FAFC] font-bold text-sm">Enable Reminders</p>
+                  <p className="text-gray-500 dark:text-[#94A3B8] text-[11px]">Get push notifications</p>
                 </div>
               </div>
               <button
@@ -627,7 +611,7 @@ const CounsellorDashboard = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center pt-10 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading activities...</p>
+              <p className="text-gray-500 dark:text-[#CBD5E1] font-medium">Loading activities...</p>
             </div>
           ) : activities.length > 0 ? (
             activities.map((act) => {
@@ -649,8 +633,8 @@ const CounsellorDashboard = () => {
             })
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No activities found</p>
-              <p className="text-gray-400 text-sm">Tap the + button to add one</p>
+              <p className="text-gray-500 dark:text-[#CBD5E1] font-medium text-lg">No activities found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Tap the + button to add one</p>
             </div>
           )}
         </div>
@@ -702,8 +686,6 @@ const CounsellorDashboard = () => {
               }
             });
 
-
-
           } catch (error) {
             console.error("Error creating activity:", error);
             toast.error(error.message || "Failed to create activity");
@@ -735,8 +717,8 @@ const CounsellorDashboard = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border w-max max-w-[90%] ${toastState.type === 'error'
-              ? 'bg-red-50 border-red-100 text-red-700'
-              : 'bg-green-50 border-green-100 text-green-700'
+              ? 'bg-red-50 dark:bg-red-950/90 border-red-100 dark:border-red-800 text-red-700 dark:text-red-200'
+              : 'bg-green-50 dark:bg-emerald-950/90 border-green-100 dark:border-emerald-800 text-green-700 dark:text-emerald-200'
               }`}
           >
             {toastState.type === 'error' ? (

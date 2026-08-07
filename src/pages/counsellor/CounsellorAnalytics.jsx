@@ -5,6 +5,7 @@ import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBo
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import AddGroupModal from '../../components/shared/AddGroupModal';
 import ReportSettingsModal from '../../components/counsellor/ReportSettingsModal';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import { useOutletContext } from 'react-router-dom';
 import { postRequest, getRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
@@ -99,17 +100,20 @@ const CounsellorAnalytics = () => {
     }
   };
 
-  React.useEffect(() => {
+  const fetchIrregularCount = () => {
+    if (!userDetails?.user_id) return;
+    getRequest('/irregular-student-list', { user_id: userDetails.user_id, page_no: 1 }, (response) => {
+      const res = response.data;
+      if (res && res.code === 200) {
+        setIrregularCount(res.total || 0);
+      }
+    });
+  };
+
+  useEffect(() => {
     if (userDetails?.user_id) {
       fetchGroups(1);
-
-      // Fetch irregular mentees count
-      getRequest('/irregular-mentees', { user_id: userDetails.user_id }, (response) => {
-        if (response.data?.status === 1 || response.data?.code === 200) {
-          const total = response.data.total || (Array.isArray(response.data.data) ? response.data.data.length : 0);
-          setIrregularCount(total);
-        }
-      });
+      fetchIrregularCount();
     }
   }, [userDetails?.user_id]);
 
@@ -124,7 +128,7 @@ const CounsellorAnalytics = () => {
       postRequest('/add-new-group', payload, (response) => {
         const { message, type } = processResponse(response.data);
         if (type === 'success') {
-          fetchGroups(1); // Refresh the list from server
+          fetchGroups(1);
           setIsAddGroupOpen(false);
           toast.success(message);
         } else {
@@ -138,36 +142,37 @@ const CounsellorAnalytics = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] font-sans pb-28 relative overflow-x-hidden text-[#0f172a]">
+    <div className="min-h-screen bg-[#fafbfc] dark:bg-[#0F172A] font-sans pb-28 relative overflow-x-hidden text-[#0f172a] dark:text-[#F8FAFC] transition-colors duration-300">
       {/* Container holding the mobile width cleanly if opened on desktop */}
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
           <div>
-            <h2 className="text-[#64748b] text-[15px] font-semibold mb-1">Hare Krsna,</h2>
-            <h1 className="text-[28px] leading-tight font-extrabold text-[#0f172a] tracking-tight">
-              {userDetails.name.split(' ')[0]}
+            <h2 className="text-[#64748b] dark:text-gray-400 text-[15px] font-semibold mb-1">Hare Krsna,</h2>
+            <h1 className="text-[28px] leading-tight font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight">
+              {userDetails?.name ? userDetails.name.split(' ')[0] : 'Devotee'}
             </h1>
           </div>
           <div className="flex items-center gap-3 self-start">
+            <ThemeToggle />
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center justify-center w-12 h-12 bg-white text-[#64748b] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
+              className="flex items-center justify-center w-12 h-12 bg-white dark:bg-[#1E293B] text-[#64748b] dark:text-gray-300 rounded-full active:scale-95 transition-all shadow-sm border border-gray-50 dark:border-[#334155]"
               title="Report Settings"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
             <button
               onClick={() => setShowNotifications(true)}
-              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+              className="relative w-12 h-12 rounded-full bg-white dark:bg-[#1E293B] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] hover:bg-gray-50 dark:hover:bg-[#334155] border border-gray-50 dark:border-[#334155] active:scale-95 transition-all"
             >
               {/* Bell Icon */}
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 22A2 2 0 0 0 14 20H10A2 2 0 0 0 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
               </svg>
               {/* Notification Badge */}
-              <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
+              <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white dark:border-[#1E293B]"></span>
             </button>
           </div>
         </div>
@@ -195,78 +200,78 @@ const CounsellorAnalytics = () => {
         </div>
 
         {/* Two smaller cards block - Rewards and Labels */}
-        <div className="px-6 flex gap-4 mb-8">
+        <div className="px-6 flex gap-4 mb-4">
           <div
             onClick={() => navigate('/counsellor/rewards')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+            className="flex-1 bg-white dark:bg-[#1E293B] rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
-            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-amber-950/60 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 5H17V3H7V5H5C3.9 5 3 5.9 3 7V8C3 10.76 5.24 13 8 13H9.2C10.05 14.5 11.66 15.5 13.5 15.6V18H11V21H15V18H12.5V15.6C14.34 15.5 15.95 14.5 16.8 13H18C20.76 13 23 10.76 23 8V7C23 5.9 22.1 5 21 5H19M18 10C16.89 10 16 9.1 16 8V7H18V10M8 10C6.89 10 6 9.1 6 8V7H8V10Z" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Rewards</span>
+            <span className="font-bold text-[#0f172a] dark:text-[#F8FAFC]">Rewards</span>
           </div>
 
           <div
             onClick={() => setIsLabelsModalOpen(true)}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+            className="flex-1 bg-white dark:bg-[#1E293B] rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
-            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Sub Groups</span>
+            <span className="font-bold text-[#0f172a] dark:text-[#F8FAFC]">Sub Groups</span>
           </div>
         </div>
 
         {/* Two smaller cards block - Marking Scheme and Custom Activities */}
-        <div className="px-6 flex gap-4 mb-8">
+        <div className="px-6 flex gap-4 mb-4">
           <div
             onClick={() => navigate('/counsellor/marking-scheme')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+            className="flex-1 bg-white dark:bg-[#1E293B] rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
-            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-3 text-emerald-500">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center mb-3 text-emerald-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Marking Scheme</span>
+            <span className="font-bold text-[#0f172a] dark:text-[#F8FAFC]">Marking Scheme</span>
           </div>
 
           <div
             onClick={() => navigate('/counsellor/custom-activities')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
+            className="flex-1 bg-white dark:bg-[#1E293B] rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-[#334155] flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
           >
-            <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3 text-purple-500">
+            <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center mb-3 text-purple-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <span className="font-bold text-[#0f172a]">Custom Activities</span>
+            <span className="font-bold text-[#0f172a] dark:text-[#F8FAFC]">Custom Activities</span>
           </div>
         </div>
 
         {/* Full Width Card - Irregular Mentees Alert - ONLY SHOW IF COUNT > 0 */}
         {irregularCount > 0 && (
-          <div className="px-6 mb-8">
+          <div className="px-6 mb-4">
             <div
               onClick={() => navigate('/counsellor/irregular-mentees')}
-              className="bg-red-50 rounded-3xl p-6 shadow-sm border border-red-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md group"
+              className="bg-red-50 dark:bg-red-950/40 rounded-3xl p-6 shadow-sm border border-red-100 dark:border-red-900/50 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600">
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/60 flex items-center justify-center shrink-0 text-red-600 dark:text-red-400">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M13 17H11V15H13V17M13 13H11V7H13V13Z" /></svg>
                 </div>
                 <div>
-                  <h2 className="font-bold text-[18px] text-red-700 mb-0.5">Mentee Alerts</h2>
-                  <p className="text-red-600/70 text-[13px] font-medium">{irregularCount} students need attention</p>
+                  <h2 className="font-bold text-[18px] text-red-700 dark:text-red-300 mb-0.5">Mentee Alerts</h2>
+                  <p className="text-red-600/70 dark:text-red-400/80 text-[13px] font-medium">{irregularCount} students need attention</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/60 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
@@ -275,21 +280,21 @@ const CounsellorAnalytics = () => {
         )}
 
         {/* Full Width Card - Sub Counsellors */}
-        <div className="px-6 mb-8">
+        <div className="px-6 mb-4">
           <div
             onClick={() => navigate('/counsellor/sub-counsellors')}
-            className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
+            className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-[#334155] flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center shrink-0">
                 <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4A4 4 0 1 1 8 8A4 4 0 0 1 12 4M12 14C16.42 14 20 15.79 20 18V20H4V18C4 15.79 7.58 14 12 14ZM12 6A2 2 0 1 0 14 8A2 2 0 0 0 12 6ZM12 16C8.58 16 6 17.36 6 18V18H18V18C18 17.36 15.42 16 12 16Z" /></svg>
               </div>
               <div>
-                <h2 className="font-bold text-[18px] text-[#0f172a] mb-0.5">Sub Counsellors</h2>
-                <p className="text-[#64748b] text-[13px] font-medium">Manage team & assignments</p>
+                <h2 className="font-bold text-[18px] text-[#0f172a] dark:text-[#F8FAFC] mb-0.5">Sub Counsellors</h2>
+                <p className="text-[#64748b] dark:text-gray-400 text-[13px] font-medium">Manage team & assignments</p>
               </div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-[#0F172A] flex items-center justify-center text-gray-400 shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
             </div>
           </div>
@@ -346,9 +351,11 @@ const CounsellorAnalytics = () => {
               </button>
             </div>
           </div>
-        </div>        {/* My Groups Header */}
+        </div>
+
+        {/* My Groups Header */}
         <div className="px-6 flex items-center justify-between mb-4">
-          <h2 className="text-[22px] font-extrabold text-[#0f172a]">My Groups</h2>
+          <h2 className="text-[22px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC]">My Groups</h2>
           <button
             onClick={() => setIsAddGroupOpen(true)}
             className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform"
@@ -362,18 +369,18 @@ const CounsellorAnalytics = () => {
           {isLoadingGroups ? (
             <div className="flex flex-col items-center justify-center pt-10 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading groups...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Loading groups...</p>
             </div>
           ) : groups.length > 0 ? (
             groups.map(group => (
               <div
                 key={group.id}
                 onClick={() => navigate('/counsellor/group-mentees', { state: { groupName: group.name, centerId: group.id } })}
-                className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
+                className="bg-white dark:bg-[#1E293B] rounded-[28px] p-4 shadow-sm border border-gray-100 dark:border-[#334155] flex items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
               >
                 <div className="relative w-16 h-16 mr-4 shrink-0">
-                  <img src={group.image} alt={group.name} className="w-full h-full rounded-full object-cover shadow-sm bg-gray-100" />
-                  <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white ${group.iconColor}`}>
+                  <img src={group.image} alt={group.name} className="w-full h-full rounded-full object-cover shadow-sm bg-gray-100 dark:bg-gray-700" />
+                  <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-2 border-white dark:border-[#1E293B] flex items-center justify-center text-[10px] font-bold text-white ${group.iconColor}`}>
                     {group.statusIcon === 'NEW' ? 'NEW' : (
                       group.statusIcon === '⚡' ? (
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 15H6L13 1V9H18L11 23V15Z" /></svg>
@@ -384,18 +391,18 @@ const CounsellorAnalytics = () => {
                   </div>
                 </div>
                 <div className="flex-1 mr-2">
-                  <h3 className="font-bold text-[16px] text-[#0f172a] whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</h3>
-                  <p className="text-[#64748b] text-[13px] mt-0.5">{group.members} Members • {group.status}</p>
+                  <h3 className="font-bold text-[16px] text-[#0f172a] dark:text-[#F8FAFC] whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</h3>
+                  <p className="text-[#64748b] dark:text-gray-400 text-[13px] mt-0.5">{group.members} Members • {group.status}</p>
                 </div>
-                <div className="shrink-0 text-gray-300">
+                <div className="shrink-0 text-gray-300 dark:text-gray-500">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No groups found</p>
-              <p className="text-gray-400 text-sm font-medium">Create your first group to get started</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">No groups found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm font-medium">Create your first group to get started</p>
             </div>
           )}
         </div>
@@ -436,13 +443,13 @@ const CounsellorAnalytics = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white rounded-t-[40px] z-[70] p-8 shadow-2xl"
+              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-[#1E293B] rounded-t-[40px] z-[70] p-8 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-[22px] font-extrabold text-[#0f172a]">Mentee Labels</h2>
+                <h2 className="text-[22px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC]">Mentee Labels</h2>
                 <button
                   onClick={() => setIsLabelsModalOpen(false)}
-                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-95 transition-all"
+                  className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 active:scale-95 transition-all"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
@@ -450,12 +457,12 @@ const CounsellorAnalytics = () => {
 
               <div className="space-y-6">
                 <div>
-                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Select Group</label>
+                  <label className="text-[12px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-3 block">Select Group</label>
                   <div className="relative">
                     <select
                       value={selectedGroupForLabels}
                       onChange={(e) => setSelectedGroupForLabels(e.target.value)}
-                      className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-100 rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] appearance-none outline-none transition-all"
+                      className="w-full bg-[#f8fafc] dark:bg-[#0F172A] border-2 border-transparent focus:border-blue-100 rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] dark:text-[#F8FAFC] appearance-none outline-none transition-all"
                     >
                       {groups.map(g => (
                         <option key={g.id} value={g.id}>{g.name}</option>
@@ -468,7 +475,7 @@ const CounsellorAnalytics = () => {
                 </div>
 
                 <div>
-                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Available Labels</label>
+                  <label className="text-[12px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-3 block">Available Labels</label>
                   {isLoadingLabels ? (
                     <div className="flex items-center gap-2 py-4">
                       <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -477,7 +484,7 @@ const CounsellorAnalytics = () => {
                   ) : (
                     <div className="flex flex-wrap gap-2 mb-6">
                       {(groupLabels[selectedGroupForLabels] || []).map((label, idx) => (
-                        <div key={label.id || idx} className="bg-blue-50 text-[#1a73e8] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">
+                        <div key={label.id || idx} className="bg-blue-50 dark:bg-blue-950/60 text-[#1a73e8] dark:text-blue-300 px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">
                           {label.name}
                           <button
                             onClick={() => {
@@ -485,7 +492,7 @@ const CounsellorAnalytics = () => {
                                 postRequest('/delete-lable', { user_id: userDetails.user_id, label_id: label.id }, (response) => {
                                   const { message, type } = processResponse(response.data);
                                   if (type === 'success') {
-                                    fetchLabels(selectedGroupForLabels); // Refresh list
+                                    fetchLabels(selectedGroupForLabels);
                                     toast.success(message);
                                   } else {
                                     toast.error(message);
@@ -508,7 +515,7 @@ const CounsellorAnalytics = () => {
                       placeholder="Add custom label..."
                       value={newLabelName}
                       onChange={(e) => setNewLabelName(e.target.value)}
-                      className="flex-1 bg-[#f8fafc] rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] outline-none border-2 border-transparent focus:border-blue-100 transition-all placeholder:text-gray-300"
+                      className="flex-1 bg-[#f8fafc] dark:bg-[#0F172A] rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] dark:text-[#F8FAFC] outline-none border-2 border-transparent focus:border-blue-100 transition-all placeholder:text-gray-400"
                     />
                     <button
                       onClick={() => {
@@ -522,9 +529,9 @@ const CounsellorAnalytics = () => {
                           postRequest('/add-lable', payload, (response) => {
                             const { message, type } = processResponse(response.data);
                             if (type === 'success') {
-                              fetchLabels(selectedGroupForLabels); // Refresh list from server
+                              fetchLabels(selectedGroupForLabels);
                               setNewLabelName('');
-                              setIsLabelsModalOpen(false); // Close modal automatically
+                              setIsLabelsModalOpen(false);
                               toast.success(message);
                             } else {
                               toast.error(message);
@@ -556,8 +563,8 @@ const CounsellorAnalytics = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border w-max max-w-[90%] ${toastState.type === 'error'
-              ? 'bg-red-50 border-red-100 text-red-700'
-              : 'bg-green-50 border-green-100 text-green-700'
+              ? 'bg-red-50 dark:bg-red-950/90 border-red-100 dark:border-red-800 text-red-700 dark:text-red-200'
+              : 'bg-green-50 dark:bg-emerald-950/90 border-green-100 dark:border-emerald-800 text-green-700 dark:text-emerald-200'
               }`}
           >
             {toastState.type === 'error' ? (

@@ -4,25 +4,42 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme || 'light';
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        return savedTheme;
+      }
+    } catch (e) {
+      console.error("Failed to read theme from localStorage", e);
+    }
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
   });
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    localStorage.setItem('theme', theme);
-    console.log("Theme applied to DOM:", theme);
-    console.log("Current documentElement classes:", root.classList);
+    try {
+      const root = document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.classList.remove('light');
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
+      } else {
+        root.classList.remove('dark');
+        root.classList.add('light');
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+      }
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      console.error("Failed to apply theme", e);
+    }
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => {
-      const nextTheme = prevTheme === 'light' ? 'dark' : 'light';
-      console.log("Theme toggled from", prevTheme, "to", nextTheme);
-      return nextTheme;
-    });
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
   return (
@@ -32,4 +49,10 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

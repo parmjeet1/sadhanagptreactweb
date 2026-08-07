@@ -26,9 +26,13 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
   };
 
   const timeToMinutesOffset = (timeStr) => {
-    if (!timeStr || !timeStr.includes(':')) return 480;
+    if (timeStr == null || timeStr === '') return 480;
+    if (typeof timeStr === 'number' || (typeof timeStr === 'string' && !isNaN(timeStr) && timeStr.trim() !== '')) {
+      return Number(timeStr);
+    }
+    if (typeof timeStr === 'string' && !timeStr.includes(':')) return 480;
     try {
-      const parts = timeStr.trim().split(' ');
+      const parts = String(timeStr).trim().split(' ');
       const [hPart, mPart] = parts[0].split(':').map(Number);
       const period = parts[1] || (hPart >= 12 ? 'PM' : 'AM');
       let hours = hPart;
@@ -53,10 +57,10 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
       const parts = progStr.split('/');
       return timeToMinutesOffset(parts[0] || '');
     }
-    if (!progStr) return 0;
+    if (!progStr) return -1;
     const parts = progStr.split('/');
-    if (parts.length > 0) return parseFloat(parts[0]) || 0;
-    return 0;
+    if (parts.length > 0) return parseFloat(parts[0]) || -1;
+    return -1;
   };
 
   const extractSuffix = (progStr) => {
@@ -125,7 +129,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
         activity_id: activity.id,
         count: finalVal,
         activity_date: formattedDate,
-
+        unit: unitToSender,
         user_id: userDetails.user_id
       };
 
@@ -215,7 +219,16 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
     const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
     const percentage = x / rect.width;
 
-    let newVal = Math.round(percentage * maxVal);
+    let newVal;
+    const isHours = activity.unit && (activity.unit.toLowerCase() === 'hours' || activity.unit.toLowerCase() === 'hrs' || activity.unit.toLowerCase() === 'hour');
+    if ((activity.type === 'DURATION' || activity.type === 'duration') && isHours) {
+      // Round to nearest 0.5 for duration activities with hours unit
+      newVal = Math.round((percentage * maxVal) * 2) / 2;
+    } else {
+      // Round to nearest integer for counts (like Chanting rounds)
+      newVal = Math.round(percentage * maxVal);
+    }
+
     currentValRef.current = newVal; // Sync immediately to prevent pointerUp race condition
     setCurrentVal(newVal);
 
@@ -247,26 +260,24 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
         if (onProgressUpdate) onProgressUpdate(activity.id, { status: 'Pending' });
         submitDailyReport(0);
       } else {
-        console.log("Opened edit/delete for", activity.title);
+        if (onEdit) onEdit(activity);
       }
     }
 
-    cardControls.start({ x: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } });
+    cardControls.start({ x: 0, transition: { type: 'spring', stiffness: 500, damping: 30 } });
   };
 
-  let displayPercentage = isCompleted && !isTimeType ? 100 : (maxVal > 0 ? (currentVal / maxVal) * 100 : 0);
-  if (isBoolean && !isCompleted) displayPercentage = 0;
-  if (isBoolean && isCompleted) displayPercentage = 100;
-  if (isTimeType) displayPercentage = (currentVal / 1440) * 100;
+  const displayPercentage = Math.min(Math.max((currentVal / maxVal) * 100, 0), 100);
 
   return (
-    <div className="relative w-full max-w-md mx-auto mb-4 rounded-2xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 bg-white group">
+    <div className="relative mb-4 overflow-hidden rounded-2xl shadow-sm border border-gray-100 dark:border-[#334155]">
+      {/* Background layer revealing actions upon swipe */}
       <motion.div
-        className="absolute inset-0 flex items-center justify-between px-6 z-0"
         style={{ background }}
+        className="absolute inset-0 flex items-center justify-between px-6 z-0"
       >
         <div className="font-bold text-green-700 flex items-center gap-2">
-          {isBoolean && !isCompleted && <><svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> Complete</>}
+          {isBoolean && !isCompleted && 'Complete'}
         </div>
         <div className="font-bold text-red-700 flex items-center gap-2">
           {isBoolean && isCompleted ? 'Undo' : 'Edit/Options'}
@@ -280,7 +291,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
         onDragEnd={handleCardDragEnd}
         animate={cardControls}
         style={{ x: isBoolean ? cardX : 0 }}
-        className="relative z-10 w-full h-full bg-white rounded-2xl p-5 select-none"
+        className="relative z-10 w-full h-full bg-white dark:bg-[#1E293B] rounded-2xl p-5 select-none transition-colors duration-300"
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
@@ -288,19 +299,31 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
               {activity?.iconSvg}
             </div>
             <div className="flex-1">
-              <h3 className="text-[17px] font-bold text-[#0f172a] leading-tight mb-0.5">{activity?.title || 'Activity'}</h3>
+              <h3 className="text-[17px] font-bold text-[#0f172a] dark:text-[#F8FAFC] leading-tight mb-0.5">
+                {activity?.title || 'Activity'}
+                {activity?.description?.trim().toLowerCase() === 'weekly' && (
+                  <span className="text-[12px] font-medium text-[#64748B] dark:text-[#94A3B8] ml-2 font-normal lowercase">(weekly)</span>
+                )}
+              </h3>
               <div className="flex items-center gap-2">
-                <p className="text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">{activity?.type || 'Other'}</p>
+                <p className="text-[12px] font-bold text-[#94a3b8] dark:text-[#CBD5E1] uppercase tracking-wider">
+                  {(activity?.type === 'DURATION' || activity?.type === 'duration') && activity?.title?.toLowerCase() !== 'study hours' 
+                    ? 'DURATION (mins)' 
+                    : (activity?.type || 'Other')}
+                </p>
                 {String(activity?.visibility) === '1' ? (
-                  <span className="bg-[#fffbeb] text-[#f59e0b] border border-[#f59e0b]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg></span>
+                  <span className="bg-[#fffbeb] dark:bg-yellow-900/30 text-[#f59e0b] dark:text-yellow-400 border border-[#f59e0b]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg></span>
                 ) : (
-                  <span className="bg-[#eff6ff] text-[#1a73e8] border border-[#1a73e8]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                  <span className="bg-[#eff6ff] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-400 border border-[#1a73e8]/20 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1"><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                 )}
               </div>
             </div>
           </div>
 
-            {toastMessage ? (
+          <div className="relative flex items-center h-[26px]">
+            {isSubmitting ? (
+              <div className="w-[18px] h-[18px] border-[2px] border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
+            ) : toastMessage ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -321,10 +344,11 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                 </svg>
               </button>
             )}
+          </div>
         </div>
 
         {isTimeType ? (
-          <div className="w-full mb-3 mt-1 rounded-xl overflow-hidden shadow-sm border border-[#1a73e8]/20 bg-[#f8fafc] ring-2 ring-transparent focus-within:ring-[#1a73e8] transition-all">
+          <div className="w-full mb-3 mt-1 rounded-xl overflow-hidden shadow-sm border border-[#1a73e8]/20 bg-[#f8fafc] dark:bg-[#0F172A] ring-2 ring-transparent focus-within:ring-[#1a73e8] transition-all">
             <input 
               type="time" 
               value={minutesTo24HourTime(currentVal)}
@@ -338,11 +362,12 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                 setIsCompleted(true);
                 submitDailyReport(totalMins);
               }}
-              className="w-full bg-transparent text-[22px] font-black tracking-widest text-center text-[#1a73e8] px-4 py-3 outline-none"
+              className="w-full bg-transparent text-[22px] font-black tracking-widest text-center text-[#1a73e8] dark:text-blue-400 px-4 py-3 outline-none"
+              style={{ colorScheme: 'dark light' }}
             />
           </div>
         ) : isBoolean ? (
-          <div className="bg-[#f1f5f9] p-1 rounded-[20px] flex items-center mb-4 mt-1 relative overflow-hidden h-[54px]">
+          <div className="bg-[#f1f5f9] dark:bg-[#334155] p-1 rounded-[20px] flex items-center mb-4 mt-1 relative overflow-hidden h-[54px]">
             <motion.div
               initial={false}
               animate={{ 
@@ -359,7 +384,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                 setIsCompleted(true);
                 submitDailyReport(1);
               }}
-              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 1 ? 'text-[#166534]' : 'text-[#94a3b8]'}`}
+              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 1 ? 'text-[#166534]' : 'text-[#94a3b8] dark:text-[#CBD5E1]'}`}
             >
               {currentVal === 1 && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
               YES
@@ -371,7 +396,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                 setIsCompleted(false);
                 submitDailyReport(0);
               }}
-              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 0 ? 'text-[#991b1b]' : 'text-[#94a3b8]'}`}
+              className={`flex-1 h-full relative z-10 font-black text-[13px] tracking-widest transition-colors flex items-center justify-center gap-2 ${currentVal === 0 ? 'text-[#991b1b]' : 'text-[#94a3b8] dark:text-[#CBD5E1]'}`}
             >
               {currentVal === 0 && <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>}
               NO
@@ -387,14 +412,14 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
             }}
             onPointerMove={handlePointerMove}
             onPointerUp={(e) => { 
-                if (e.target.hasPointerCapture(e.pointerId)) {
+                if (e.target.hasPointerCapture(e.pointerId)) { 
                     e.target.releasePointerCapture(e.pointerId); 
                 }
                 handlePointerUpOrLeave(e); 
             }}
             onPointerCancel={handlePointerUpOrLeave}
           >
-            <div className="w-full bg-[#f1f5f9] h-[8px] rounded-full relative pointer-events-none">
+            <div className="w-full bg-[#f1f5f9] dark:bg-[#334155] h-[8px] rounded-full relative pointer-events-none">
               <motion.div
                 initial={false}
                 animate={{ width: `${Math.max(displayPercentage, 0.5)}%` }}
@@ -407,7 +432,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
                   initial={false}
                   animate={{ left: `${displayPercentage}%` }}
                   transition={{ type: "spring", bounce: 0, duration: 0.1 }}
-                  className="absolute top-1/2 -ml-3.5 -mt-3.5 w-7 h-7 bg-white border-[3px] rounded-full shadow-lg z-10 drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]"
+                  className="absolute top-1/2 -ml-3.5 -mt-3.5 w-7 h-7 bg-white dark:bg-[#1E293B] border-[3px] rounded-full shadow-lg z-10 drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]"
                   style={{ borderColor: isCompleted ? '#20c997' : (activity?.barColor || '#1a73e8') }}
                 />
               )}
@@ -421,18 +446,29 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit, selectedDate }) => {
               <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              {isTimeType ? `Logged: ${minutesToTime(currentVal)}` : 'Completed'}
+              Completed
             </div>
           ) : (
-            <div className="text-[14px] font-bold text-[#0f172a]">
-              {isTimeType ? `Pending Time Log` : (!isBoolean ? `${currentVal}${suffix} / ${maxVal}${suffix}` : (activity.progress || ''))}
+            <div className="text-[15px] font-bold text-[#0f172a] dark:text-[#F8FAFC]">
+              {isTimeType ? (
+                <span>
+                  {currentVal != null && currentVal !== -1 ? minutesToTime(currentVal) : '--:--'} <span className="text-[#94a3b8] dark:text-[#CBD5E1] font-normal text-[13px]">/ {formatTime(activity?.target) || '10:00 AM'}</span>
+                </span>
+              ) : isBoolean ? (
+                <span className="text-[13px] font-bold text-[#94a3b8] dark:text-[#CBD5E1]">
+                  {currentVal === 1 ? 'Marked as Done' : 'Swipe right or tap YES to complete'}
+                </span>
+              ) : (
+                <span>
+                  {currentVal != null && currentVal !== -1 ? `${currentVal}${suffix}` : `0${suffix}`} <span className="text-[#94a3b8] dark:text-[#CBD5E1] font-normal text-[13px]">/ {maxVal != null && maxVal !== -1 ? `${maxVal}${suffix}` : `0${suffix}`}</span>
+                </span>
+              )}
             </div>
           )}
 
-          {!isCompleted && activity.hint && !isTimeType && (
-            <div className="text-[10px] font-bold text-[#a78bfa] uppercase tracking-wider flex items-center gap-1 select-none">
-              {!isBoolean ? 'DRAG SLIDER TO UPDATE' : (activity.hint || 'TAP TO SELECT')}
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          {activity?.target && !isTimeType && !isBoolean && (
+            <div className="text-[12px] font-bold text-[#94a3b8] dark:text-[#CBD5E1]">
+              Target: {activity?.target}
             </div>
           )}
         </div>

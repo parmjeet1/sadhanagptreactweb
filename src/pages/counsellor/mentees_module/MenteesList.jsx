@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import { getRequest, postRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
 
@@ -12,7 +13,7 @@ const MenteesList = () => {
   const [centers, setCenters] = useState([]);
   const [labels, setLabels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('Uncategorized');
   const [selectedLabel, setSelectedLabel] = useState('All');
@@ -24,17 +25,17 @@ const MenteesList = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
-  
+
   const [editingStudent, setEditingStudent] = useState(null);
   const [editGroup, setEditGroup] = useState('');
   const [editLabel, setEditLabel] = useState('');
   const [editLabelsList, setEditLabelsList] = useState([]);
-  
+
   const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
   const [bulkGroup, setBulkGroup] = useState('');
   const [bulkLabel, setBulkLabel] = useState('');
   const [bulkLabelsList, setBulkLabelsList] = useState([]);
-  
+
   const [isAiAnalysisModalOpen, setIsAiAnalysisModalOpen] = useState(false);
   const [aiDateFrom, setAiDateFrom] = useState(() => {
     const d = new Date();
@@ -42,7 +43,7 @@ const MenteesList = () => {
     return d.toISOString().split('T')[0];
   });
   const [aiDateTo, setAiDateTo] = useState(new Date().toISOString().split('T')[0]);
-  
+
   const SELECTION_LIMIT = 50;
   const observerTarget = useRef(null);
 
@@ -66,7 +67,7 @@ const MenteesList = () => {
         const list = res.data.map(l => ({ id: l.label_id, name: l.label_name }));
         if (setList) setList(list);
         if (setter && list.length > 0 && !list.find(l => l.id === currentVal)) {
-           // setter(list[0].id);
+          // setter(list[0].id);
         }
       }
     });
@@ -138,8 +139,7 @@ const MenteesList = () => {
   };
 
   const handleBulkAssign = () => {
-    //!bulkLabel
-    if (!bulkGroup) return showError("Select  group for assignment");
+    if (!bulkGroup) return showError("Select group for assignment");
     const payload = {
       user_id: userDetails.user_id,
       student_ids: selectedStudents,
@@ -201,53 +201,56 @@ const MenteesList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[84px]">
+    <div className="min-h-screen bg-white dark:bg-[#0F172A] font-sans pb-[84px] text-[#0f172a] dark:text-[#F8FAFC] transition-colors duration-300">
       <AnimatePresence>
-        {errorMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-red-50 text-red-600 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-red-100">{errorMessage}</div></motion.div>)}
-        {successMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-green-50 text-green-700 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-green-100">{successMessage}</div></motion.div>)}
+        {errorMessage && (<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-red-50 dark:bg-red-950/80 text-red-600 dark:text-red-300 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-red-100 dark:border-red-900">{errorMessage}</div></motion.div>)}
+        {successMessage && (<motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-green-50 dark:bg-emerald-950/80 text-green-700 dark:text-emerald-300 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-green-100 dark:border-emerald-900">{successMessage}</div></motion.div>)}
       </AnimatePresence>
 
       <div className="max-w-md mx-auto">
-        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white z-20 border-b border-gray-100">
-          <button onClick={() => navigate(-1)} className="text-[#64748b] font-bold">Back</button>
-          <h1 className="text-[18px] font-extrabold text-[#0f172a]">All Mentees</h1>
-          <button onClick={() => selectedStudents.length > 0 ? setSelectedStudents([]) : setSelectedStudents(students.slice(0, SELECTION_LIMIT).map(s=>s.id))} className="text-[#1a73e8] font-bold">{selectedStudents.length > 0 ? 'Clear' : 'Select'}</button>
+        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white dark:bg-[#0F172A] z-20 border-b border-gray-100 dark:border-[#334155] transition-colors duration-300">
+          <button onClick={() => navigate(-1)} className="text-[#64748b] dark:text-gray-400 font-bold active:scale-95">Back</button>
+          <h1 className="text-[18px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC]">All Mentees</h1>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button onClick={() => selectedStudents.length > 0 ? setSelectedStudents([]) : setSelectedStudents(students.slice(0, SELECTION_LIMIT).map(s => s.id))} className="text-[#1a73e8] dark:text-blue-400 font-bold active:scale-95">{selectedStudents.length > 0 ? 'Clear' : 'Select'}</button>
+          </div>
         </div>
 
         <div className="px-6 py-4">
-          <input type="text" placeholder="Search by name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-[#f8fafc] rounded-full py-3.5 px-6 text-[15px] outline-none" />
+          <input type="text" placeholder="Search by name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-[#f8fafc] dark:bg-[#1E293B] border border-transparent dark:border-[#334155] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-full py-3.5 px-6 text-[15px] outline-none focus:border-blue-500" />
         </div>
 
         <div className="px-6 pb-4 flex gap-3 overflow-x-auto hide-scrollbar">
-          <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); setSelectedLabel('All'); setLabels([]); }} className={`shrink-0 bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' && selectedGroup !== 'Uncategorized' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
-            <option value="Uncategorized">Uncategorized</option>
-            <option value="All">All Groups</option>
-            {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
+          <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); setSelectedLabel('All'); setLabels([]); }} className={`shrink-0 rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none cursor-pointer ${selectedGroup !== 'All' && selectedGroup !== 'Uncategorized' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#1E293B] text-gray-800 dark:text-[#F8FAFC]'}`}>
+            <option value="Uncategorized" className="text-gray-800 dark:text-gray-200 bg-white dark:bg-[#1E293B]">Uncategorized</option>
+            <option value="All" className="text-gray-800 dark:text-gray-200 bg-white dark:bg-[#1E293B]">All Groups</option>
+            {centers.map(c => <option key={c.center_id} value={c.center_id} className="text-gray-800 dark:text-gray-200 bg-white dark:bg-[#1E293B]">{c.name}</option>)}
           </select>
-          
-          <button onClick={() => setSelectedLabel('All')} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
+
+          <button onClick={() => setSelectedLabel('All')} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] dark:bg-[#1E293B] text-[#64748b] dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
             All Labels
           </button>
 
           {labels.map(l => (
-             <button key={l.id} onClick={() => setSelectedLabel(l.id)} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === l.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
-               {l.name}
-             </button>
+            <button key={l.id} onClick={() => setSelectedLabel(l.id)} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === l.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] dark:bg-[#1E293B] text-[#64748b] dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
+              {l.name}
+            </button>
           ))}
         </div>
 
         <div className="px-2">
           {students.map(student => (
-            <div key={student.id} onClick={() => toggleStudent(student.id)} className="flex items-center px-4 py-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors">
-              <img src={student.avatar} className="w-12 h-12 rounded-full mr-4 border border-gray-100" />
+            <div key={student.id} onClick={() => toggleStudent(student.id)} className="flex items-center px-4 py-4 border-b border-gray-50 dark:border-[#334155] cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1E293B] transition-colors">
+              <img src={student.avatar} className="w-12 h-12 rounded-full mr-4 border border-gray-100 dark:border-gray-700" alt="" />
               <div className="flex-1">
-                <h3 className="font-bold text-[16px] text-[#0f172a]">{student.name}</h3>
-                <p className="text-[12px] text-gray-400 font-medium">{student.group} • {student.label}</p>
+                <h3 className="font-bold text-[16px] text-[#0f172a] dark:text-[#F8FAFC]">{student.name}</h3>
+                <p className="text-[12px] text-gray-400 dark:text-gray-400 font-medium">{student.group} • {student.label}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <button onClick={(e) => { e.stopPropagation(); navigate(`/counsellor/mentee/${student.id}`, { state: { student } }); }} className="p-2 text-gray-300 hover:text-blue-600 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                <button onClick={(e) => { e.stopPropagation(); setEditingStudent(student); setEditGroup(student.center_id); setEditLabel(student.label_id); }} className="p-2 text-gray-300 hover:text-gray-900 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedStudents.includes(student.id) ? 'bg-blue-600 border-blue-600' : 'border-gray-200'}`}>
+                <button onClick={(e) => { e.stopPropagation(); navigate(`/counsellor/mentee/${student.id}`, { state: { student } }); }} className="p-2 text-gray-300 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                <button onClick={(e) => { e.stopPropagation(); setEditingStudent(student); setEditGroup(student.center_id); setEditLabel(student.label_id); }} className="p-2 text-gray-300 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedStudents.includes(student.id) ? 'bg-blue-600 border-blue-600' : 'border-gray-200 dark:border-gray-600'}`}>
                   {selectedStudents.includes(student.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </div>
               </div>
@@ -271,7 +274,7 @@ const MenteesList = () => {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-[84px] left-0 right-0 max-w-md mx-auto z-40 px-4 touch-none select-none"
           >
-            <div className="bg-[#1a73e8] rounded-[32px] shadow-2xl shadow-blue-500/40 w-full relative">
+            <div className="bg-[#1a73e8] dark:bg-blue-600 rounded-[32px] shadow-2xl shadow-blue-500/40 w-full relative">
               {/* Drag handle pill */}
               <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
                 <div className="w-10 h-1.5 rounded-full bg-white/40" />
@@ -295,97 +298,97 @@ const MenteesList = () => {
       {/* Modals Bundle */}
       <AnimatePresence>
         {isLabelPopupOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsLabelPopupOpen(false)} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center">
-             <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px] shadow-2xl">
-                <h2 className="text-2xl font-black mb-6">Select Label</h2>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                   <button onClick={()=>{setSelectedLabel('All'); setIsLabelPopupOpen(false)}} className={`w-full p-4 rounded-2xl text-left font-bold ${selectedLabel === 'All' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50'}`}>All Mentees</button>
-                   {labels.map(l => <button key={l.id} onClick={()=>{setSelectedLabel(l.id); setIsLabelPopupOpen(false)}} className={`w-full p-4 rounded-2xl text-left font-bold ${selectedLabel === l.id ? 'bg-blue-50 text-blue-600' : 'bg-gray-50'}`}>{l.name}</button>)}
-                </div>
-             </motion.div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsLabelPopupOpen(false)} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center">
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1E293B] w-full max-w-md p-8 rounded-t-[40px] shadow-2xl">
+              <h2 className="text-2xl font-black mb-6 text-[#0f172a] dark:text-[#F8FAFC]">Select Label</h2>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <button onClick={() => { setSelectedLabel('All'); setIsLabelPopupOpen(false) }} className={`w-full p-4 rounded-2xl text-left font-bold ${selectedLabel === 'All' ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>All Mentees</button>
+                {labels.map(l => <button key={l.id} onClick={() => { setSelectedLabel(l.id); setIsLabelPopupOpen(false) }} className={`w-full p-4 rounded-2xl text-left font-bold ${selectedLabel === l.id ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>{l.name}</button>)}
+              </div>
+            </motion.div>
           </motion.div>
         )}
 
         {isAiAnalysisModalOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center">
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
-               <h2 className="text-2xl font-black mb-2">AI Analysis Setup</h2>
-               <p className="text-gray-400 font-bold mb-6">Analyzing {selectedStudents.length} students</p>
-               
-               <div className="flex gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar">
-                  {students.filter(s => selectedStudents.includes(s.id)).map(s => (
-                    <div key={s.id} className="flex flex-col items-center min-w-[60px]">
-                      <img src={s.avatar} className="w-10 h-10 rounded-full border border-gray-100" />
-                      <span className="text-[10px] font-bold mt-1 text-gray-400 truncate w-full text-center">{s.name.split(' ')[0]}</span>
-                    </div>
-                  ))}
-               </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center">
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="bg-white dark:bg-[#1E293B] w-full max-w-md p-10 rounded-t-[48px]">
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">AI Analysis Setup</h2>
+              <p className="text-gray-400 font-bold mb-6">Analyzing {selectedStudents.length} students</p>
 
-               <div className="space-y-6">
-                  <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date From</label><input type="date" value={aiDateFrom} onChange={e=>setAiDateFrom(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl font-bold" /></div>
-                  <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date To</label><input type="date" value={aiDateTo} onChange={e=>setAiDateTo(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl font-bold" /></div>
-                  <button onClick={handleAiAnalysis} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Generate AI Insights</button>
-                  <button onClick={()=>setIsAiAnalysisModalOpen(false)} className="w-full py-4 text-gray-400 font-bold">Close</button>
-               </div>
+              <div className="flex gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar">
+                {students.filter(s => selectedStudents.includes(s.id)).map(s => (
+                  <div key={s.id} className="flex flex-col items-center min-w-[60px]">
+                    <img src={s.avatar} className="w-10 h-10 rounded-full border border-gray-100 dark:border-gray-700" alt="" />
+                    <span className="text-[10px] font-bold mt-1 text-gray-400 truncate w-full text-center">{s.name.split(' ')[0]}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-6">
+                <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date From</label><input type="date" value={aiDateFrom} onChange={e => setAiDateFrom(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border border-transparent dark:border-[#334155]" /></div>
+                <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date To</label><input type="date" value={aiDateTo} onChange={e => setAiDateTo(e.target.value)} className="w-full p-4 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border border-transparent dark:border-[#334155]" /></div>
+                <button onClick={handleAiAnalysis} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Generate AI Insights</button>
+                <button onClick={() => setIsAiAnalysisModalOpen(false)} className="w-full py-4 text-gray-400 font-bold">Close</button>
+              </div>
             </motion.div>
           </motion.div>
         )}
 
         {isBulkAssignOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setIsBulkAssignOpen(false)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
-               <h2 className="text-2xl font-black mb-8">Bulk Assignment</h2>
-               <div className="space-y-6">
-                  <select value={bulkGroup} onChange={e=>setBulkGroup(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold outline-none border-none">
-                    <option value="">Select Group</option>
-                    {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
-                  </select>
-                  <select value={bulkLabel} onChange={e=>setBulkLabel(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold outline-none border-none" disabled={!bulkGroup}>
-                    <option value="">Select Label</option>
-                    {bulkLabelsList.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                  <button onClick={handleBulkAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Update {selectedStudents.length} Students</button>
-                  <button onClick={()=>setIsBulkAssignOpen(false)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
-               </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setIsBulkAssignOpen(false)}>
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1E293B] w-full max-w-md p-10 rounded-t-[48px]">
+              <h2 className="text-2xl font-black mb-8 text-[#0f172a] dark:text-[#F8FAFC]">Bulk Assignment</h2>
+              <div className="space-y-6">
+                <select value={bulkGroup} onChange={e => setBulkGroup(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border border-transparent dark:border-[#334155]">
+                  <option value="" className="bg-white dark:bg-[#1E293B]">Select Group</option>
+                  {centers.map(c => <option key={c.center_id} value={c.center_id} className="bg-white dark:bg-[#1E293B]">{c.name}</option>)}
+                </select>
+                <select value={bulkLabel} onChange={e => setBulkLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border border-transparent dark:border-[#334155]" disabled={!bulkGroup}>
+                  <option value="" className="bg-white dark:bg-[#1E293B]">Select Label</option>
+                  {bulkLabelsList.map(l => <option key={l.id} value={l.id} className="bg-white dark:bg-[#1E293B]">{l.name}</option>)}
+                </select>
+                <button onClick={handleBulkAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Update {selectedStudents.length} Students</button>
+                <button onClick={() => setIsBulkAssignOpen(false)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
+              </div>
             </motion.div>
           </motion.div>
         )}
 
         {editingStudent && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setEditingStudent(null)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
-               <h2 className="text-2xl font-black mb-2">{editingStudent.name}</h2>
-               <p className="text-gray-400 font-bold mb-8">Edit Student Assignment</p>
-               <div className="space-y-6">
-                  <select value={editGroup} onChange={e=>setEditGroup(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold border-none outline-none">
-                    <option value="">Select Group</option>
-                    {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
-                  </select>
-                  <select value={editLabel} onChange={e=>setEditLabel(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold border-none outline-none" disabled={!editGroup}>
-                    <option value="">Select Label</option>
-                    {editLabelsList.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                  <button onClick={handleSingleAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Save Changes</button>
-                  <button onClick={()=>setEditingStudent(null)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
-               </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setEditingStudent(null)}>
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1E293B] w-full max-w-md p-10 rounded-t-[48px]">
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">{editingStudent.name}</h2>
+              <p className="text-gray-400 font-bold mb-8">Edit Student Assignment</p>
+              <div className="space-y-6">
+                <select value={editGroup} onChange={e => setEditGroup(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border border-transparent dark:border-[#334155] outline-none">
+                  <option value="" className="bg-white dark:bg-[#1E293B]">Select Group</option>
+                  {centers.map(c => <option key={c.center_id} value={c.center_id} className="bg-white dark:bg-[#1E293B]">{c.name}</option>)}
+                </select>
+                <select value={editLabel} onChange={e => setEditLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#0F172A] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border border-transparent dark:border-[#334155] outline-none" disabled={!editGroup}>
+                  <option value="" className="bg-white dark:bg-[#1E293B]">Select Label</option>
+                  {editLabelsList.map(l => <option key={l.id} value={l.id} className="bg-white dark:bg-[#1E293B]">{l.name}</option>)}
+                </select>
+                <button onClick={handleSingleAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Save Changes</button>
+                <button onClick={() => setEditingStudent(null)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
+              </div>
             </motion.div>
           </motion.div>
         )}
 
         {isDownloadModalOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsDownloadModalOpen(false)} className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
-             <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
-                <h2 className="text-2xl font-black mb-8">Export Students</h2>
-                <div className="space-y-3">
-                   {['Excel (.xls)', 'CSV (.csv)', 'Print PDF'].map(f => (
-                     <button key={f} className="w-full p-5 bg-gray-50 rounded-2xl font-bold flex items-center justify-between group hover:bg-blue-50 transition-colors">
-                        <span className="group-hover:text-blue-600">{f}</span>
-                        <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></svg>
-                     </button>
-                   ))}
-                   <button onClick={()=>setIsDownloadModalOpen(false)} className="w-full py-6 text-gray-400 font-bold">Close</button>
-                </div>
-             </motion.div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDownloadModalOpen(false)} className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#1E293B] w-full max-w-md p-10 rounded-t-[48px]">
+              <h2 className="text-2xl font-black mb-8 text-[#0f172a] dark:text-[#F8FAFC]">Export Students</h2>
+              <div className="space-y-3">
+                {['Excel (.xls)', 'CSV (.csv)', 'Print PDF'].map(f => (
+                  <button key={f} className="w-full p-5 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-[#F8FAFC] rounded-2xl font-bold flex items-center justify-between group hover:bg-blue-50 dark:hover:bg-blue-950/60 transition-colors">
+                    <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400">{f}</span>
+                    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></svg>
+                  </button>
+                ))}
+                <button onClick={() => setIsDownloadModalOpen(false)} className="w-full py-6 text-gray-400 font-bold">Close</button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
