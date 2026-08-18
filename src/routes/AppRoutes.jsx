@@ -33,6 +33,7 @@ import SchemeDetail from '../pages/counsellor/marking-scheme/SchemeDetail';
 import AddRulesPage from '../pages/counsellor/marking-scheme/AddRulesPage';
 import CustomActivities from "../pages/counsellor/activites/custom-activities/CustomActivities";
 import CustomActivitiesPage from "../pages/counsellor/activites/custom-activities/addActivityPage";
+import CounsellorAnalyticsNew from '../pages/counsellor/CounsellorAnalyticsNew';
 
 const AppRoutes = () => {
   return (
@@ -54,6 +55,7 @@ const AppRoutes = () => {
           <Route path="/student/profile" element={<Profile />} />
 
           <Route path="/counsellor/profile" element={<CounsellorProfile />} />
+          <Route path="/counsellor/analytics-new" element={<CounsellorAnalyticsNew />} />
           <Route path="/counsellor/analytics" element={<CounsellorAnalytics />} />
           <Route path="/counsellor/personal-analytics" element={<PersonalSadhanaAnalytics />} />
 
