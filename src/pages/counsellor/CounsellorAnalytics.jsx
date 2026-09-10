@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import AddGroupModal from '../../components/shared/AddGroupModal';
 import ReportSettingsModal from '../../components/counsellor/ReportSettingsModal';
-import { useOutletContext } from 'react-router-dom';
 import { postRequest, getRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 
@@ -15,14 +14,16 @@ const CounsellorAnalytics = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
-  const [isLabelsModalOpen, setIsLabelsModalOpen] = useState(false);
   const [groups, setGroups] = useState([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
-  const [isLoadingLabels, setIsLoadingLabels] = useState(false);
-  const [pagination, setPagination] = useState({ page: 1, total_page: 1, total: 0 });
-  const [irregularCount, setIrregularCount] = useState(0);
+  const [totalMentees, setTotalMentees] = useState(0);
+
+  const [topRanks, setTopRanks] = useState([]);
+  const [bottomRanks, setBottomRanks] = useState([]);
+  const [isLoadingRanks, setIsLoadingRanks] = useState(true);
 
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
+  
   const showToast = (message, type = 'success') => {
     const msg = Array.isArray(message) ? message[0] : message;
     setToastState({ show: true, message: msg, type });
@@ -34,37 +35,12 @@ const CounsellorAnalytics = () => {
     error: (msg) => showToast(msg, 'error')
   };
 
-  const [selectedGroupForLabels, setSelectedGroupForLabels] = useState('');
-  const [groupLabels, setGroupLabels] = useState({});
-  const [newLabelName, setNewLabelName] = useState('');
-
-  const fetchLabels = useCallback((centerId) => {
-    if (!centerId) return;
-    setIsLoadingLabels(true);
-    getRequest('/lable-list', { user_id: userDetails.user_id, center_id: centerId }, (response) => {
-      const res = response.data;
-      if (res && res.code === 200 && Array.isArray(res.data)) {
-        setGroupLabels(prev => ({
-          ...prev,
-          [centerId]: res.data.map(l => ({ id: l.label_id, name: l.label_name }))
-        }));
-      }
-      setIsLoadingLabels(false);
-    });
-  }, [userDetails.user_id]);
-
-  useEffect(() => {
-    if (isLabelsModalOpen && selectedGroupForLabels) {
-      fetchLabels(selectedGroupForLabels);
-    }
-  }, [selectedGroupForLabels, isLabelsModalOpen, fetchLabels]);
-
-  const fetchGroups = async (page = 1) => {
+  const fetchGroups = async () => {
     try {
       setIsLoadingGroups(true);
       const payload = {
         user_id: userDetails.user_id,
-        page_no: page
+        page_no: 1
       };
 
       getRequest('/group-list', payload, (response) => {
@@ -79,17 +55,8 @@ const CounsellorAnalytics = () => {
             statusIcon: '⚡',
             iconColor: 'bg-blue-500'
           }));
-
           setGroups(fetchedGroups);
-          setPagination({
-            page: page,
-            total_page: res.total_page || 1,
-            total: res.total || 0
-          });
-
-          if (fetchedGroups.length > 0 && !selectedGroupForLabels) {
-            setSelectedGroupForLabels(fetchedGroups[0].id);
-          }
+          setTotalMentees(res.total || 0);
         }
         setIsLoadingGroups(false);
       });
@@ -99,17 +66,35 @@ const CounsellorAnalytics = () => {
     }
   };
 
-  React.useEffect(() => {
-    if (userDetails?.user_id) {
-      fetchGroups(1);
-
-      // Fetch irregular mentees count
-      getRequest('/irregular-mentees', { user_id: userDetails.user_id }, (response) => {
-        if (response.data?.status === 1 || response.data?.code === 200) {
-          const total = response.data.total || (Array.isArray(response.data.data) ? response.data.data.length : 0);
-          setIrregularCount(total);
+  const fetchRanks = async () => {
+    try {
+      setIsLoadingRanks(true);
+      
+      // Fetch Top 3
+      getRequest(`/student-rank?limit=3&sort=desc&user_id=${userDetails.user_id}`, {}, (response) => {
+        if (response.data && response.data.code === 200) {
+          setTopRanks(response.data.data.ranks || []);
         }
       });
+      
+      // Fetch Bottom 3
+      getRequest(`/student-rank?limit=3&sort=asc&user_id=${userDetails.user_id}`, {}, (response) => {
+        if (response.data && response.data.code === 200) {
+          setBottomRanks(response.data.data.ranks || []);
+        }
+        setIsLoadingRanks(false);
+      });
+
+    } catch (error) {
+      console.error("Error fetching ranks:", error);
+      setIsLoadingRanks(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userDetails?.user_id) {
+      fetchGroups();
+      fetchRanks();
     }
   }, [userDetails?.user_id]);
 
@@ -124,7 +109,7 @@ const CounsellorAnalytics = () => {
       postRequest('/add-new-group', payload, (response) => {
         const { message, type } = processResponse(response.data);
         if (type === 'success') {
-          fetchGroups(1); // Refresh the list from server
+          fetchGroups();
           setIsAddGroupOpen(false);
           toast.success(message);
         } else {
@@ -138,266 +123,223 @@ const CounsellorAnalytics = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] font-sans pb-28 relative overflow-x-hidden text-[#0f172a]">
-      {/* Container holding the mobile width cleanly if opened on desktop */}
+    <div className="min-h-screen bg-white font-sans pb-28 relative overflow-x-hidden text-[#0f172a]">
       <div className="w-full max-w-md mx-auto">
-
+        
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
-          <div>
-            <h2 className="text-[#64748b] text-[15px] font-semibold mb-1">Hare Krsna,</h2>
-            <h1 className="text-[28px] leading-tight font-extrabold text-[#0f172a] tracking-tight">
-              {userDetails.name.split(' ')[0]}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3 self-start">
+          <h1 className="text-[28px] font-bold text-[#0f172a] border-b-2 border-[#0f172a] inline-block pb-1">
+            Dashboard
+          </h1>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center justify-center w-12 h-12 bg-white text-[#64748b] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
-              title="Report Settings"
+              className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
+              title="Theme Settings"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
             </button>
             <button
               onClick={() => setShowNotifications(true)}
-              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+              className="relative w-12 h-12 rounded-full border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
             >
-              {/* Bell Icon */}
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 22A2 2 0 0 0 14 20H10A2 2 0 0 0 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" />
-              </svg>
-              {/* Notification Badge */}
-              <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <span className="absolute top-3 right-3 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
             </button>
           </div>
         </div>
 
-        {/* Big Blue Card - View Mentees */}
-        <div className="px-6 mb-4">
-          <div
-            onClick={() => navigate('/counsellor/mentees')}
-            className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-3xl p-6 shadow-lg shadow-blue-500/30 relative overflow-hidden text-white flex flex-col justify-between items-start cursor-pointer active:scale-[0.98] transition-all min-h-[160px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-6">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" />
-              </svg>
+        {/* Top 2 Columns: Students Rank & Students Need Follow-up */}
+        <div className="px-6 flex gap-4 mb-6">
+          {/* Students Rank Card */}
+          <div className="flex-1 bg-white border border-gray-200 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 003.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+              </div>
+              <h3 className="font-bold text-[#0f172a] text-[15px] leading-tight">Students<br/>Rank</h3>
             </div>
-            <div>
-              <h2 className="text-[22px] font-bold mb-1">View Mentees</h2>
-              <p className="text-white/80 text-[14px]">Manage your students & check progress</p>
+            
+            <div className="flex-1 border-t border-gray-100 pt-3">
+              {isLoadingRanks ? (
+                <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : topRanks.length > 0 ? (
+                <div className="space-y-3">
+                  {topRanks.map((student, idx) => (
+                    <div key={student.student_id} className="flex items-center text-sm font-semibold text-gray-500 gap-3">
+                      <span className="w-4 text-center">{idx + 1}</span>
+                      <span className="text-gray-400">-</span>
+                      <span className="truncate flex-1" title={student.student_name}>{student.student_name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-400">No data</div>
+              )}
             </div>
 
-            <div className="absolute top-1/2 -translate-y-1/2 right-6 w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-md">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Two smaller cards block - Rewards and Labels */}
-        <div className="px-6 flex gap-4 mb-8">
-          <div
-            onClick={() => navigate('/counsellor/rewards')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 5H17V3H7V5H5C3.9 5 3 5.9 3 7V8C3 10.76 5.24 13 8 13H9.2C10.05 14.5 11.66 15.5 13.5 15.6V18H11V21H15V18H12.5V15.6C14.34 15.5 15.95 14.5 16.8 13H18C20.76 13 23 10.76 23 8V7C23 5.9 22.1 5 21 5H19M18 10C16.89 10 16 9.1 16 8V7H18V10M8 10C6.89 10 6 9.1 6 8V7H8V10Z" />
-              </svg>
-            </div>
-            <span className="font-bold text-[#0f172a]">Rewards</span>
-          </div>
-
-          <div
-            onClick={() => setIsLabelsModalOpen(true)}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
-              <svg className="w-6 h-6 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z" />
-              </svg>
-            </div>
-            <span className="font-bold text-[#0f172a]">Sub Groups</span>
-          </div>
-        </div>
-
-        {/* Two smaller cards block - Marking Scheme and Custom Activities */}
-        <div className="px-6 flex gap-4 mb-8">
-          <div
-            onClick={() => navigate('/counsellor/marking-scheme')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-3 text-emerald-500">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <span className="font-bold text-[#0f172a]">Marking Scheme</span>
-          </div>
-
-          <div
-            onClick={() => navigate('/counsellor/custom-activities')}
-            className="flex-1 bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform min-h-[140px]"
-          >
-            <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3 text-purple-500">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
-            <span className="font-bold text-[#0f172a]">Custom Activities</span>
-          </div>
-        </div>
-
-        {/* Full Width Card - Irregular Mentees Alert - ONLY SHOW IF COUNT > 0 */}
-        {irregularCount > 0 && (
-          <div className="px-6 mb-8">
-            <div
-              onClick={() => navigate('/counsellor/irregular-mentees')}
-              className="bg-red-50 rounded-3xl p-6 shadow-sm border border-red-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md group"
+            <button 
+              onClick={() => navigate('/counsellor/ranks/top')}
+              className="w-full mt-4 bg-blue-50 text-blue-600 font-bold py-3 rounded-2xl flex items-center justify-center gap-1 active:scale-95 transition-all text-sm"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-red-600">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M13 17H11V15H13V17M13 13H11V7H13V13Z" /></svg>
-                </div>
-                <div>
-                  <h2 className="font-bold text-[18px] text-red-700 mb-0.5">Mentee Alerts</h2>
-                  <p className="text-red-600/70 text-[13px] font-medium">{irregularCount} students need attention</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-400 shrink-0 group-hover:text-red-600 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </div>
-              </div>
-            </div>
+              View All <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+            </button>
           </div>
-        )}
 
-        {/* Full Width Card - Sub Counsellors */}
-        <div className="px-6 mb-8">
-          <div
-            onClick={() => navigate('/counsellor/sub-counsellors')}
-            className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all hover:shadow-md"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4A4 4 0 1 1 8 8A4 4 0 0 1 12 4M12 14C16.42 14 20 15.79 20 18V20H4V18C4 15.79 7.58 14 12 14ZM12 6A2 2 0 1 0 14 8A2 2 0 0 0 12 6ZM12 16C8.58 16 6 17.36 6 18V18H18V18C18 17.36 15.42 16 12 16Z" /></svg>
+          {/* Students Need Follow-up Card */}
+          <div className="flex-1 bg-red-50 border border-red-100 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(255,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               </div>
-              <div>
-                <h2 className="font-bold text-[18px] text-[#0f172a] mb-0.5">Sub Counsellors</h2>
-                <p className="text-[#64748b] text-[13px] font-medium">Manage team & assignments</p>
-              </div>
+              <h3 className="font-bold text-[#991b1b] text-[15px] leading-tight">Students<br/>Need<br/>Follow-up</h3>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+            
+            <div className="flex-1 pt-2">
+              {isLoadingRanks ? (
+                <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : bottomRanks.length > 0 ? (
+                <div className="space-y-3">
+                  {bottomRanks.map((student, idx) => (
+                    <div key={student.student_id} className="flex items-center text-sm font-semibold text-red-700 gap-3">
+                      <span className="w-4 text-center">{idx + 1}</span>
+                      <span className="text-red-300">-</span>
+                      <span className="truncate flex-1" title={student.student_name}>{student.student_name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-red-400">No data</div>
+              )}
             </div>
+
+            <button 
+              onClick={() => navigate('/counsellor/ranks/bottom')}
+              className="w-full mt-4 bg-white/60 text-red-600 font-bold py-3 rounded-2xl flex items-center justify-center gap-1 active:scale-95 transition-all text-sm"
+            >
+              View All <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+            </button>
           </div>
         </div>
 
-        {/* Invite Students - Referral Link */}
-        <div className="px-6 mb-8">
-          <div className="bg-gradient-to-r from-[#0f766e] to-[#10b981] rounded-3xl p-5 shadow-lg shadow-emerald-500/20 text-white">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.16,18.35C15.11,18.56 15.08,18.78 15.08,19C15.08,20.61 16.39,21.92 18,21.92C19.61,21.92 20.92,20.61 20.92,19C20.92,17.39 19.61,16.08 18,16.08Z" /></svg>
-              </div>
-              <div>
-                <h3 className="font-extrabold text-[16px]">Invite Students</h3>
-                <p className="text-white/70 text-[12px] font-medium">Share your referral link</p>
-              </div>
+        {/* Groups Section */}
+        <div className="px-6 mb-6">
+          <div className="bg-white border border-gray-200 rounded-[28px] p-5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-4">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4A4 4 0 1 1 8 8A4 4 0 0 1 12 4M12 14C16.42 14 20 15.79 20 18V20H4V18C4 15.79 7.58 14 12 14ZM12 6A2 2 0 1 0 14 8A2 2 0 0 0 12 6ZM12 16C8.58 16 6 17.36 6 18V18H18V18C18 17.36 15.42 16 12 16Z" /></svg>
+              <h2 className="text-[18px] font-bold text-[#0f172a] border-b border-blue-200 pb-1">Groups</h2>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  const encoded = btoa(userDetails.user_id);
-                  const link = `https://sadhanagpt.com?ref=${encoded}`;
-                  navigator.clipboard.writeText(link).then(() => {
-                    toast.success("Referral link copied!");
-                  }).catch(() => {
-                    toast.error("Failed to copy link");
-                  });
-                }}
-                className="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold text-[13px] py-3 px-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-2M16 3h5v5M10 14L20.5 3.5" /></svg>
-                Copy Link
-              </button>
-              <button
-                onClick={() => {
-                  const encoded = btoa(userDetails.user_id);
-                  const link = `https://sadhanagpt.com?ref=${encoded}`;
-                  if (navigator.share) {
-                    navigator.share({
-                      title: 'Join SadhanaGPT',
-                      text: 'Track your spiritual progress with SadhanaGPT! Join using my referral link:',
-                      url: link
-                    }).catch(() => { });
-                  } else {
-                    navigator.clipboard.writeText(link).then(() => {
-                      toast.success("Link copied (sharing not supported on this device)");
-                    });
-                  }
-                }}
-                className="flex-1 bg-white text-emerald-700 font-bold text-[13px] py-3 px-4 rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                Share
-              </button>
-            </div>
-          </div>
-        </div>        {/* My Groups Header */}
-        <div className="px-6 flex items-center justify-between mb-4">
-          <h2 className="text-[22px] font-extrabold text-[#0f172a]">My Groups</h2>
-          <button
-            onClick={() => setIsAddGroupOpen(true)}
-            className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md active:scale-90 transition-transform"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-          </button>
-        </div>
-
-        {/* Groups List */}
-        <div className="px-6 space-y-4">
-          {isLoadingGroups ? (
-            <div className="flex flex-col items-center justify-center pt-10 gap-3">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading groups...</p>
-            </div>
-          ) : groups.length > 0 ? (
-            groups.map(group => (
-              <div
-                key={group.id}
-                onClick={() => navigate('/counsellor/group-mentees', { state: { groupName: group.name, centerId: group.id } })}
-                className="bg-white rounded-[28px] p-4 shadow-sm border border-gray-100 flex items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
-              >
-                <div className="relative w-16 h-16 mr-4 shrink-0">
-                  <img src={group.image} alt={group.name} className="w-full h-full rounded-full object-cover shadow-sm bg-gray-100" />
-                  <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white ${group.iconColor}`}>
-                    {group.statusIcon === 'NEW' ? 'NEW' : (
-                      group.statusIcon === '⚡' ? (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11 15H6L13 1V9H18L11 23V15Z" /></svg>
-                      ) : (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" /></svg>
-                      )
-                    )}
+            
+            <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-hide">
+              {isLoadingGroups ? (
+                <div className="text-sm text-gray-500 py-4">Loading groups...</div>
+              ) : (
+                <>
+                  {groups.length > 0 && groups.map(group => (
+                    <div 
+                      key={group.id} 
+                      onClick={() => navigate('/counsellor/group-mentees', { state: { groupName: group.name, centerId: group.id } })}
+                      className="flex-shrink-0 w-[160px] bg-white border border-blue-50 rounded-2xl p-3 flex items-center gap-3 cursor-pointer shadow-sm active:scale-95 transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-500 shrink-0">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-[#0f172a] text-[13px] leading-tight truncate w-[90px]">{group.name}</h3>
+                        <p className="text-[#64748b] text-[11px] mt-0.5">{group.members} members</p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div 
+                    onClick={() => setIsAddGroupOpen(true)}
+                    className="flex-shrink-0 w-[160px] bg-blue-50 border border-blue-100 border-dashed rounded-2xl p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 active:scale-95 transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-sm">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                    </div>
+                    <span className="font-bold text-blue-600 text-[13px]">Add New</span>
                   </div>
-                </div>
-                <div className="flex-1 mr-2">
-                  <h3 className="font-bold text-[16px] text-[#0f172a] whitespace-nowrap overflow-hidden text-ellipsis">{group.name}</h3>
-                  <p className="text-[#64748b] text-[13px] mt-0.5">{group.members} Members • {group.status}</p>
-                </div>
-                <div className="shrink-0 text-gray-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No groups found</p>
-              <p className="text-gray-400 text-sm font-medium">Create your first group to get started</p>
+                </>
+              )}
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Quick Actions Section */}
+        <div className="px-6 mb-6">
+          <div className="bg-white border border-gray-200 rounded-[28px] p-5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-4">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M13,2.05v3.03c3.39,0.49,6,3.39,6,6.92c0,0.9-0.18,1.75-0.48,2.54l2.6,1.53c0.56-1.24,0.88-2.62,0.88-4.07 C22,6.39,18.05,2.54,13,2.05z M12,19c-3.87,0-7-3.13-7-7c0-3.53,2.61-6.43,6-6.92V2.05C5.94,2.55,2,6.4,2,12c0,5.52,4.48,10,10,10 c3.45,0,6.65-1.74,8.55-4.44l-2.55-1.5C16.56,17.82,14.41,19,12,19z M13,11h3v2h-3v3h-2v-3H8v-2h3V8h2V11z" /></svg>
+              <h2 className="text-[18px] font-bold text-[#0f172a] border-b border-blue-200 pb-1">Quick Actions</h2>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+              <div 
+                onClick={() => {
+                  const encoded = btoa(userDetails.user_id);
+                  const link = `https://sadhanagpt.com?ref=${encoded}`;
+                  navigator.clipboard.writeText(link).then(() => toast.success("Referral link copied!"));
+                }}
+                className="flex flex-col items-center justify-center bg-blue-50 border border-blue-200 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
+              >
+                <div className="w-8 h-8 flex items-center justify-center text-blue-500 mb-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                </div>
+                <span className="text-[10px] font-bold text-center leading-tight">Invite</span>
+              </div>
+
+              <div 
+                onClick={() => navigate('/counsellor/marking-scheme')}
+                className="flex flex-col items-center justify-center bg-emerald-50 border border-emerald-200 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
+              >
+                <div className="w-8 h-8 flex items-center justify-center text-emerald-500 mb-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                </div>
+                <span className="text-[10px] font-bold text-center leading-tight">Marking<br/>Scheme</span>
+              </div>
+
+              <div 
+                onClick={() => navigate('/counsellor/custom-activities')}
+                className="flex flex-col items-center justify-center bg-purple-50 border border-purple-200 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
+              >
+                <div className="w-8 h-8 flex items-center justify-center text-purple-500 mb-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                </div>
+                <span className="text-[10px] font-bold text-center leading-tight">Custom<br/>Activities</span>
+              </div>
+
+              <div 
+                onClick={() => navigate('/counsellor/rewards')}
+                className="flex flex-col items-center justify-center bg-yellow-50 border border-yellow-200 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
+              >
+                <div className="w-8 h-8 flex items-center justify-center text-yellow-500 mb-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+                </div>
+                <span className="text-[10px] font-bold text-center leading-tight">Rewards</span>
+              </div>
+
+              <div 
+                onClick={() => navigate('/counsellor/personal-analytics')}
+                className="flex flex-col items-center justify-center bg-pink-50 border border-pink-200 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
+              >
+                <div className="w-8 h-8 flex items-center justify-center text-pink-500 mb-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                </div>
+                <span className="text-[10px] font-bold text-center leading-tight">Reports</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* View All Mentees Button */}
+        <div className="px-6 mb-8">
+          <button
+            onClick={() => navigate('/counsellor/mentees')}
+            className="w-full bg-blue-50 border border-blue-100 text-[#1e3a8a] font-bold py-4 rounded-[20px] shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-[16px]"
+          >
+            View All Mentees (Total - {totalMentees}) <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+          </button>
         </div>
 
       </div>
@@ -419,134 +361,6 @@ const CounsellorAnalytics = () => {
         onClose={() => setIsAddGroupOpen(false)}
         onSave={handleAddGroup}
       />
-
-      {/* Mentee Labels Modal */}
-      <AnimatePresence>
-        {isLabelsModalOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsLabelsModalOpen(false)}
-              className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white rounded-t-[40px] z-[70] p-8 shadow-2xl"
-            >
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-[22px] font-extrabold text-[#0f172a]">Mentee Labels</h2>
-                <button
-                  onClick={() => setIsLabelsModalOpen(false)}
-                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-95 transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Select Group</label>
-                  <div className="relative">
-                    <select
-                      value={selectedGroupForLabels}
-                      onChange={(e) => setSelectedGroupForLabels(e.target.value)}
-                      className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-100 rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] appearance-none outline-none transition-all"
-                    >
-                      {groups.map(g => (
-                        <option key={g.id} value={g.id}>{g.name}</option>
-                      ))}
-                    </select>
-                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Available Labels</label>
-                  {isLoadingLabels ? (
-                    <div className="flex items-center gap-2 py-4">
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-[13px] text-gray-400 font-medium">Updating labels...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {(groupLabels[selectedGroupForLabels] || []).map((label, idx) => (
-                        <div key={label.id || idx} className="bg-blue-50 text-[#1a73e8] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">
-                          {label.name}
-                          <button
-                            onClick={() => {
-                              if (label.id && window.confirm(`Are you sure you want to delete the label "${label.name}"?`)) {
-                                postRequest('/delete-lable', { user_id: userDetails.user_id, label_id: label.id }, (response) => {
-                                  const { message, type } = processResponse(response.data);
-                                  if (type === 'success') {
-                                    fetchLabels(selectedGroupForLabels); // Refresh list
-                                    toast.success(message);
-                                  } else {
-                                    toast.error(message);
-                                  }
-                                });
-                              }
-                            }}
-                            className="text-blue-300 hover:text-blue-500"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Add custom label..."
-                      value={newLabelName}
-                      onChange={(e) => setNewLabelName(e.target.value)}
-                      className="flex-1 bg-[#f8fafc] rounded-2xl py-4 px-5 text-[15px] font-bold text-[#0f172a] outline-none border-2 border-transparent focus:border-blue-100 transition-all placeholder:text-gray-300"
-                    />
-                    <button
-                      onClick={() => {
-                        if (newLabelName.trim() && selectedGroupForLabels) {
-                          const payload = {
-                            user_id: userDetails.user_id,
-                            lable_name: newLabelName.trim(),
-                            center_id: selectedGroupForLabels
-                          };
-
-                          postRequest('/add-lable', payload, (response) => {
-                            const { message, type } = processResponse(response.data);
-                            if (type === 'success') {
-                              fetchLabels(selectedGroupForLabels); // Refresh list from server
-                              setNewLabelName('');
-                              setIsLabelsModalOpen(false); // Close modal automatically
-                              toast.success(message);
-                            } else {
-                              toast.error(message);
-                            }
-                          });
-                        } else if (!selectedGroupForLabels) {
-                          toast.error("Please select a group first");
-                        }
-                      }}
-                      className="w-14 h-14 bg-[#1a73e8] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-95 transition-all"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-4"></div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* Toast Notification */}
       <AnimatePresence>
@@ -570,7 +384,6 @@ const CounsellorAnalytics = () => {
         )}
       </AnimatePresence>
 
-      {/* Reusable Counsellor Bottom Navigation */}
       <CounsellorBottomNavigation />
 
     </div>

@@ -24,6 +24,7 @@ import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
 import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsellors';
 import IrregularMentees from '../pages/counsellor/mentees_module/IrregularMentees';
+import StudentRanksList from '../pages/counsellor/mentees_module/StudentRanksList';
 import CounsellorOnboardingStepTwo from '../pages/counsellor/CounsellorOnboardingStepTwo';
 import GoogleCallback from '../pages/GoogleCallback';
 import AuthGuard from '../components/shared/AuthGuard';
@@ -74,6 +75,7 @@ const AppRoutes = () => {
           <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
           <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
           <Route path="/counsellor/irregular-mentees" element={<IrregularMentees />} />
+          <Route path="/counsellor/ranks/:type" element={<StudentRanksList />} />
 
           {/* <Route path="/counsellor/sub-counsellors" element={<UnderConstruction />} /> */}
           <Route path="/student/analytics" element={<Analytics />} />
