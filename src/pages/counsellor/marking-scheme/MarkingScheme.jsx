@@ -163,9 +163,11 @@ const MarkingScheme = () => {
     }
   };
 
-  const handleUpdateScheme = async (name, centerId, labelId) => {
+  const handleUpdateScheme = async (name, assignments = []) => {
     if (!editSchemeTarget) return;
     try {
+      const centerId = assignments.find(a => a.type === 'group')?.id || null;
+      const labelId = assignments.find(a => a.type === 'subgroup')?.id || null;
       await updateMarkingScheme(editSchemeTarget.id, name, centerId, labelId);
       setToastMessage(`Scheme updated successfully!`);
       setTimeout(() => setToastMessage(''), 3000);
@@ -241,9 +243,9 @@ const MarkingScheme = () => {
     }
   };
 
-  const handleCreateScheme = async (name, assignCenterId = null, assignLabelId = null) => {
+  const handleCreateScheme = async (name, assignments = []) => {
     try {
-      const res = await createScheme(name, assignCenterId, assignLabelId);
+      const res = await createScheme(name, assignments);
       setShowNameModal(false);
 
       setToastMessage(`Scheme '${name}' created successfully!`);
@@ -659,11 +661,19 @@ const MarkingScheme = () => {
         </div>
       </div>
 
+      {showNameModal && (
+        <SchemeNameModal
+          schemes={schemes}
+          onClose={() => setShowNameModal(false)}
+          onCreate={handleCreateScheme}
+        />
+      )}
+
       {editSchemeTarget && (
         <SchemeNameModal
+          schemes={schemes}
           editingSchemeId={editSchemeTarget.id}
-          initialCenterId={editSchemeTarget.center_id}
-          initialLabelId={editSchemeTarget.label_id}
+          initialName={editSchemeTarget.name}
           onClose={() => setEditSchemeTarget(null)}
           onCreate={handleUpdateScheme}
         />
@@ -673,13 +683,6 @@ const MarkingScheme = () => {
         <SchemeActivityPickerModal
           onClose={() => setShowPickerModal(false)}
           onApply={handleAddActivity}
-        />
-      )}
-
-      {showNameModal && (
-        <SchemeNameModal
-          onClose={() => setShowNameModal(false)}
-          onCreate={handleCreateScheme}
         />
       )}
 

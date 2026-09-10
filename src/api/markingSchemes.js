@@ -418,7 +418,7 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
   });
 };
 
-export const createScheme = async (name, groupId = null, subgroupId = null) => {
+export const createScheme = async (name, assignments = []) => {
   const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
   const counsellorId = userDetails.user_id;
   if (!counsellorId) throw new Error("User not authenticated.");
@@ -426,8 +426,7 @@ export const createScheme = async (name, groupId = null, subgroupId = null) => {
   const payload = {
     name,
     counsellor_id: counsellorId,
-    group_id: groupId,
-    subgroup_id: subgroupId
+    assignments // Array of { type: 'group'|'subgroup', id }
   };
 
   return new Promise((resolve, reject) => {
