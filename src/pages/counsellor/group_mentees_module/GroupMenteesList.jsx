@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
+import SubGroupModal from '../../../components/counsellor/SubGroupModal';
 import { getRequest, postRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
 
@@ -23,6 +24,7 @@ const GroupMenteesList = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   const [isLabelPopupOpen, setIsLabelPopupOpen] = useState(false);
+  const [isManageLabelsOpen, setIsManageLabelsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
@@ -215,7 +217,11 @@ const GroupMenteesList = () => {
 
         <div className="px-6 pb-4 flex gap-3 overflow-x-auto hide-scrollbar">
           <button onClick={() => setSelectedLabel('All')} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === 'All' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
-            All Labels
+            All Sub Groups
+          </button>
+          
+          <button onClick={() => setIsManageLabelsOpen(true)} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] bg-purple-100 text-purple-600 hover:bg-purple-200 transition-all flex items-center gap-1`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Manage
           </button>
 
           <button onClick={() => setSelectedLabel('un-categorized')} className={`shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 font-bold text-[13px] transition-all duration-300 ${selectedLabel === 'un-categorized' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-[#f1f5f9] text-[#64748b] hover:bg-gray-200'}`}>
@@ -286,7 +292,7 @@ const GroupMenteesList = () => {
                   <button onClick={() => setIsNotificationModalOpen(true)} className="touch-auto flex-1 bg-white/20 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/30 active:scale-[0.98] transition-all"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>Alerts</button>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Change Label</button>
+                  <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Change Sub Group</button>
                   <button onClick={() => setIsDownloadModalOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
                 </div>
               </div>
@@ -355,7 +361,7 @@ const GroupMenteesList = () => {
                <p className="text-gray-400 font-bold mb-8">Update labels for {selectedStudents.length} students</p>
                <div className="space-y-6">
                   <select value={bulkLabel} onChange={e=>setBulkLabel(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold outline-none border-none">
-                    <option value="">Select Target Label</option>
+                    <option value="">Select Target Sub Group</option>
                     {labels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
                   <button onClick={handleBulkAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Confirm Move</button>
@@ -369,13 +375,13 @@ const GroupMenteesList = () => {
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setEditingStudent(null)}>
             <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
                <h2 className="text-2xl font-black mb-2">{editingStudent.name}</h2>
-               <p className="text-gray-400 font-bold mb-8">Change Label within Group</p>
+               <p className="text-gray-400 font-bold mb-8">Change Sub Group within Group</p>
                <div className="space-y-6">
                   <select value={editLabel} onChange={e=>setEditLabel(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold border-none outline-none">
-                    <option value="">Select Label</option>
+                    <option value="">Select Sub Group</option>
                     {labels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
-                  <button onClick={handleSingleAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Update Label</button>
+                  <button onClick={handleSingleAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Update Sub Group</button>
                   <button onClick={()=>setEditingStudent(null)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
                </div>
             </motion.div>
@@ -399,6 +405,15 @@ const GroupMenteesList = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SubGroupModal 
+        isOpen={isManageLabelsOpen} 
+        onClose={() => setIsManageLabelsOpen(false)} 
+        userDetails={userDetails} 
+        centerId={centerId} 
+        groupName={groupName}
+        onLabelsUpdated={fetchLabels}
+      />
       
       <CounsellorBottomNavigation />
     </div>

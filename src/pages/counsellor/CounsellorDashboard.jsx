@@ -653,6 +653,16 @@ const CounsellorDashboard = () => {
               <p className="text-gray-400 text-sm">Tap the + button to add one</p>
             </div>
           )}
+
+          {!isLoading && (
+            <button 
+              onClick={() => setIsNewActivityOpen(true)}
+              className="w-full mt-6 mb-8 py-4 border-2 border-dashed border-blue-300 bg-blue-50/30 hover:bg-blue-50/80 text-blue-600 rounded-3xl font-extrabold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+              Add Activity
+            </button>
+          )}
         </div>
 
       </div>
@@ -719,9 +729,11 @@ const CounsellorDashboard = () => {
         onDelete={handleDeleteActivity}
       />
 
-      {/* Floating Action Button (FAB) Replaced by Score Indicator */}
-      <div>
-        <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+      {/* Floating Elements */}
+      <div className="fixed bottom-[100px] right-6 lg:right-10 z-40 pointer-events-none flex justify-end">
+        <div className="pointer-events-auto">
+          <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+        </div>
       </div>
 
       {/* Reusable Bottom Navigation */}

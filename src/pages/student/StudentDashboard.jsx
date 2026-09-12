@@ -6,6 +6,7 @@ import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import NewActivityModal from '../../components/shared/NewActivityModal';
 import EditActivityModal from '../../components/shared/EditActivityModal';
+import FirstRankSplash from '../../components/student/FirstRankSplash';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
@@ -59,6 +60,24 @@ const StudentDashboard = () => {
   const [dateColors, setDateColors] = useState({});
   const [dailyScore, setDailyScore] = useState(null);
   const [isScoreLoading, setIsScoreLoading] = useState(true);
+
+  // First Rank Splash
+  const [showRankSplash, setShowRankSplash] = useState(false);
+  const [rankSplashScore, setRankSplashScore] = useState(null);
+
+  useEffect(() => {
+    if (!userDetails?.user_id) return;
+
+    // Check if user is currently rank #1 — show splash every time they open the app while they hold #1
+    getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
+      const data = res?.data?.data;
+      if (data?.isTopRanker) {
+        const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
+        setRankSplashScore(topUser?.total_marks ?? null);
+        setShowRankSplash(true);
+      }
+    });
+  }, [userDetails?.user_id]);
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -508,6 +527,13 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
+      {/* First Rank Celebration Splash */}
+      <FirstRankSplash
+        isVisible={showRankSplash}
+        studentName={userDetails?.name}
+        score={rankSplashScore}
+        onContinue={() => setShowRankSplash(false)}
+      />
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
@@ -652,6 +678,16 @@ const StudentDashboard = () => {
               <p className="text-gray-400 text-sm">Tap the + button to add one</p>
             </div>
           )}
+
+          {!isLoading && (
+            <button 
+              onClick={() => setIsNewActivityOpen(true)}
+              className="w-full mt-6 mb-8 py-4 border-2 border-dashed border-blue-300 bg-blue-50/30 hover:bg-blue-50/80 text-blue-600 rounded-3xl font-extrabold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+              Add Activity
+            </button>
+          )}
         </div>
       </div>
 
@@ -709,9 +745,11 @@ const StudentDashboard = () => {
         onDelete={handleDeleteActivity}
       />
 
-      {/* Floating Action Button (FAB) Replaced by Score Indicator */}
-      <div>
-        <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+      {/* Floating Elements */}
+      <div className="fixed bottom-[100px] right-6 lg:right-10 z-40 pointer-events-none flex justify-end">
+        <div className="pointer-events-auto">
+          <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+        </div>
       </div>
 
       <BottomNavigation />

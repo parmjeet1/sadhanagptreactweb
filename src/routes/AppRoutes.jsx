@@ -31,7 +31,6 @@ import AuthGuard from '../components/shared/AuthGuard';
 import MarkingScheme from '../pages/counsellor/marking-scheme/MarkingScheme';
 import DefaultSchemeDetail from '../pages/counsellor/marking-scheme/DefaultSchemeDetail';
 import SchemeDetail from '../pages/counsellor/marking-scheme/SchemeDetail';
-import AddRulesPage from '../pages/counsellor/marking-scheme/AddRulesPage';
 import CustomActivities from "../pages/counsellor/activites/custom-activities/CustomActivities";
 import CustomActivitiesPage from "../pages/counsellor/activites/custom-activities/addActivityPage";
 
@@ -61,7 +60,6 @@ const AppRoutes = () => {
           <Route path="/counsellor/rewards" element={<UnderConstruction />} />
           <Route path="/counsellor/marking-scheme" element={<MarkingScheme />} />
           <Route path="/counsellor/marking-scheme/default" element={<DefaultSchemeDetail />} />
-          <Route path="/counsellor/marking-scheme/add-rules/:schemeId" element={<AddRulesPage />} />
           <Route path="/counsellor/marking-scheme/:id" element={<SchemeDetail />} />
           <Route path="/counsellor/custom-activities" element={<CustomActivities />} />
           <Route path="/counsellor/subgroup-activities" element={<CustomActivitiesPage />} />

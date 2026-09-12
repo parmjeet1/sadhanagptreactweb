@@ -15,6 +15,7 @@ const Profile = () => {
   const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [topRankerBadge, setTopRankerBadge] = useState(null); // { hasBadge, from, to }
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message: message, type });
@@ -92,6 +93,15 @@ const Profile = () => {
     if (userDetails?.user_id) {
       checkSubscription();
     }
+  }, [userDetails?.user_id]);
+
+  // Fetch top ranker badge
+  useEffect(() => {
+    if (!userDetails?.user_id) return;
+    getRequest('/top-ranker-badge', { user_id: userDetails.user_id }, (res) => {
+      const d = res?.data?.data;
+      if (d?.hasBadge) setTopRankerBadge(d);
+    });
   }, [userDetails?.user_id]);
 
   const handlePostFeedback = () => {
@@ -265,6 +275,41 @@ const Profile = () => {
                 {/* Avatar edit pencil removed as per request */}
               </div>
               <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
+
+              {/* Top Ranker Badge */}
+              {topRankerBadge?.hasBadge && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 0.3 }}
+                  className="mt-3 relative overflow-hidden"
+                >
+                  <div
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,215,0,0.18) 0%, rgba(167,139,250,0.14) 100%)',
+                      border: '1.5px solid rgba(255,215,0,0.45)',
+                      boxShadow: '0 4px 20px rgba(255,215,0,0.15)',
+                    }}
+                  >
+                    <span style={{ fontSize: '22px', filter: 'drop-shadow(0 2px 6px rgba(255,180,0,0.6))' }}>👑</span>
+                    <div>
+                      <p className="text-[12px] font-black text-[#b45309] leading-tight">Top Ranker</p>
+                      <p className="text-[10px] font-semibold text-gray-400 leading-tight">
+                        Daily #1 since {new Date(topRankerBadge.from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Shimmer */}
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none rounded-2xl"
+                    style={{ background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)' }}
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 3 }}
+                  />
+                </motion.div>
+              )}
 
               {/* <button 
             onClick={() => navigate('/student/ai-chat')}

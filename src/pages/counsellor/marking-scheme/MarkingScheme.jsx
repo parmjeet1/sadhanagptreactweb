@@ -166,9 +166,7 @@ const MarkingScheme = () => {
   const handleUpdateScheme = async (name, assignments = []) => {
     if (!editSchemeTarget) return;
     try {
-      const centerId = assignments.find(a => a.type === 'group')?.id || null;
-      const labelId = assignments.find(a => a.type === 'subgroup')?.id || null;
-      await updateMarkingScheme(editSchemeTarget.id, name, centerId, labelId);
+      await updateMarkingScheme(editSchemeTarget.id, name, assignments);
       setToastMessage(`Scheme updated successfully!`);
       setTimeout(() => setToastMessage(''), 3000);
       fetchSchemes();
@@ -337,41 +335,42 @@ const MarkingScheme = () => {
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] font-sans pb-28 transition-colors duration-300 flex flex-col">
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-300 dark:border-[#112240] flex items-center justify-between px-6 py-4 transition-all duration-300">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-300 dark:border-[#112240] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 dark:text-[#6b7a99] hover:bg-gray-50 dark:hover:bg-[#112240] active:scale-90 transition-all"
+            className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full flex items-center justify-center text-gray-500 dark:text-[#6b7a99] hover:bg-gray-50 dark:hover:bg-[#112240] active:scale-90 transition-all"
             title="Back"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <button
             onClick={() => navigate('/counsellor/analytics')}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 dark:text-[#6b7a99] hover:bg-gray-50 dark:hover:bg-[#112240] active:scale-90 transition-all"
+            className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full flex items-center justify-center text-gray-500 dark:text-[#6b7a99] hover:bg-gray-50 dark:hover:bg-[#112240] active:scale-90 transition-all"
             title="Home"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-[17px] font-bold text-[#0f172a] dark:text-[#ffffff] leading-none tracking-tight">Marking Schemes</h1>
-            <p className="text-[11px] font-medium text-teal-600 dark:text-[#1de9b6] mt-1">Create, manage, and assign grading rules for groups and assessments.</p>
+          <div className="min-w-0">
+            <h1 className="text-[15px] sm:text-[17px] font-bold text-[#0f172a] dark:text-[#ffffff] leading-tight truncate">Marking Schemes</h1>
+            <p className="hidden sm:block text-[11px] font-medium text-teal-600 dark:text-[#1de9b6] mt-1 truncate">Create, manage, and assign grading rules for groups and assessments.</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ThemeToggle />
           <button
             onClick={() => setShowNameModal(true)}
-            className="flex items-center gap-1.5 bg-[#1d4ed8] dark:bg-[#1de9b6] text-white dark:text-[#042C53] hover:bg-[#1e40af] dark:hover:opacity-90 px-4 py-2 rounded-[8px] text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
+            className="flex items-center justify-center sm:gap-1.5 bg-[#1d4ed8] dark:bg-[#1de9b6] text-white dark:text-[#042C53] hover:bg-[#1e40af] dark:hover:opacity-90 w-8 h-8 sm:w-auto sm:px-4 sm:py-2 rounded-[8px] text-[13px] font-semibold active:scale-95 transition-all shadow-sm"
+            title="Create New Scheme"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            Create New Scheme
+            <span className="hidden sm:inline whitespace-nowrap">Create New Scheme</span>
           </button>
         </div>
       </header>
@@ -594,31 +593,21 @@ const MarkingScheme = () => {
                     {/* Left: action buttons */}
                     <div className="flex items-center gap-1.5">
 
-                      {/* Add Rules — only for custom schemes */}
+
+
+                      {/* Edit - Only for custom schemes */}
                       {!scheme.isSystemDefault && (
                         <button
-                          onClick={() => navigate(`/counsellor/marking-scheme/add-rules/${scheme.id}`)}
-                          title="Add Rules"
-                          className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-teal-50 dark:bg-teal-950/30 hover:bg-teal-500 dark:hover:bg-[#1de9b6] text-teal-600 dark:text-[#1de9b6] hover:text-white dark:hover:text-[#042C53] border border-teal-200/50 dark:border-teal-500/20 hover:border-teal-500 transition-all duration-150 active:scale-95 text-[11px] font-bold"
+                          onClick={() => handleEditInitiate(scheme)}
+                          title="Edit Scheme"
+                          className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-200/50 dark:border-blue-500/20 hover:border-blue-600 transition-all duration-150 active:scale-95 text-[11px] font-bold"
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
-                          <span>Add Rules</span>
+                          <span>Edit</span>
                         </button>
                       )}
-
-                      {/* Edit */}
-                      <button
-                        onClick={() => handleEditInitiate(scheme)}
-                        title="Edit Scheme"
-                        className="group flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-600 dark:hover:bg-blue-500 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-200/50 dark:border-blue-500/20 hover:border-blue-600 transition-all duration-150 active:scale-95 text-[11px] font-bold"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>Edit</span>
-                      </button>
 
                       {/* Delete — only for custom schemes (not system default) */}
                       {!scheme.isSystemDefault && (

@@ -257,8 +257,11 @@ export const getActivities = async (schemeId) => {
   if (!counsellorId) throw new Error("User not authenticated.");
 
   return new Promise((resolve) => {
+    console.log("Calling /scheme-activities-list for scheme:", schemeId);
     postRequest('/scheme-activities-list', { scheme_id: schemeId, counsellor_id: counsellorId }, (response) => {
+      console.log("Response from /scheme-activities-list:", response?.data);
       if (response?.data?.code === 200 && response.data.data) {
+        console.log(response?.data,'data')
         resolve({ activities: response.data.data });
       } else {
         resolve({ activities: [] });
@@ -269,7 +272,7 @@ export const getActivities = async (schemeId) => {
 
 export const getSchemeActivities = async (schemeId) => {
   return new Promise((resolve) => {
-    postRequest('/marking-rules', { center_id: schemeId }, (response) => {
+    postRequest('/marking-rules', { scheme_id: schemeId }, (response) => {
       if (response?.data?.code === 200 && response.data.data && response.data.data.length > 0) {
         const rules = response.data.data;
         
@@ -391,7 +394,7 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
 
   const targetCenterId = schemeId || Date.now(); 
   const payload = {
-    center_id: targetCenterId,
+    scheme_id: targetCenterId,
     counsellor_id: counsellorId,
     name: name,
     isProvisional: isProvisional,
@@ -488,7 +491,7 @@ export const deleteActivityFromScheme = async (schemeId, activityId) => {
   return { success: true };
 };
 
-export const updateMarkingScheme = async (schemeId, name, centerId, labelId) => {
+export const updateMarkingScheme = async (schemeId, name, assignments = []) => {
   const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
   const counsellorId = userDetails.user_id;
   if (!counsellorId) throw new Error('User not authenticated.');
@@ -500,8 +503,7 @@ export const updateMarkingScheme = async (schemeId, name, centerId, labelId) => 
         scheme_id: schemeId,
         counsellor_id: counsellorId,
         name: name,
-        center_id: centerId,
-        label_id: labelId
+        assignments
       },
       (response) => {
         if (response?.data?.code === 200) {
@@ -514,3 +516,42 @@ export const updateMarkingScheme = async (schemeId, name, centerId, labelId) => 
   });
 };
 
+export const deleteMarkingRuleAPI = async (ruleId) => {
+  const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
+  const counsellorId = userDetails.user_id;
+  if (!counsellorId) throw new Error('User not authenticated.');
+
+  return new Promise((resolve, reject) => {
+    postRequest(
+      '/delete-marking-rule',
+      { rule_id: ruleId, counsellor_id: counsellorId },
+      (response) => {
+        if (response?.data?.code === 200) {
+          resolve({ success: true });
+        } else {
+          reject(new Error(response?.data?.message?.[0] || 'Failed to delete rule.'));
+        }
+      }
+    );
+  });
+};
+
+export const deleteActivityRulesAPI = async (schemeId, masterActivityId) => {
+  const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
+  const counsellorId = userDetails.user_id;
+  if (!counsellorId) throw new Error('User not authenticated.');
+
+  return new Promise((resolve, reject) => {
+    postRequest(
+      '/delete-activity-rules',
+      { scheme_id: schemeId, master_activity_id: masterActivityId, counsellor_id: counsellorId },
+      (response) => {
+        if (response?.data?.code === 200) {
+          resolve({ success: true });
+        } else {
+          reject(new Error(response?.data?.message?.[0] || 'Failed to delete activity rules.'));
+        }
+      }
+    );
+  });
+};

@@ -12,12 +12,13 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
     const loadData = async () => {
       try {
         const list = await getGroupSubgroupList();
-        setGroupSubgroups(Array.isArray(list) ? list : (list?.data || []));
+        const fetchedList = Array.isArray(list) ? list : (list?.data || []);
+        setGroupSubgroups(fetchedList);
         
         // If editing, preset selections (based on marking_scheme_id matching editingSchemeId)
         if (editingSchemeId) {
             const initialSelection = [];
-            groupSubgroups.forEach(g => {
+            fetchedList.forEach(g => {
                 if (Number(g.marking_scheme_id) === Number(editingSchemeId)) initialSelection.push({ type: 'group', id: String(g.center_id) });
                 (g.labels || []).forEach(l => {
                     if (Number(l.marking_scheme_id) === Number(editingSchemeId)) initialSelection.push({ type: 'subgroup', id: String(l.id) });
@@ -81,12 +82,54 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
   }, [availableOptions, editingSchemeId, hasInitializedDefaults]);
 
   const handleToggle = (type, id) => {
-    const exists = selectedAssignments.some(a => a.type === type && a.id === String(id));
-    if (exists) {
-      setSelectedAssignments(selectedAssignments.filter(a => !(a.type === type && a.id === String(id))));
-    } else {
-      setSelectedAssignments([...selectedAssignments, { type, id: String(id) }]);
+    const isCurrentlyChecked = selectedAssignments.some(a => a.type === type && a.id === String(id));
+    
+    let nextAssignments = [...selectedAssignments];
+
+    if (type === 'group') {
+      const groupData = availableOptions.find(g => String(g.center_id) === String(id));
+      if (!groupData) return;
+
+      if (isCurrentlyChecked) {
+        // Uncheck group and ALL its subgroups
+        nextAssignments = nextAssignments.filter(a => !(a.type === 'group' && a.id === String(id)));
+        const subgroupIds = groupData.availableLabels.map(l => String(l.id));
+        nextAssignments = nextAssignments.filter(a => !(a.type === 'subgroup' && subgroupIds.includes(a.id)));
+      } else {
+        // Check group and ALL its subgroups
+        if (!nextAssignments.some(a => a.type === 'group' && a.id === String(id))) {
+          nextAssignments.push({ type: 'group', id: String(id) });
+        }
+        groupData.availableLabels.forEach(l => {
+          if (!nextAssignments.some(a => a.type === 'subgroup' && a.id === String(l.id))) {
+            nextAssignments.push({ type: 'subgroup', id: String(l.id) });
+          }
+        });
+      }
+    } else if (type === 'subgroup') {
+      if (isCurrentlyChecked) {
+        nextAssignments = nextAssignments.filter(a => !(a.type === 'subgroup' && a.id === String(id)));
+      } else {
+        nextAssignments.push({ type: 'subgroup', id: String(id) });
+      }
+
+      // Check if parent group should be updated
+      const groupData = availableOptions.find(g => g.availableLabels.some(l => String(l.id) === String(id)));
+      if (groupData) {
+        const subgroupIds = groupData.availableLabels.map(l => String(l.id));
+        const allSubgroupsChecked = subgroupIds.every(subId => nextAssignments.some(a => a.type === 'subgroup' && a.id === subId));
+        
+        const isGroupChecked = nextAssignments.some(a => a.type === 'group' && a.id === String(groupData.center_id));
+
+        if (allSubgroupsChecked && !isGroupChecked && subgroupIds.length > 0) {
+          nextAssignments.push({ type: 'group', id: String(groupData.center_id) });
+        } else if (!allSubgroupsChecked && isGroupChecked) {
+          nextAssignments = nextAssignments.filter(a => !(a.type === 'group' && a.id === String(groupData.center_id)));
+        }
+      }
     }
+
+    setSelectedAssignments(nextAssignments);
   };
 
   const handleCreate = async () => {
