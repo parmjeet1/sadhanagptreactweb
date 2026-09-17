@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import AddMentorModal from '../../components/shared/AddMentorModal';
 import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal';
-import { getRequest, postRequest } from '../../services/api';
+import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
+import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import { compressImage } from '../../utils/imageCompressor';
 
 
 const Profile = () => {
@@ -30,6 +32,47 @@ const Profile = () => {
     reminder_enabled: false,
     reminder_days: 3
   });
+
+  const fileInputRef = useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleProfileImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+
+      // 1. Compress image client-side before sending
+      const compressedFile = await compressImage(file, 800, 0.75);
+
+      // 2. Build FormData
+      const formData = new FormData();
+      formData.append('user_id', userDetails.user_id);
+      formData.append('profile', compressedFile);
+
+      // 3. Post to upload API with Multipart Header
+      postRequestWithFile('/upload-profile-image', formData, (response) => {
+        setIsUploadingImage(false);
+        const { message, type } = processResponse(response.data);
+        const newImage = response.data?.data?.profile_image;
+
+        if (type === 'success' || response.data?.status === 1) {
+          if (newImage) {
+            setUserInfo(prev => ({ ...prev, profile_image: newImage }));
+          }
+          showToast("Profile picture updated!", "success");
+          fetchProfile();
+        } else {
+          showToast(message || "Failed to update profile picture", "error");
+        }
+      });
+    } catch (err) {
+      console.error("Profile image upload error:", err);
+      setIsUploadingImage(false);
+      showToast("Failed to upload image", "error");
+    }
+  };
 
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
 
@@ -140,8 +183,8 @@ const Profile = () => {
           mobile: dataObj.user.mobile || dataObj.user.phone || '',
           email: dataObj.user.email || '',
           profile_image: dataObj.user.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-          reminder_enabled: dataObj.user.reminder_enabled === 1 || dataObj.user.reminder_enabled === true,
-          reminder_days: dataObj.user.reminder_days || 3
+          reminder_enabled: dataObj.user.reminder_enabled === 1 || dataObj.user.reminder_enabled === true || dataObj.user.reminder_status === 1 || dataObj.user.reminder_status === true,
+          reminder_days: dataObj.user.report_frequency_days || dataObj.user.reminder_days || 3
         });
       }
 
@@ -154,29 +197,36 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
-    
-    // Sync browser subscription with backend
-    const syncSubscription = async () => {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
-
-        if (userDetails?.user_id) {
-          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
-            const backendHasSub = response.data?.isSubscribed;
-            if (browserSubscription && !backendHasSub) {
-              await browserSubscription.unsubscribe();
-              setUserInfo(prev => ({ ...prev, reminder_enabled: false }));
-            }
-          });
+    if (userDetails?.user_id) {
+      getRequest('/get-top-ranker-badge', { user_id: userDetails.user_id }, (res) => {
+        if (res?.data?.data?.hasBadge) {
+          setTopRankerBadge(res.data.data);
         }
-      } catch (e) {
-        console.error("Sync error:", e);
-      }
+      });
+    }
+  }, [userDetails?.user_id]);
+
+  const [mentorToRemove, setMentorToRemove] = useState(null);
+
+  const confirmRemoveMentor = () => {
+    if (!mentorToRemove?.id) return;
+
+    const payload = {
+      user_id: userDetails.user_id,
+      counsller_id: mentorToRemove.id
     };
-    syncSubscription();
-  }, [userDetails]);
+
+    postRequest('/remove-counsellor', payload, (response) => {
+      setMentorToRemove(null);
+      const { message, type } = processResponse(response.data);
+      if (type === 'success' || response.data?.status === 1) {
+        showToast("Mentor removed successfully!", "success");
+        fetchProfile();
+      } else {
+        showToast(message || "Failed to remove mentor", "error");
+      }
+    });
+  };
 
   const handleAddMentor = (counselorData) => {
     let newMentor;
@@ -265,19 +315,43 @@ const Profile = () => {
             {/* Profile Identity */}
             <div className="flex flex-col items-center mb-10">
               <div className="relative group">
-                <div className="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ring-8 ring-white/50">
+                <div className="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ring-8 ring-white/50 relative">
                   <img
                     src={userInfo.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"}
                     className="w-full h-full object-cover"
                     alt="Profile"
                   />
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white backdrop-blur-xs">
+                      <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-[10px] font-bold mt-1">Uploading...</span>
+                    </div>
+                  )}
                 </div>
-                {/* Avatar edit pencil removed as per request */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-[#1a73e8] text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-blue-600 active:scale-90 transition-all disabled:opacity-50"
+                  title="Change Profile Photo"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfileImageChange}
+                />
               </div>
               <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
 
               {/* Top Ranker Badge */}
-              {topRankerBadge?.hasBadge && (
+              {(topRankerBadge?.hasBadge || userInfo?.top_ranker_from) && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8, y: 6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -285,7 +359,7 @@ const Profile = () => {
                   className="mt-3 relative overflow-hidden"
                 >
                   <div
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255,215,0,0.18) 0%, rgba(167,139,250,0.14) 100%)',
                       border: '1.5px solid rgba(255,215,0,0.45)',
@@ -294,10 +368,12 @@ const Profile = () => {
                   >
                     <span style={{ fontSize: '22px', filter: 'drop-shadow(0 2px 6px rgba(255,180,0,0.6))' }}>👑</span>
                     <div>
-                      <p className="text-[12px] font-black text-[#b45309] leading-tight">Top Ranker</p>
-                      <p className="text-[10px] font-semibold text-gray-400 leading-tight">
-                        Daily #1 since {new Date(topRankerBadge.from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
+                      <p className="text-[12px] font-black text-[#b45309] leading-tight">Top Ranker #1</p>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mt-1">
+                        <span><strong className="text-gray-700">From:</strong> {new Date(topRankerBadge?.from || userInfo?.top_ranker_from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span>•</span>
+                        <span><strong className="text-gray-700">To:</strong> {(topRankerBadge?.to || userInfo?.top_ranker_to) ? new Date(topRankerBadge?.to || userInfo?.top_ranker_to).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Present'}</span>
+                      </div>
                     </div>
                   </div>
                   {/* Shimmer */}
@@ -388,15 +464,28 @@ const Profile = () => {
                         </div>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMentorToRemove({
+                            id: mentor.mentor_id || mentor.counsller_id || mentor.user_id,
+                            name: mentor.name
+                          });
+                        }}
+                        className="p-2.5 rounded-full text-rose-500 hover:bg-rose-50 active:scale-90 transition-all"
+                        title="Remove Mentor"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </motion.div>
                 ))}
               </div>
-            </section>
-
-            {/* Notification Preferences */}
-            {/* Notification Preferences */}
-            {isPushEnabled && (
+            </section>            {/* Notification Preferences */}
             <section className="px-8 mb-10">
               <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6">
                 <div className="flex items-center justify-between">
@@ -455,7 +544,7 @@ const Profile = () => {
                               className="w-12 text-center bg-transparent text-[#1e293b] font-black text-[14px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
-                              onClick={() => userInfo.reminder_days < 10 && handleSavePreferences(!!userInfo.reminder_enabled, userInfo.reminder_days + 1)}
+                              onClick={() => userInfo.reminder_days < 10 && handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days + 1)}
                               className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -469,7 +558,6 @@ const Profile = () => {
                 </AnimatePresence>
               </div>
             </section>
-            )}
 
             {/* App Feedback Section */}
             <section className="px-8 mb-10">
@@ -530,7 +618,50 @@ const Profile = () => {
         onSave={handleSaveInfo}
       />
 
+      {/* Developed by tripa.in */}
+      <DevelopedByTripa className="mt-8 mb-4 pb-20" />
+
       <BottomNavigation />
+
+      {/* Remove Mentor Confirmation Modal */}
+      <AnimatePresence>
+        {mentorToRemove && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              className="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-[18px] font-black text-[#0f172a] mb-2">Remove Mentor?</h3>
+              <p className="text-[14px] text-gray-500 font-semibold mb-6">
+                Are you sure you want to remove <strong className="text-gray-800">{mentorToRemove.name}</strong> from your mentors list?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMentorToRemove(null)}
+                  className="flex-1 py-3.5 rounded-full bg-gray-100 text-gray-700 font-bold text-[14px] hover:bg-gray-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRemoveMentor}
+                  className="flex-1 py-3.5 rounded-full bg-rose-500 text-white font-bold text-[14px] shadow-lg shadow-rose-500/30 hover:bg-rose-600 transition-all active:scale-95"
+                >
+                  Yes, Remove
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Toast Notification */}
       <AnimatePresence>

@@ -81,34 +81,11 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setIsPushEnabled(true); // hide if not supported
-        return;
-      }
-
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
-
-        if (userDetails?.user_id) {
-          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
-            const backendHasSub = response.data?.isSubscribed;
-
-            if (browserSubscription && !backendHasSub) {
-              // DB deleted it, force unsubscribe on browser
-              await browserSubscription.unsubscribe();
-              setIsPushEnabled(false);
-            } else if (browserSubscription && backendHasSub) {
-              setIsPushEnabled(true);
-            } else {
-              setIsPushEnabled(false);
-            }
-          });
-        } else {
-          setIsPushEnabled(!!browserSubscription);
-        }
-      } catch (e) {
-        setIsPushEnabled(false);
+      if (userDetails?.user_id) {
+        getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+          const backendHasSub = response.data?.isSubscribed;
+          setIsPushEnabled(Boolean(backendHasSub));
+        });
       }
     };
 
@@ -309,14 +286,14 @@ const StudentDashboard = () => {
     }
   }, [userDetails?.user_id]);
 
-  // Generate the last 30 days starting with 30 days ago, ending at Today
+  // Generate the last 60 days starting with 60 days ago, ending at Today
   useEffect(() => {
     const generatedDates = [];
     const today = new Date();
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    for (let i = 29; i >= 0; i--) {
+    for (let i = 59; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       generatedDates.push({
@@ -462,26 +439,38 @@ const StudentDashboard = () => {
   };
 
   const handleEnablePushNotifications = async () => {
+    // Update database reminder preferences to enabled
+    if (userDetails?.user_id) {
+      postRequest('/update-reminder-preferences', {
+        user_id: userDetails.user_id,
+        reminder_enabled: true,
+        reminder_status: 1
+      }, () => {});
+    }
+
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast.error('Push notifications are not supported by your browser.');
+      toast.success('Reminders enabled!');
+      setIsPushEnabled(true);
       return;
     }
 
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        toast.error('Permission for notifications was denied');
+        toast.success('Reminders enabled!');
+        setIsPushEnabled(true);
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered');
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js');
+      }
 
-      // Get the VAPID key from your .env file
       const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-
       if (!publicVapidKey) {
-        toast.error('VAPID Public Key is missing in .env');
+        toast.success('Reminders enabled!');
+        setIsPushEnabled(true);
         return;
       }
 
@@ -505,23 +494,18 @@ const StudentDashboard = () => {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
 
-      // Send to backend
       postRequest('/notifications-subscribe', {
         user_id: userDetails.user_id,
         subscription: subscription
       }, (response) => {
-        const { message, type } = processResponse(response.data);
-        if (type === 'success' || response.data?.status === 1) {
-          toast.success('Push notifications enabled!');
-          setIsPushEnabled(true);
-        } else {
-          toast.error(message || 'Failed to save subscription.');
-        }
+        toast.success('Push notifications enabled!');
+        setIsPushEnabled(true);
       });
 
     } catch (error) {
       console.error(error);
-      toast.error('Error enabling push notifications');
+      toast.success('Reminders enabled!');
+      setIsPushEnabled(true);
     }
   };
 

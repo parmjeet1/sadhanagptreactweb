@@ -42,6 +42,7 @@ const Inspiration = () => {
   const [rankingPage, setRankingPage] = useState(1);
   const [hasMoreRankings, setHasMoreRankings] = useState(true);
   const [isFetchingRankings, setIsFetchingRankings] = useState(false);
+  const [rankingType, setRankingType] = useState('center'); // 'center' for Group rank, 'global' for Global rank
 
   const filters = ['Ranking', 'All', 'Quote', 'Video', 'Link', 'Image'];
 
@@ -84,7 +85,7 @@ const Inspiration = () => {
     });
   };
 
-  const fetchRankings = (pageNum = 1, append = false) => {
+  const fetchRankings = (pageNum = 1, append = false, type = rankingType) => {
     if (!userDetails?.user_id) return;
     if (append) setIsFetchingRankings(true);
     else setIsLoading(true);
@@ -93,7 +94,7 @@ const Inspiration = () => {
       user_id: userDetails.user_id,
       page_no: pageNum,
       limit: 10,
-      center_filter: true // Filter by their center
+      center_filter: type === 'center' // true for Group, false for Global
     };
 
     getRequest('/weekly-ranking', payload, (res) => {
@@ -117,12 +118,12 @@ const Inspiration = () => {
   useEffect(() => {
     if (activeFilter === 'Ranking') {
       setRankingPage(1);
-      fetchRankings(1, false);
+      fetchRankings(1, false, rankingType);
     } else {
       setPage(1);
       fetchInspirations(1, false);
     }
-  }, [userDetails, activeFilter]);
+  }, [userDetails, activeFilter, rankingType]);
 
   const loadMore = () => {
     if (activeFilter === 'Ranking') {
@@ -192,12 +193,15 @@ const Inspiration = () => {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
+              className={`relative px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
                 ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md'
                 : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
                 }`}
             >
               {filter}
+              {filter === 'Ranking' && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+              )}
             </button>
           ))}
         </div>
@@ -213,14 +217,42 @@ const Inspiration = () => {
               </div>
             ) : (
               <div className="space-y-4 pb-8">
+                {/* Group Rank vs Global Rank Toggle */}
+                <div className="flex bg-slate-200/70 p-1.5 rounded-2xl mb-4 shadow-inner">
+                  <button
+                    onClick={() => setRankingType('center')}
+                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                      rankingType === 'center'
+                        ? 'bg-white text-teal-600 shadow-md'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    🏢 Group Rank
+                  </button>
+                  <button
+                    onClick={() => setRankingType('global')}
+                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                      rankingType === 'global'
+                        ? 'bg-white text-blue-600 shadow-md'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    🌐 Global Rank
+                  </button>
+                </div>
+
                 {/* Current User Stats Card */}
                 {currentUserRank !== null && (
                   <div className="bg-gradient-to-br from-teal-500 to-blue-600 rounded-[24px] p-6 text-white shadow-xl mb-6 relative overflow-hidden">
                     <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <p className="text-teal-100 font-medium text-sm mb-1 uppercase tracking-wider">Your Daily Rank</p>
+                    <p className="text-teal-100 font-medium text-sm mb-1 uppercase tracking-wider">
+                      Your Daily {rankingType === 'center' ? 'Group' : 'Global'} Rank
+                    </p>
                     <div className="flex items-end gap-3">
                       <h2 className="text-5xl font-black">#{currentUserRank}</h2>
-                      <span className="text-teal-100 font-medium pb-2">in your center</span>
+                      <span className="text-teal-100 font-medium pb-2">
+                        {rankingType === 'center' ? 'in your center' : 'across all students'}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -228,7 +260,7 @@ const Inspiration = () => {
                 {/* Ranking List */}
                 <div className="bg-white rounded-[32px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
                   <h3 className="font-bold text-[#1e293b] text-lg mb-6 flex items-center gap-2">
-                    <span className="text-xl">🏆</span> Daily Leaderboard
+                    <span className="text-xl">🏆</span> {rankingType === 'center' ? 'Group' : 'Global'} Leaderboard
                   </h3>
                   
                   {rankings.length > 0 ? (

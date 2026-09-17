@@ -6,6 +6,7 @@ import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NewActivityModal from '../../components/shared/NewActivityModal';
 import EditActivityModal from '../../components/shared/EditActivityModal';
+import FirstRankSplash from '../../components/student/FirstRankSplash';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
@@ -60,36 +61,31 @@ const CounsellorDashboard = () => {
   const [dailyScore, setDailyScore] = useState(null);
   const [isScoreLoading, setIsScoreLoading] = useState(true);
 
+  // First Rank Splash
+  const [showRankSplash, setShowRankSplash] = useState(false);
+  const [rankSplashScore, setRankSplashScore] = useState(null);
+
+  useEffect(() => {
+    if (!userDetails?.user_id) return;
+
+    // Check if counsellor is currently rank #1 — show splash
+    getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
+      const data = res?.data?.data;
+      if (data?.isTopRanker) {
+        const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
+        setRankSplashScore(topUser?.total_marks ?? null);
+        setShowRankSplash(true);
+      }
+    });
+  }, [userDetails?.user_id]);
+
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setIsPushEnabled(true); // hide if not supported
-        return;
-      }
-      
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const browserSubscription = registration ? await registration.pushManager.getSubscription() : null;
-
-        if (userDetails?.user_id) {
-          getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
-            const backendHasSub = response.data?.isSubscribed;
-            
-            if (browserSubscription && !backendHasSub) {
-              // DB deleted it, force unsubscribe on browser
-              await browserSubscription.unsubscribe();
-              setIsPushEnabled(false);
-            } else if (browserSubscription && backendHasSub) {
-              setIsPushEnabled(true);
-            } else {
-              setIsPushEnabled(false);
-            }
-          });
-        } else {
-          setIsPushEnabled(!!browserSubscription);
-        }
-      } catch (e) {
-        setIsPushEnabled(false);
+      if (userDetails?.user_id) {
+        getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+          const backendHasSub = response.data?.isSubscribed;
+          setIsPushEnabled(Boolean(backendHasSub));
+        });
       }
     };
 
@@ -278,9 +274,9 @@ const CounsellorDashboard = () => {
     const today = new Date();
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-    // Ascend from -29 to 0 so the array is chronological (Today is last)
+    // Ascend from -59 to 0 so the array is chronological (Today is last)
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    for (let i = 29; i >= 0; i--) {
+    for (let i = 59; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       generatedDates.push({
@@ -433,26 +429,38 @@ const CounsellorDashboard = () => {
   };
 
   const handleEnablePushNotifications = async () => {
+    // Update database reminder preferences to enabled
+    if (userDetails?.user_id) {
+      postRequest('/update-reminder-preferences', {
+        user_id: userDetails.user_id,
+        reminder_enabled: true,
+        reminder_status: 1
+      }, () => {});
+    }
+
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast.error('Push notifications are not supported by your browser.');
+      toast.success('Reminders enabled!');
+      setIsPushEnabled(true);
       return;
     }
 
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        toast.error('Permission for notifications was denied');
+        toast.success('Reminders enabled!');
+        setIsPushEnabled(true);
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered');
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js');
+      }
 
-      // Get the VAPID key from your .env file
       const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-
       if (!publicVapidKey) {
-        toast.error('VAPID Public Key is missing in .env');
+        toast.success('Reminders enabled!');
+        setIsPushEnabled(true);
         return;
       }
 
@@ -476,28 +484,30 @@ const CounsellorDashboard = () => {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
       });
 
-      // Send to backend
       postRequest('/notifications-subscribe', {
         user_id: userDetails.user_id,
         subscription: subscription
       }, (response) => {
-        const { message, type } = processResponse(response.data);
-        if (type === 'success' || response.data?.status === 1) {
-          toast.success('Push notifications enabled!');
-          setIsPushEnabled(true);
-        } else {
-          toast.error(message || 'Failed to save subscription.');
-        }
+        toast.success('Push notifications enabled!');
+        setIsPushEnabled(true);
       });
 
     } catch (error) {
       console.error(error);
-      toast.error('Error enabling push notifications');
+      toast.success('Reminders enabled!');
+      setIsPushEnabled(true);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
+      {/* First Rank Celebration Splash */}
+      <FirstRankSplash
+        isVisible={showRankSplash}
+        studentName={userDetails?.name}
+        score={rankSplashScore}
+        onContinue={() => setShowRankSplash(false)}
+      />
 
       {/* Container holding the mobile width cleanly if opened on desktop */}
       <div className="w-full max-w-md mx-auto">

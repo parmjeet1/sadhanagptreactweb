@@ -5,12 +5,14 @@ import RoleSelection from '../pages/RoleSelection';
 import EmailLogin from '../pages/EmailLogin';
 import OnboardingStepTwo from '../pages/student/OnboardingStepTwo';
 import StudentDashboard from '../pages/student/StudentDashboard';
+import StudentAppliedMarkingScheme from '../pages/student/StudentAppliedMarkingScheme';
 import UnderConstruction from '../pages/UnderConstruction';
 
 import Analytics from '../pages/student/Analytics';
 import Inspiration from '../pages/student/Inspiration';
 import Profile from '../pages/student/Profile';
 import AIChat from '../pages/student/AIChat';
+import AIChatLegacy from '../pages/student/AIChatLegacy';
 import CounsellorDashboard from '../pages/counsellor/CounsellorDashboard';
 import CounsellorProfile from '../pages/counsellor/CounsellorProfile';
 import CounsellorAnalytics from '../pages/counsellor/CounsellorAnalytics';
@@ -50,6 +52,7 @@ const AppRoutes = () => {
         <Route element={<AuthGuard />}>
 
           <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/applied-marking-scheme" element={<StudentAppliedMarkingScheme />} />
           <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
           <Route path="/student/profile" element={<Profile />} />
 
@@ -80,6 +83,7 @@ const AppRoutes = () => {
           <Route path="/student/inspiration" element={<Inspiration />} />
 
           <Route path="/student/ai-chat" element={<AIChat />} />
+          <Route path="/student/ai-chat-legacy" element={<AIChatLegacy />} />
         </Route>
 
         {/* Catch-all route to redirect back to login */}

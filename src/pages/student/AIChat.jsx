@@ -4,134 +4,6 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
 
-// ✅ Outside component
-// ✅ Direct Google Gemini 2.0 Flash Integration
-const callAI = async (messages) => {
-    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-    // Using v1beta as it supports gemini-2.0-flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`;
-
-    // Map roles to Gemini format (user -> user, ai/assistant -> model)
-    const contents = messages.map(m => ({
-        role: m.role === 'model' || m.role === 'ai' || m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-    }));
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ contents })
-    });
-
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || "AI request failed");
-    }
-
-    const data = await response.json();
-    
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        throw new Error("Empty response from AI");
-    }
-
-    return data.candidates[0].content.parts[0].text;
-};
-
-// ✅ Premium Markdown Renderer with Section Cards
-const MarkdownMessage = ({ text }) => {
-    const renderInline = (text) => {
-        const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
-        return parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="font-black text-[#1a73e8]">{part.slice(2, -2)}</strong>;
-            }
-            if (part.startsWith('*') && part.endsWith('*')) {
-                return <em key={i} className="italic text-gray-600">{part.slice(1, -1)}</em>;
-            }
-            return part;
-        });
-    };
-
-    const renderLine = (line, idx) => {
-        const cleanLine = line.trim();
-        if (!cleanLine) return <div key={idx} className="h-3" />;
-
-        // Primary Headers (##)
-        if (line.startsWith('## ')) {
-            const title = line.replace('## ', '');
-            const isRoutine = title.toLowerCase().includes('routine');
-            return (
-                <div key={idx} className={`mt-8 mb-4 flex items-center gap-3 ${isRoutine ? 'text-[#8b5cf6]' : 'text-[#1a73e8]'}`}>
-                    <div className={`w-1.5 h-6 rounded-full ${isRoutine ? 'bg-[#8b5cf6]' : 'bg-[#1a73e8]'}`} />
-                    <h2 className="text-[17px] font-black uppercase tracking-tight">{title}</h2>
-                </div>
-            );
-        }
-
-        // Section Cards (detecting bold headers like **Strengths:**)
-        if (cleanLine.startsWith('**') && cleanLine.endsWith(':**')) {
-            const title = cleanLine.replace(/\*\*|:/g, '');
-            const isStrength = title.toLowerCase().includes('strength');
-            const isConflict = title.toLowerCase().includes('conflict') || title.toLowerCase().includes('improvement');
-            
-            return (
-                <div key={idx} className={`mt-5 mb-2 flex items-center gap-2 px-3 py-1.5 rounded-xl w-fit ${
-                    isStrength ? 'bg-green-50 text-green-700' : 
-                    isConflict ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-700'
-                }`}>
-                    <span className="text-[14px]">
-                       {isStrength ? '✨' : isConflict ? '🎯' : '📝'}
-                    </span>
-                    <span className="text-[12px] font-black uppercase tracking-widest">{title}</span>
-                </div>
-            );
-        }
-
-        // Lists
-        if (line.match(/^[\*\-]\s+/)) {
-            const content = line.replace(/^[\*\-]\s+/, '');
-            return (
-                <div key={idx} className="flex items-start gap-3 my-2.5 pl-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-200 mt-[8px] shrink-0" />
-                    <p className="text-[14.5px] leading-[1.6] text-[#334155] font-bold">
-                        {renderInline(content)}
-                    </p>
-                </div>
-            );
-        }
-
-        // Numbered Lists
-        if (line.match(/^\d+\.\s+/)) {
-            const num = line.match(/^(\d+)\./)[1];
-            const content = line.replace(/^\d+\.\s+/, '');
-            return (
-                <div key={idx} className="bg-white border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-lg bg-[#1a73e8] text-white text-[11px] font-black flex items-center justify-center shrink-0">
-                        {num}
-                    </span>
-                    <p className="text-[14px] leading-relaxed text-[#334155] font-bold">
-                        {renderInline(content)}
-                    </p>
-                </div>
-            );
-        }
-
-        return (
-            <p key={idx} className="text-[14.5px] leading-[1.7] text-[#475569] my-1.5 font-bold">
-                {renderInline(line)}
-            </p>
-        );
-    };
-
-    return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-700">
-            {text.split('\n').map((line, idx) => renderLine(line, idx))}
-        </div>
-    );
-};
-
 const AIChat = () => {
     const navigate = useNavigate();
     const { userDetails } = useOutletContext();
@@ -139,6 +11,7 @@ const AIChat = () => {
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [analyticsData, setAnalyticsData] = useState(null);
+    const [toastMessage, setToastMessage] = useState(null);
     const chatEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -157,111 +30,111 @@ const AIChat = () => {
             // Initial greeting
             setMessages([{
                 role: 'ai',
-                text: `Hare Krishna, ${userDetails?.name || 'there'}! How may I help you today?`,
+                text: `Hare Krishna, ${userDetails?.name || 'there'}! Ask any question or request a Sadhana report analysis. We will bundle your 7-day activity metrics into a file and open ChatGPT for you!`,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);
 
-            // Load data in background but keep loader OFF
             setIsTyping(false); 
             getRequest('/student-activities-analytics', { user_id: userDetails.user_id, filter: '7days' }, async (response) => {
                 if (!isMounted) return;
                 const rawData = response.data?.data || response.data;
                 setAnalyticsData(rawData);
-                setIsTyping(false); // Double check it stays off
             });
         };
         initAnalysis();
         return () => { isMounted = false; };
     }, [userDetails?.user_id]);
 
-    const generateInitialAnalysis = async (data) => {
-        setIsTyping(true);
-        try {
-            const prompt = `
-                You are an advanced Behavioral & Spiritual AI Coach. 
-                Analyze the following 7-day activity data for ${userDetails.name}:
-                ${JSON.stringify(data || analyticsData)}
-
-                Structure your response precisely:
-                ## Behavioral and Spiritual Analysis:
-                **Strengths:**
-                * Bullet points...
-                **Areas for Improvement/Conflict:**
-                * Bullet points...
-
-                ## Suggestion for a "Best Routine":
-                Include structured timing and strategic core principles.
-                
-                Keep the tone professional, encouraging, and deeply insightful.
-            `;
-
-            const responseText = await callAI([{ role: 'user', content: prompt }]);
-
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                text: responseText,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }]);
-        } catch (err) {
-            console.error("AI Analysis Error:", err);
-            setMessages(prev => [...prev, { role: 'ai', text: `Analysis Error: ${err.message}`, time: 'Now' }]);
-        } finally {
-            setIsTyping(false);
-        }
+    const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3500);
     };
 
     const handleSendMessage = async (e, directText = null) => {
         if (e) e.preventDefault();
         const messageText = directText || input;
-        if (!messageText.trim() || isTyping) return;
+        if (!messageText.trim()) return;
 
-        // Reset input immediately for better UX
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         const userMsg = {
             role: 'user',
             text: messageText,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: timestamp
         };
         
         setInput('');
         setMessages(prev => [...prev, userMsg]);
-
-        // If user asks for an analysis
-        if (messageText.toLowerCase().includes('analyze') || messageText.toLowerCase().includes('report')) {
-            await generateInitialAnalysis(analyticsData);
-            return;
-        }
-
         setIsTyping(true);
+
+        const studentName = userDetails?.name || 'Student';
+        const userId = userDetails?.user_id || 'N/A';
+        const formattedAnalytics = analyticsData ? JSON.stringify(analyticsData, null, 2) : 'No 7-day analytics available';
+
+        const fileContent = `==================================================
+SADHANA GPT - STUDENT ACTIVITY & COGNITIVE DATA
+==================================================
+Student Name: ${studentName}
+User ID: ${userId}
+Generated Date: ${new Date().toLocaleString()}
+
+--------------------------------------------------
+USER PROMPT / INSTRUCTION:
+--------------------------------------------------
+${messageText}
+
+--------------------------------------------------
+7-DAY SADHANA ACTIVITY ANALYTICS & LOGS:
+--------------------------------------------------
+${formattedAnalytics}
+
+==================================================
+INSTRUCTIONS FOR CHATGPT:
+Please act as an expert Behavioral and Spiritual Sadhana Coach. 
+Analyze the student's activity data above and answer the user's prompt thoughtfully with actionable insights.
+==================================================`;
+
+        const sanitizedFileName = `Sadhana_Data_${studentName.replace(/\s+/g, '_')}.txt`;
+
+        // 1. Download data file
         try {
-            const systemContext = analyticsData
-                ? `Context - Student's 7-day activity data: ${JSON.stringify(analyticsData)}\n\n`
-                : '';
-
-            const chatMessages = [
-                ...messages.map(m => ({
-                    role: m.role === 'ai' ? 'assistant' : 'user',
-                    content: m.text
-                })),
-                { role: 'user', content: systemContext + messageText }
-            ];
-
-            const responseText = await callAI(chatMessages);
-
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                text: responseText,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }]);
+            const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = sanitizedFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } catch (err) {
-            console.error("AI Chat Error:", err);
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                text: "I'm unable to process that right now. Let's try again.",
-                time: 'Now'
-            }]);
-        } finally {
-            setIsTyping(false);
+            console.error("File download error:", err);
         }
+
+        // 2. Copy full prompt & data to clipboard
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(fileContent);
+            }
+        } catch (err) {
+            console.error("Clipboard copy error:", err);
+        }
+
+        setIsTyping(false);
+        showToast("Data file downloaded & prompt copied to clipboard!");
+
+        // 3. Render notification in chat feed
+        setMessages(prev => [...prev, {
+            role: 'ai',
+            text: `📁 **Data File Ready & Copied!**\n\nYour 7-day activity metrics and prompt have been saved to **\`${sanitizedFileName}\`** and copied to your clipboard.\n\nOpening ChatGPT...`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+
+        // 4. Directly open ChatGPT app / web
+        const encodedPrompt = encodeURIComponent(`[Sadhana GPT Context Attached for ${studentName}]\nPrompt: ${messageText}`);
+        const chatGptUrl = `https://chatgpt.com/?q=${encodedPrompt}`;
+
+        setTimeout(() => {
+            window.open(chatGptUrl, '_blank');
+        }, 1000);
     };
 
     return (
@@ -278,7 +151,7 @@ const AIChat = () => {
                             <h1 className="text-[17px] font-black text-[#0f172a] leading-none tracking-tight">{userDetails?.name || ""}</h1>
                             <div className="flex items-center gap-1.5 mt-1.5">
                                 <div className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse"></div>
-                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Cognitive Analysis</p>
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ChatGPT Assistant</p>
                             </div>
                         </div>
                     </div>
@@ -286,6 +159,13 @@ const AIChat = () => {
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
                     </div>
                 </header>
+
+                {/* Toast notification */}
+                {toastMessage && (
+                    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-white px-5 py-3 rounded-full text-[13px] font-bold shadow-xl border border-gray-700 animate-in fade-in slide-in-from-top-3">
+                        {toastMessage}
+                    </div>
+                )}
 
                 {/* Chat Area */}
                 <div className="flex-1 pt-28 px-4 space-y-5 overflow-y-auto pb-10">
@@ -305,14 +185,10 @@ const AIChat = () => {
 
                                 <div className={`max-w-[85%] rounded-[24px] shadow-sm ${
                                     msg.role === 'user'
-                                        ? 'bg-[#1a73e8] rounded-tr-none px-5 py-4'
-                                        : 'bg-white border border-gray-100 rounded-tl-none px-5 py-4'
+                                        ? 'bg-[#1a73e8] rounded-tr-none px-5 py-4 text-white'
+                                        : 'bg-white border border-gray-100 rounded-tl-none px-5 py-4 text-[#334155]'
                                 }`}>
-                                    {msg.role === 'user' ? (
-                                        <p className="text-[15px] leading-relaxed font-semibold text-white">{msg.text}</p>
-                                    ) : (
-                                        <MarkdownMessage text={msg.text} />
-                                    )}
+                                    <p className="text-[14.5px] leading-relaxed font-semibold whitespace-pre-line">{msg.text}</p>
                                     <span className={`text-[10px] font-black uppercase tracking-widest mt-3 block ${
                                         msg.role === 'user' ? 'text-white/50' : 'text-gray-300'
                                     }`}>
@@ -324,18 +200,18 @@ const AIChat = () => {
 
                         {isTyping && (
                             <motion.div
-                              key="typing-indicator" 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }}
-                             exit={{ opacity: 0, scale: 0.9 }}
-                             className="flex items-center gap-3">
-    <div className="w-9 h-9 rounded-2xl bg-gray-50 flex items-center justify-center shrink-0">
-     <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-     </div>
-     <div className="bg-white border border-gray-100 px-5 py-4 rounded-[24px] rounded-tl-none">
-     <div className="flex gap-1.5">
-      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
-    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-100"></div>
+                                key="typing-indicator" 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-2xl bg-gray-50 flex items-center justify-center shrink-0">
+                                    <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+                                </div>
+                                <div className="bg-white border border-gray-100 px-5 py-4 rounded-[24px] rounded-tl-none">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
+                                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-100"></div>
                                         <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-200"></div>
                                     </div>
                                 </div>
@@ -365,7 +241,7 @@ const AIChat = () => {
                     <form onSubmit={handleSendMessage} className="relative max-w-md mx-auto">
                         <input
                             type="text"
-                            placeholder="Deep dive into your progress..."
+                            placeholder="Type message & open in ChatGPT..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             className="w-full bg-[#f8fafc] border-2 border-transparent focus:bg-white focus:border-blue-100 rounded-full py-4 pl-6 pr-14 text-[15px] font-bold text-[#0f172a] transition-all placeholder:text-gray-300 outline-none shadow-inner"

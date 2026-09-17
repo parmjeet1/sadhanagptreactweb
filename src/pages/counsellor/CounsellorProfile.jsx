@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import AddMentorModal from '../../components/shared/AddMentorModal';
 import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal';
-import { getRequest, postRequest } from '../../services/api';
+import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
+import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
+import { compressImage } from '../../utils/imageCompressor';
 
 
 const CounsellorProfile = () => {
@@ -29,6 +31,47 @@ const CounsellorProfile = () => {
     reminder_enabled: false,
     reminder_days: 3
   });
+
+  const fileInputRef = useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleProfileImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+
+      // 1. Compress image client-side before sending
+      const compressedFile = await compressImage(file, 800, 0.75);
+
+      // 2. Build FormData
+      const formData = new FormData();
+      formData.append('user_id', userDetails.user_id);
+      formData.append('profile', compressedFile);
+
+      // 3. Post to upload API with Multipart Header
+      postRequestWithFile('/upload-profile-image', formData, (response) => {
+        setIsUploadingImage(false);
+        const res = response?.data || response;
+        const newImage = res?.data?.profile_image;
+
+        if (res && (res.code === 200 || res.status === 1 || res.status === "success")) {
+          if (newImage) {
+            setUserInfo(prev => ({ ...prev, profile_image: newImage }));
+          }
+          showToast("Profile picture updated!", "success");
+          fetchProfile();
+        } else {
+          showToast("Failed to update profile picture", "error");
+        }
+      });
+    } catch (err) {
+      console.error("Profile image upload error:", err);
+      setIsUploadingImage(false);
+      showToast("Failed to upload image", "error");
+    }
+  };
 
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
 
@@ -131,8 +174,8 @@ const CounsellorProfile = () => {
           mobile: profile.mobile || profile.phone || '',
           email: profile.email || '',
           profile_image: profile.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-          reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true,
-          reminder_days: profile.reminder_days || 3
+          reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true || profile.reminder_status === 1 || profile.reminder_status === true,
+          reminder_days: profile.report_frequency_days || profile.reminder_days || 3
         });
 
         if (Array.isArray(resData.data.mentors)) setMentors(resData.data.mentors);
@@ -142,8 +185,18 @@ const CounsellorProfile = () => {
     });
   };
 
+  const [topRankerBadge, setTopRankerBadge] = useState(null);
+
   useEffect(() => {
     fetchCounsellorProfile();
+
+    if (userDetails?.user_id) {
+      getRequest('/get-top-ranker-badge', { user_id: userDetails.user_id }, (res) => {
+        if (res?.data?.data?.hasBadge) {
+          setTopRankerBadge(res.data.data);
+        }
+      });
+    }
 
     // Sync browser subscription with backend
     const syncSubscription = async () => {
@@ -252,16 +305,77 @@ const CounsellorProfile = () => {
             {/* CounsellorProfile Identity */}
             <div className="flex flex-col items-center mb-10">
               <div className="relative group">
-                <div className="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ring-8 ring-white/50">
+                <div className="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ring-8 ring-white/50 relative">
                   <img
                     src={userInfo.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"}
                     className="w-full h-full object-cover"
                     alt="CounsellorProfile"
                   />
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white backdrop-blur-xs">
+                      <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-[10px] font-bold mt-1">Uploading...</span>
+                    </div>
+                  )}
                 </div>
-                {/* Avatar edit pencil removed as per request */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-orange-600 active:scale-90 transition-all disabled:opacity-50"
+                  title="Change Profile Photo"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfileImageChange}
+                />
               </div>
               <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
+
+              {/* Top Ranker Badge */}
+              {(topRankerBadge?.hasBadge || userInfo?.top_ranker_from) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 200, delay: 0.3 }}
+                  className="mt-3 relative overflow-hidden"
+                >
+                  <div
+                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,215,0,0.18) 0%, rgba(167,139,250,0.14) 100%)',
+                      border: '1.5px solid rgba(255,215,0,0.45)',
+                      boxShadow: '0 4px 20px rgba(255,215,0,0.15)',
+                    }}
+                  >
+                    <span style={{ fontSize: '22px', filter: 'drop-shadow(0 2px 6px rgba(255,180,0,0.6))' }}>👑</span>
+                    <div>
+                      <p className="text-[12px] font-black text-[#b45309] leading-tight">Top Ranker #1</p>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mt-1">
+                        <span><strong className="text-gray-700">From:</strong> {new Date(topRankerBadge?.from || userInfo?.top_ranker_from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span>•</span>
+                        <span><strong className="text-gray-700">To:</strong> {(topRankerBadge?.to || userInfo?.top_ranker_to) ? new Date(topRankerBadge?.to || userInfo?.top_ranker_to).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Present'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Shimmer */}
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none rounded-2xl"
+                    style={{ background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)' }}
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 3 }}
+                  />
+                </motion.div>
+              )}
             </div>
 
             {/* Personal Info */}
@@ -337,7 +451,6 @@ const CounsellorProfile = () => {
             </section>
 
             {/* Notification Preferences */}
-            {isPushEnabled && (
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
                 <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Notification Preferences</h3>
@@ -413,7 +526,6 @@ const CounsellorProfile = () => {
                 </AnimatePresence>
               </div>
             </section>
-            )}
 
             {/* App Feedback Section */}
             <section className="px-8 mb-10">
@@ -473,6 +585,9 @@ const CounsellorProfile = () => {
         userInfo={userInfo}
         onSave={handleSaveInfo}
       />
+
+      {/* Developed by tripa.in */}
+      <DevelopedByTripa className="mt-8 mb-4 pb-20" />
 
       <CounsellorBottomNavigation />
 

@@ -252,76 +252,66 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
               </div>
             )}
 
-            {/* Activity Reminders Area - ONLY VISIBLE IF PUSH IS ENABLED */}
-            {isPushEnabled && (
-              <div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-[#0f172a] font-bold">Activity Reminders</h3>
-                    <p className="text-sm text-gray-500">Get notified if you miss Sadhana</p>
-                  </div>
-                  <button
-                    type="button"
-                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${reminderEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
-                    onClick={handleToggleActivityReminders}
-                  >
-                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${reminderEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
+            {/* Activity Reminders Area */}
+            <div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-[#0f172a] font-bold">Activity Reminders</h3>
+                  <p className="text-sm text-gray-500">Get notified if you miss Sadhana</p>
                 </div>
-
-                {/* Reminder Days Selector Area */}
-                <AnimatePresence>
-                  {reminderEnabled && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between mt-4">
-                        <p className="text-[#0f172a] font-bold text-[13px]">Remind me after missing</p>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center bg-[#f8fafc] rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
-                            <button
-                              onClick={() => reminderDays > 1 && setReminderDays(reminderDays - 1)}
-                              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" /></svg>
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              max="10"
-                              value={reminderDays}
-                              onChange={(e) => {
-                                if (e.target.value === '') {
-                                  setReminderDays('');
-                                  return;
-                                }
-                                const val = parseInt(e.target.value);
-                                if (!isNaN(val) && val > 0 && val <= 10) setReminderDays(val);
-                              }}
-                              onBlur={() => {
-                                if (reminderDays === '') setReminderDays(3);
-                              }}
-                              className="w-10 text-center bg-transparent text-[#1e293b] font-black text-[13px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <button
-                              onClick={() => reminderDays < 10 && setReminderDays(reminderDays + 1)}
-                              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
-                            </button>
-                          </div>
-                          <span className="text-[13px] font-bold text-gray-400">days</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <div className="h-px w-full bg-gray-100 my-4"></div>
+                <button
+                  type="button"
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${reminderEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                  onClick={handleToggleActivityReminders}
+                >
+                  <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${reminderEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
               </div>
-            )}
+
+              {/* Reminder Days Selector Area */}
+              <AnimatePresence>
+                {reminderEnabled && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-[#0f172a] font-bold text-[13px]">Remind me after missing</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-[#f8fafc] rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => reminderDays > 1 && setReminderDays(reminderDays - 1)}
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" /></svg>
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            value={reminderDays}
+                            onChange={(e) => setReminderDays(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-10 text-center font-bold text-[#0f172a] text-sm bg-transparent outline-none focus:ring-0 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => reminderDays < 30 && setReminderDays(reminderDays + 1)}
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                          </button>
+                        </div>
+                        <span className="text-[13px] font-bold text-gray-400">days</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <div className="h-px w-full bg-gray-100 my-4"></div>
+            </div>
 
             {/* Toggle Switch Area */}
             <div className="flex items-center justify-between">
