@@ -29,13 +29,59 @@ const timeToMinutes = (timeStr) => {
 };
 
 const minutesToTime = (totalMinutes) => {
-  if (isNaN(totalMinutes) || totalMinutes === null) return "00:00 AM";
+  if (isNaN(totalMinutes) || totalMinutes === null || totalMinutes === 0) return "00:00 AM";
   let hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const minutes = Math.round(totalMinutes % 60);
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;
   hours = hours ? hours : 12;
   return `${hours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+};
+
+const formatActivityMetric = (act) => {
+  const name = act.name || 'Activity';
+  const type = (act.activity_type || act.type || '').toLowerCase();
+  const lowerName = name.toLowerCase();
+
+  let rawTotal = 0;
+  let countEntries = 0;
+
+  if (Array.isArray(act.daily_data)) {
+    const validEntries = act.daily_data.filter(d => d.count !== null && d.count !== undefined && d.count !== '');
+    countEntries = validEntries.length;
+    rawTotal = validEntries.reduce((acc, curr) => {
+      const c = curr.count;
+      if (typeof c === 'string' && c.includes(':')) return acc + timeToMinutes(c);
+      return acc + (Number(c) || 0);
+    }, 0);
+  } else if (act.total_count) {
+    rawTotal = Number(act.total_count) || 0;
+    countEntries = 1;
+  }
+
+  if (type === 'time' || lowerName.includes('wakeup') || lowerName.includes('sleep') || lowerName.includes('wake up')) {
+    if (countEntries > 0 && (lowerName.includes('wakeup') || lowerName.includes('wake up') || lowerName.includes('sleep'))) {
+      const avgMinutes = Math.round(rawTotal / countEntries);
+      return `${name}: Avg Time ${minutesToTime(avgMinutes)}`;
+    }
+    const hrs = Math.floor(rawTotal / 60);
+    const mins = Math.round(rawTotal % 60);
+    if (hrs > 0) return `${name}: Total ${hrs}h ${mins}m`;
+    return `${name}: Total ${mins} mins`;
+  }
+
+  if (type === 'yes_no' || type === 'boolean') {
+    return `${name}: Completed ${rawTotal} day(s)`;
+  }
+
+  let unitStr = act.unit || '';
+  if (!unitStr || lowerName.includes('read') || unitStr === 'pages' || unitStr === 'page') {
+    if (lowerName.includes('chant')) unitStr = 'rounds';
+    else if (lowerName.includes('read')) unitStr = 'mins';
+    else if (!unitStr) unitStr = 'times';
+  }
+
+  return `${name}: Total ${rawTotal} ${unitStr}`;
 };
 
 // Helper for smooth Bezier curves
@@ -361,7 +407,7 @@ const PersonalSadhanaAnalytics = () => {
             resolvedColor = '#06b6d4';
             resolvedLabel = 'Time';
           } else if (n.includes('chant')) { resolvedColor = '#1a73e8'; resolvedLabel = 'Rounds'; }
-          else if (n.includes('read')) { resolvedColor = '#a855f7'; resolvedLabel = 'Pages'; }
+          else if (n.includes('read')) { resolvedColor = '#a855f7'; resolvedLabel = 'Mins'; }
           else if (n.includes('meditat') || n.includes('hear') || l.includes('min')) { resolvedColor = '#20c997'; resolvedLabel = 'Mins'; }
           else if (t === 'numb' || t === 'count') { resolvedColor = '#f59e0b'; resolvedLabel = 'Count'; }
           else if (t === 'boolean' || t === 'yes/no' || t === 'yes_no') { resolvedColor = '#10b981'; resolvedLabel = 'Times'; }
@@ -410,6 +456,47 @@ const PersonalSadhanaAnalytics = () => {
           
           <div className="flex flex-col items-center">
             <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight mt-1">My Sadhana</h1>
+            <button
+              onClick={() => {
+                if (!userDetails?.user_id) return;
+
+                const openGpt = (dataArray) => {
+                  let promptText = `Please analyze my spiritual sadhana performance analytics for the LAST 30 DAYS for counsellor ${userDetails?.name || ''}.\n\n`;
+
+                  if (dataArray && dataArray.length > 0) {
+                    promptText += `Last 30 Days Activities Data:\n`;
+                    dataArray.forEach(act => {
+                      promptText += `- ${formatActivityMetric(act)}\n`;
+                    });
+                    promptText += `\nPlease provide a detailed evaluation of my 30-day consistency, areas of strength, weaknesses, and actionable guidance to improve my daily spiritual sadhana routine.`;
+                  } else {
+                    promptText += `Please provide insights and recommendations on how I can improve my daily spiritual sadhana routine, time management, and consistency over the last 30 days.`;
+                  }
+
+                  const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
+                  window.open(chatGptUrl, '_blank');
+                };
+
+                getRequest('/student-activities-analytics', { user_id: userDetails.user_id, filter: '30days' }, (response) => {
+                  const res = response?.data;
+                  const dataObj = res?.data || res;
+                  let payloadArray = [];
+
+                  if (Array.isArray(dataObj)) payloadArray = dataObj;
+                  else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
+                  else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
+
+                  openGpt(payloadArray);
+                }, (err) => {
+                  console.error("Error fetching 30 days analytics for ChatGPT:", err);
+                  openGpt(activitiesData);
+                });
+              }}
+              className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+              <span>AI ANALYSIS</span>
+            </button>
           </div>
           
           <button 

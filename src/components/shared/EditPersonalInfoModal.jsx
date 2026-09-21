@@ -4,15 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
   const [name, setName] = useState(userInfo.name);
   const [mobile, setMobile] = useState(userInfo.mobile);
+  const [dob, setDob] = useState(userInfo.dob || userInfo.birthday || '');
 
   useEffect(() => {
-    setName(userInfo.name);
-    setMobile(userInfo.mobile);
+    setName(userInfo.name || '');
+    setMobile(userInfo.mobile || '');
+    setDob(userInfo.dob || userInfo.birthday || '');
   }, [userInfo, isOpen]);
 
   const handleSave = () => {
-    if (name.trim() && mobile.trim()) {
-      onSave({ name, mobile });
+    if (name.trim()) {
+      onSave({ name, mobile, dob });
     }
   };
 
@@ -48,7 +50,7 @@ const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
 
               <h2 className="text-[24px] font-black text-[#0f172a] mb-2 tracking-tight">Edit Info</h2>
               <p className="text-[14px] font-medium text-gray-400 mb-8 tracking-tight leading-relaxed">
-                Update your name and mobile number below.
+                Update your personal info below.
               </p>
 
               <div className="space-y-6">
@@ -76,6 +78,17 @@ const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
                   />
                 </div>
 
+                {/* Birthday Field */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Birthday (Date of Birth)</label>
+                  <input
+                    type="date"
+                    value={dob ? (dob.includes('T') ? dob.split('T')[0] : dob) : ''}
+                    onChange={(e) => setDob(e.target.value)}
+                    className="w-full bg-[#f8fafc] text-[#0f172a] font-bold text-[16px] rounded-2xl py-4 px-6 outline-none border-2 border-transparent focus:border-[#fef3c7] focus:bg-white transition-all placeholder:text-gray-300"
+                  />
+                </div>
+
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={onClose}
@@ -85,7 +98,7 @@ const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
                   </button>
                   <button
                     onClick={handleSave}
-                    disabled={!name.trim() || !mobile.trim()}
+                    disabled={!name.trim()}
                     className="flex-[2] py-4 rounded-2xl bg-[#f97316] text-white font-black text-[15px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale uppercase tracking-widest"
                   >
                     Save Changes

@@ -10,6 +10,9 @@ import FirstRankSplash from '../../components/student/FirstRankSplash';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
+import ThemeToggle from '../../components/shared/ThemeToggle';
+
+import NotificationReminderSection from '../../components/shared/NotificationReminderSection';
 
 // Dummy data for notifications (Shared temporarily until context/API is built)
 const dummyNotifications = [
@@ -61,9 +64,11 @@ const CounsellorDashboard = () => {
   const [dailyScore, setDailyScore] = useState(null);
   const [isScoreLoading, setIsScoreLoading] = useState(true);
 
-  // First Rank Splash
+  // First Rank Splash / All Activities Completed Splash
   const [showRankSplash, setShowRankSplash] = useState(false);
   const [rankSplashScore, setRankSplashScore] = useState(null);
+  const [rankSplashTitle, setRankSplashTitle] = useState('#1 Rank!');
+  const [rankSplashSubtitle, setRankSplashSubtitle] = useState("You've topped the leaderboard");
 
   useEffect(() => {
     if (!userDetails?.user_id) return;
@@ -74,6 +79,8 @@ const CounsellorDashboard = () => {
       if (data?.isTopRanker) {
         const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
         setRankSplashScore(topUser?.total_marks ?? null);
+        setRankSplashTitle('#1 Rank!');
+        setRankSplashSubtitle("You've topped the leaderboard!");
         setShowRankSplash(true);
       }
     });
@@ -81,12 +88,18 @@ const CounsellorDashboard = () => {
 
   useEffect(() => {
     const checkSubscription = async () => {
-      if (userDetails?.user_id) {
-        getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
-          const backendHasSub = response.data?.isSubscribed;
-          setIsPushEnabled(Boolean(backendHasSub));
-        });
+      if (!userDetails?.user_id) return;
+      const cachedStatus = localStorage.getItem(`push_enabled_${userDetails.user_id}`);
+      if (cachedStatus !== null) {
+        setIsPushEnabled(cachedStatus === 'true');
       }
+      getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
+        const backendHasSub = response.data?.isSubscribed;
+        if (backendHasSub !== undefined) {
+          setIsPushEnabled(Boolean(backendHasSub));
+          localStorage.setItem(`push_enabled_${userDetails.user_id}`, Boolean(backendHasSub) ? 'true' : 'false');
+        }
+      });
     };
 
     if (userDetails?.user_id) {
@@ -136,31 +149,68 @@ const CounsellorDashboard = () => {
         }
         if (res?.data?.daily_reports && Array.isArray(res.data.daily_reports)) {
           const reports = res.data.daily_reports;
-          setActivities(prev => prev.map(act => {
-            const report = reports.find(r => String(r.activity_id) === String(act.id));
-            const count = report ? report.count : 0;
+          let updatedList = [];
+          setActivities(prev => {
+            const list = (prev || []).map(act => {
+              const report = reports.find(r => String(r.activity_id) === String(act.id));
+              const count = report ? report.count : 0;
 
-            const isTimeType = act.type === 'TIME' || act.type === 'time';
-            const target = act.target || (isTimeType ? '05:00 AM' : 10);
-            const isBoolean = act.type === 'YES/NO' || act.type === 'boolean';
+              const isTimeType = act.type === 'TIME' || act.type === 'time';
+              const target = act.target || (isTimeType ? '05:00 AM' : 10);
+              const isBoolean = act.type === 'YES/NO' || act.type === 'boolean';
 
-            let newProgress = '';
-            let newStatus = 'Pending';
+              let newProgress = '';
+              let newStatus = 'Pending';
 
-            if (isBoolean) {
-              newProgress = '';
-              newStatus = count > 0 ? 'Completed' : 'Pending';
-            } else if (isTimeType) {
-              // Return 'actual / target', so the slider receives '5:00 AM / 08:00 AM'
-              newProgress = `${count || '00:00 AM'} / ${target}`;
-              newStatus = count ? 'Completed' : 'Pending'; // Time activities are complete if they have any logged time
-            } else {
-              newProgress = `${count} / ${target}`;
-              newStatus = count >= target ? 'Completed' : 'Pending';
+              if (isBoolean) {
+                newProgress = '';
+                newStatus = count > 0 ? 'Completed' : 'Pending';
+              } else if (isTimeType) {
+                newProgress = `${count || '00:00 AM'} / ${target}`;
+                newStatus = count ? 'Completed' : 'Pending';
+              } else {
+                newProgress = `${count} / ${target}`;
+                newStatus = count >= target ? 'Completed' : 'Pending';
+              }
+
+              return { ...act, progress: newProgress, status: newStatus };
+            });
+            updatedList = list;
+            return list;
+          });
+
+          // Check if ALL activities are logged for this date
+          if (reports.length > 0 && updatedList.length > 0) {
+            const allLogged = updatedList.every(act => {
+              const rep = reports.find(r => String(r.activity_id) === String(act.id));
+              return rep && rep.count !== null && rep.count !== undefined && rep.count !== '' && rep.count !== 0 && rep.count !== '0';
+            });
+
+            if (allLogged) {
+              const sessionKey = `splash_shown_${userDetails.user_id}_${formattedDate}`;
+              if (!sessionStorage.getItem(sessionKey)) {
+                const totalMarks = reports.reduce((acc, r) => acc + (Number(r.marks) || 0), 0);
+                getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (rRes) => {
+                  const rData = rRes?.data?.data;
+                  const topUser = rData?.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
+                  const userRank = topUser?.rank || (rData?.isTopRanker ? 1 : null);
+
+                  setRankSplashScore(topUser?.total_marks ?? (totalMarks || null));
+                  if (userRank === 1 || rData?.isTopRanker) {
+                    setRankSplashTitle('#1 Rank!');
+                    setRankSplashSubtitle("You've topped the leaderboard!");
+                  } else if (userRank) {
+                    setRankSplashTitle(`#${userRank} Rank!`);
+                    setRankSplashSubtitle("You've logged all daily sadhana activities!");
+                  } else {
+                    setRankSplashTitle('All Logged!');
+                    setRankSplashSubtitle("You've completed all daily sadhana activities!");
+                  }
+                  setShowRankSplash(true);
+                });
+              }
             }
-
-            return { ...act, progress: newProgress, status: newStatus };
-          }));
+          }
         } else {
           // No reports for this day or API failed, reset all counts to 0
           setActivities(prev => prev.map(act => {
@@ -500,13 +550,21 @@ const CounsellorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] font-sans pb-28 relative overflow-x-hidden">
-      {/* First Rank Celebration Splash */}
+    <div className="min-h-screen bg-gradient-to-tr from-[#f1f5f9] via-[#f8fafc] to-[#eef2f6] dark:from-[#0b1628] dark:via-[#0f172a] dark:to-[#1e293b] font-sans pb-28 relative overflow-x-hidden text-[#0f172a] dark:text-white transition-colors duration-300">
       <FirstRankSplash
         isVisible={showRankSplash}
         studentName={userDetails?.name}
         score={rankSplashScore}
-        onContinue={() => setShowRankSplash(false)}
+        rankText={rankSplashTitle}
+        subtitle={rankSplashSubtitle}
+        onContinue={() => {
+          setShowRankSplash(false);
+          const activeDateObj = dates?.find(d => d.active)?.fullDate || new Date();
+          const yyyy = activeDateObj.getFullYear();
+          const mm = String(activeDateObj.getMonth() + 1).padStart(2, '0');
+          const dd = String(activeDateObj.getDate()).padStart(2, '0');
+          sessionStorage.setItem(`splash_shown_${userDetails?.user_id}_${yyyy}-${mm}-${dd}`, 'true');
+        }}
       />
 
       {/* Container holding the mobile width cleanly if opened on desktop */}
@@ -514,24 +572,25 @@ const CounsellorDashboard = () => {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-6">
-          <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight">Activities</h1>
-          <div className="flex items-center gap-3">
+          <h1 className="text-[28px] font-extrabold text-[#0f172a] dark:text-white tracking-tight">Activities</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => navigate('/counsellor/personal-analytics')}
-              className="flex items-center justify-center w-12 h-12 bg-white text-[#1a73e8] rounded-full active:scale-95 transition-all shadow-sm border border-gray-50"
+              className="flex items-center justify-center w-12 h-12 bg-white dark:bg-[#1e293b] text-[#1a73e8] dark:text-[#60a5fa] rounded-full active:scale-95 transition-all shadow-sm border border-gray-200 dark:border-slate-700"
               title="My Personal Analytics"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" /></svg>
             </button>
             <button
               onClick={() => setShowNotifications(true)}
-              className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+              className="relative w-12 h-12 rounded-full bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-[#0f172a] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
             >
               {/* Bell Icon */}
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               {/* Notification Badge */}
               {dummyNotifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white">
+                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white dark:border-[#1e293b]">
                   {dummyNotifications.filter(n => !n.read).length}
                 </span>
               )}
@@ -552,35 +611,35 @@ const CounsellorDashboard = () => {
             const color = dateColors[dateStr];
 
             let fillClass = '';
-            let bgClass = 'bg-white';
-            let borderClass = 'border border-slate-200/80';
-            let textColor = 'text-[#1e293b]';
-            let monthColor = 'text-[#94a3b8]';
+            let bgClass = 'bg-white dark:bg-[#1e293b]';
+            let borderClass = 'border border-slate-200/80 dark:border-slate-700/80';
+            let textColor = 'text-[#1e293b] dark:text-slate-100';
+            let monthColor = 'text-[#94a3b8] dark:text-slate-400';
 
             if (color === '#10B981') {
-              fillClass = 'bg-[#d1fae5] h-full';
-              bgClass = 'bg-[#f4fdf8]';
-              borderClass = 'border border-[#a7f3d0]';
-              textColor = 'text-[#065f46]';
-              monthColor = 'text-[#047857]';
+              fillClass = 'bg-[#d1fae5] dark:bg-[#065f46]/30 h-full';
+              bgClass = 'bg-[#f4fdf8] dark:bg-[#064e3b]/20';
+              borderClass = 'border border-[#a7f3d0] dark:border-[#047857]';
+              textColor = 'text-[#065f46] dark:text-[#34d399]';
+              monthColor = 'text-[#047857] dark:text-[#10b981]';
             } else if (color === '#F59E0B') {
-              fillClass = 'bg-[#fef3c7] h-1/2';
-              bgClass = 'bg-[#fffdf5]';
-              borderClass = 'border border-[#fde68a]';
-              textColor = 'text-[#1e293b]';
-              monthColor = 'text-[#b45309]';
+              fillClass = 'bg-[#fef3c7] dark:bg-[#78350f]/30 h-1/2';
+              bgClass = 'bg-[#fffdf5] dark:bg-[#451a03]/20';
+              borderClass = 'border border-[#fde68a] dark:border-[#b45309]';
+              textColor = 'text-[#1e293b] dark:text-[#fbbf24]';
+              monthColor = 'text-[#b45309] dark:text-[#f59e0b]';
             } else if (color === '#EF4444') {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-dashed border-rose-300';
-              textColor = 'text-[#475569]';
-              monthColor = 'text-[#f43f5e]';
+              bgClass = 'bg-white dark:bg-[#1e293b]';
+              borderClass = 'border border-dashed border-rose-300 dark:border-rose-700';
+              textColor = 'text-[#475569] dark:text-rose-300';
+              monthColor = 'text-[#f43f5e] dark:text-rose-400';
             } else {
               fillClass = 'h-0';
-              bgClass = 'bg-white';
-              borderClass = 'border border-slate-200/80';
-              textColor = 'text-[#0f172a]';
-              monthColor = 'text-[#94a3b8]';
+              bgClass = 'bg-white dark:bg-[#1e293b]';
+              borderClass = 'border border-slate-200/80 dark:border-slate-700/80';
+              textColor = 'text-[#0f172a] dark:text-slate-100';
+              monthColor = 'text-[#94a3b8] dark:text-slate-400';
             }
 
             return (
@@ -589,7 +648,7 @@ const CounsellorDashboard = () => {
                 onClick={() => handleDateSelect(item.id)}
                 className={`relative flex-shrink-0 flex flex-col items-center justify-center w-[72px] h-[90px] rounded-[20px] transition-all shadow-sm select-none overflow-hidden ${
                   item.active
-                    ? 'bg-[#1a73e8] text-white shadow-[#1a73e8]/30 shadow-md border border-[#1a73e8]'
+                    ? 'bg-[#1a73e8] dark:bg-[#2563eb] text-white shadow-[#1a73e8]/30 shadow-md border border-[#1a73e8]'
                     : `${bgClass} ${borderClass}`
                 }`}
               >
@@ -609,35 +668,20 @@ const CounsellorDashboard = () => {
           })}
         </div>
 
-        {/* Push Notification Enable Banner */}
-        {!isPushEnabled && (
-          <div className="px-6 mt-2 mb-4">
-            <div className="bg-white border border-[#1a73e8]/20 shadow-sm rounded-[16px] p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1a73e8]">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                </div>
-                <div>
-                  <p className="text-[#0f172a] font-bold text-sm">Enable Reminders</p>
-                  <p className="text-gray-500 text-[11px]">Get  push notifications</p>
-                </div>
-              </div>
-              <button
-                onClick={handleEnablePushNotifications}
-                className="px-4 py-2 bg-[#1a73e8] text-white text-xs font-bold rounded-full hover:bg-[#155fc3] transition-colors shadow-md shadow-[#1a73e8]/20"
-              >
-                Allow
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Push Notification Reminder Section (Always Visible) */}
+        <NotificationReminderSection
+          isPushEnabled={isPushEnabled}
+          setIsPushEnabled={setIsPushEnabled}
+          userDetails={userDetails}
+          toast={toast}
+        />
 
         {/* Activities List */}
         <div className="px-6 mt-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center pt-10 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading activities...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Loading activities...</p>
             </div>
           ) : activities.length > 0 ? (
             activities.map((act) => {
@@ -659,15 +703,15 @@ const CounsellorDashboard = () => {
             })
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No activities found</p>
-              <p className="text-gray-400 text-sm">Tap the + button to add one</p>
+              <p className="text-gray-500 dark:text-gray-300 font-medium text-lg">No activities found</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Tap the + button to add one</p>
             </div>
           )}
 
           {!isLoading && (
             <button 
               onClick={() => setIsNewActivityOpen(true)}
-              className="w-full mt-6 mb-8 py-4 border-2 border-dashed border-blue-300 bg-blue-50/30 hover:bg-blue-50/80 text-blue-600 rounded-3xl font-extrabold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full mt-6 mb-8 py-4 border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/30 hover:bg-blue-50/80 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-3xl font-extrabold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
               Add Activity

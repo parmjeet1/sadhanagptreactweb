@@ -19,7 +19,7 @@ const Particle = ({ delay, x, color }) => (
   />
 );
 
-const FirstRankSplash = ({ isVisible, studentName, score, onContinue }) => {
+const FirstRankSplash = ({ isVisible, studentName, score, rankText = "#1 Rank!", subtitle = "You've topped the leaderboard", onContinue }) => {
   const [shimmer, setShimmer] = useState(false);
 
   useEffect(() => {
@@ -103,14 +103,14 @@ const FirstRankSplash = ({ isVisible, studentName, score, onContinue }) => {
               <h1
                 className="font-black leading-none"
                 style={{
-                  fontSize: "clamp(36px, 11vw, 52px)",
+                  fontSize: "clamp(32px, 10vw, 48px)",
                   background: "linear-gradient(135deg, #FFD700 0%, #f59e0b 40%, #a78bfa 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
                 }}
               >
-                #1 Rank!
+                {rankText}
               </h1>
               {shimmer && (
                 <motion.div
@@ -134,7 +134,7 @@ const FirstRankSplash = ({ isVisible, studentName, score, onContinue }) => {
               className="text-center text-gray-500 font-medium mb-4 sm:mb-6"
               style={{ fontSize: "clamp(11px, 3vw, 13px)" }}
             >
-              You&apos;ve topped the leaderboard
+              {subtitle}
             </p>
 
             {/* Score pill */}

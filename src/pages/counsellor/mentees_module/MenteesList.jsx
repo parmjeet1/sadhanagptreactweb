@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
+import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
 
 const MenteesList = () => {
   const navigate = useNavigate();
@@ -179,10 +180,12 @@ const MenteesList = () => {
     });
   };
 
-  const handleAiAnalysis = () => {
+  const handleAiAnalysis = async () => {
     if (selectedStudents.length === 0) return showError("Select at least one student");
     if (!aiDateFrom || !aiDateTo) return showError("Select date range");
 
+    /*
+    // OLD BEHAVIOR (COMMENTED OUT):
     const payload = {
       user_id: userDetails.user_id,
       student_ids: JSON.stringify(selectedStudents),
@@ -198,6 +201,90 @@ const MenteesList = () => {
         showError(response.data?.message || "Failed to generate AI report");
       }
     });
+    */
+
+    // NEW BEHAVIOR: Redirect to ChatGPT with prompt for specified date range
+    const newWin = window.open('about:blank', '_blank');
+    setIsAiAnalysisModalOpen(false);
+    showSuccess("Collecting student data for ChatGPT...");
+
+    const payload = {
+      filter: 'custom',
+      start_date: aiDateFrom,
+      end_date: aiDateTo,
+      student_ids: selectedStudents
+    };
+
+    let reportRows = [];
+    try {
+      const res = await postRequest('/export-bulk-student-reports', payload);
+      const data = res?.data;
+      if (data?.status === 1 && Array.isArray(data.data) && data.data.length > 0) {
+        reportRows = data.data;
+      }
+    } catch (err) {
+      console.warn("Could not fetch bulk report for ChatGPT prompt, using local student state:", err);
+    }
+
+    let studentDataText = "";
+    const selectedStudentObjects = students.filter(s => selectedStudents.includes(s.id));
+
+    if (reportRows.length > 0) {
+      const grouped = {};
+      reportRows.forEach(row => {
+        const key = row.student_name || 'Unknown Student';
+        if (!grouped[key]) {
+          grouped[key] = {
+            mobile: row.mobile || 'N/A',
+            center: row.center_name || 'N/A',
+            label: row.label_name || 'Uncategorized',
+            activities: []
+          };
+        }
+        if (row.activity_name) {
+          grouped[key].activities.push({
+            date: row.activity_date || '',
+            name: row.activity_name || '',
+            value: row.activity_value ?? '',
+            marks: row.activity_marks ?? ''
+          });
+        }
+      });
+
+      studentDataText = Object.entries(grouped).map(([name, info], idx) => {
+        const actLines = info.activities.map(a => `  - Date: ${a.date} | Activity: ${a.name} | Value: ${a.value} | Marks: ${a.marks}`).join('\n');
+        return `Student #${idx + 1}: ${name} (Mobile: ${info.mobile}, Group: ${info.center}, Sub-Group: ${info.label})\nActivities Logged:\n${actLines || '  - No activity logs recorded in this period'}`;
+      }).join('\n\n');
+    } else {
+      studentDataText = selectedStudentObjects.map((s, idx) => {
+        const acts = Array.isArray(s.activities) && s.activities.length > 0
+          ? s.activities.map(a => `  - ${a.name || a.activity_name}: ${a.value ?? a.count ?? 0} (Marks: ${a.marks ?? 0})`).join('\n')
+          : '  - No detailed activity breakdown available';
+        return `Student #${idx + 1}: ${s.name || 'N/A'} (Group: ${s.group || 'N/A'}, Label: ${s.label || 'N/A'})\nActivities:\n${acts}`;
+      }).join('\n\n');
+    }
+
+    const fullPrompt = `Please analyze the following Sadhana (spiritual practice) performance data for my mentee(s) over the specified period and provide a comprehensive, actionable counseling analysis:
+
+========================================
+MENTEE GROUP & PERFORMANCE DATA
+========================================
+- Time Duration: ${aiDateFrom} to ${aiDateTo}
+- Total Mentees Analyzed: ${selectedStudents.length}
+
+MENTEE DETAILS & ACTIVITY LOGS:
+${studentDataText}
+
+========================================
+ANALYSIS & COUNSELING REQUEST
+========================================
+Please provide:
+1. OVERALL SUMMARY: Executive summary of student Sadhana consistency, chanting, reading, wake-up times, and overall engagement during ${aiDateFrom} to ${aiDateTo}.
+2. STRENGTHS & HIGHLIGHTS: Key areas where mentees are excelling.
+3. LAGGINGS & CONCERNS: Critical gaps (e.g., missed japa rounds, irregular wake-up times, low reading/chanting marks).
+4. COUNSELOR RECOMMENDATIONS: Specific, empathetic counseling advice and strategies for the counselor to motivate and guide these mentees effectively.`;
+
+    await openChatGPTWithPrompt(fullPrompt, newWin);
   };
 
   return (

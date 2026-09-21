@@ -27,6 +27,7 @@ const CounsellorProfile = () => {
     name: '',
     mobile: '',
     email: '',
+    dob: '',
     profile_image: '',
     reminder_enabled: false,
     reminder_days: 3
@@ -173,6 +174,7 @@ const CounsellorProfile = () => {
           name: profile.name || '',
           mobile: profile.mobile || profile.phone || '',
           email: profile.email || '',
+          dob: profile.birthday || profile.dob || '',
           profile_image: profile.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
           reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true || profile.reminder_status === 1 || profile.reminder_status === true,
           reminder_days: profile.report_frequency_days || profile.reminder_days || 3
@@ -220,6 +222,28 @@ const CounsellorProfile = () => {
     };
     syncSubscription();
   }, [userDetails]);
+
+  const [mentorToRemove, setMentorToRemove] = useState(null);
+
+  const confirmRemoveMentor = () => {
+    if (!mentorToRemove?.id) return;
+
+    const payload = {
+      user_id: userDetails.user_id,
+      counsller_id: mentorToRemove.id
+    };
+
+    postRequest('/remove-counsellor', payload, (response) => {
+      setMentorToRemove(null);
+      const res = response?.data || response;
+      if (res && (res.code === 200 || res.status === "success" || res.status === 1)) {
+        showToast("Mentor removed successfully!", "success");
+        fetchCounsellorProfile();
+      } else {
+        showToast(res?.message || "Failed to remove mentor", "error");
+      }
+    });
+  };
 
   const handleAddMentor = (counselorData) => {
     let newMentor;
@@ -269,13 +293,14 @@ const CounsellorProfile = () => {
     const payload = {
       user_id: userDetails.user_id,
       name: newInfo.name,
-      mobile: newInfo.mobile
+      mobile: newInfo.mobile,
+      dob: newInfo.dob
     };
 
     postRequest('/edit-profile', payload, (res) => {
       console.log("Edit profile response:", res);
       if (res && (res.code === 200 || res.status === "success" || res.status === 1)) {
-        showToast(res.message || "CounsellorProfile updated successfully!");
+        showToast(res.message || "Profile updated successfully!");
         fetchCounsellorProfile();
       } else {
         showToast(res.message || "Failed to update profile", "error");
@@ -411,6 +436,20 @@ const CounsellorProfile = () => {
                     <p className="text-[16px] font-bold text-[#1e293b]">{userInfo.mobile}</p>
                   </div>
                 </div>
+
+                <div className="w-full h-px bg-gray-50"></div>
+
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] flex items-center justify-center text-[#94a3b8]">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-1">Birthday</p>
+                    <p className="text-[16px] font-bold text-[#1e293b]">
+                      {userInfo.dob ? (new Date(userInfo.dob).toString() !== 'Invalid Date' ? new Date(userInfo.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : userInfo.dob) : 'Not set'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -428,23 +467,46 @@ const CounsellorProfile = () => {
               <div className="space-y-4">
                 {mentors.map((mentor, idx) => (
                   <motion.div
-                    key={mentor.name}
+                    key={mentor.name || idx}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer"
+                    className="bg-white rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all"
                   >
                     <div className="flex items-center gap-4">
-                      <img src={mentor.avatar || mentor.profile_image || `https://ui-avatars.com/api/?name=${mentor.name}&background=f97316&color=fff`} className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-100" alt="" />
+                      <img src={mentor.avatar || mentor.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.name || 'Mentor')}&background=f97316&color=fff`} className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-100" alt="" />
                       <div>
                         <h4 className="text-[16px] font-black text-[#1e293b]">{mentor.name}</h4>
+                        {mentor.email && (
+                          <div className="flex items-center gap-1.5 text-gray-400 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                            <span className="text-[12px] font-bold tracking-tight text-gray-500">{mentor.email}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1.5 text-gray-400 mt-1">
-                          <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                          <span className="text-[12px] font-bold tracking-tight">{mentor.temple}</span>
+                          {/* <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg> */}
+                          {/* <span className="text-[12px] font-bold tracking-tight">{mentor.temple || 'Mentor Connection'}</span> */}
                         </div>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMentorToRemove({
+                            id: mentor.mentor_id || mentor.counsller_id || mentor.user_id,
+                            name: mentor.name
+                          });
+                        }}
+                        className="p-2.5 rounded-full text-rose-500 hover:bg-rose-50 active:scale-90 transition-all"
+                        title="Remove Mentor"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -573,6 +635,46 @@ const CounsellorProfile = () => {
 
       </div>
 
+      {/* Remove Mentor Confirmation Modal */}
+      <AnimatePresence>
+        {mentorToRemove && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              className="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-[18px] font-black text-[#0f172a] mb-2">Remove Mentor?</h3>
+              <p className="text-[14px] text-gray-500 font-semibold mb-6">
+                Are you sure you want to remove <strong className="text-gray-800">{mentorToRemove.name}</strong> from your mentors list?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMentorToRemove(null)}
+                  className="flex-1 py-3.5 rounded-full bg-gray-100 text-gray-700 font-bold text-[14px] hover:bg-gray-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRemoveMentor}
+                  className="flex-1 py-3.5 rounded-full bg-rose-500 text-white font-bold text-[14px] shadow-lg shadow-rose-500/30 hover:bg-rose-600 transition-all active:scale-95"
+                >
+                  Yes, Remove
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <AddMentorModal
         isOpen={isAddMentorOpen}
         onClose={() => setIsAddMentorOpen(false)}
@@ -599,8 +701,8 @@ const CounsellorProfile = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${toast.type === 'error'
-                ? 'bg-red-50 border-red-100 text-red-700'
-                : 'bg-green-50 border-green-100 text-green-700'
+              ? 'bg-red-50 border-red-100 text-red-700'
+              : 'bg-green-50 border-green-100 text-green-700'
               }`}
           >
             {toast.type === 'error' ? (

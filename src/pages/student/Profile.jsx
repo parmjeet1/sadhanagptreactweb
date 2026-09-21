@@ -28,6 +28,7 @@ const Profile = () => {
     name: '',
     mobile: '',
     email: '',
+    dob: '',
     profile_image: '',
     reminder_enabled: false,
     reminder_days: 3
@@ -182,6 +183,7 @@ const Profile = () => {
           name: dataObj.user.name || '',
           mobile: dataObj.user.mobile || dataObj.user.phone || '',
           email: dataObj.user.email || '',
+          dob: dataObj.user.dob || dataObj.user.birthday || '',
           profile_image: dataObj.user.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
           reminder_enabled: dataObj.user.reminder_enabled === 1 || dataObj.user.reminder_enabled === true || dataObj.user.reminder_status === 1 || dataObj.user.reminder_status === true,
           reminder_days: dataObj.user.report_frequency_days || dataObj.user.reminder_days || 3
@@ -278,7 +280,8 @@ const Profile = () => {
     const payload = {
       user_id: userDetails.user_id,
       name: newInfo.name,
-      mobile: newInfo.mobile
+      mobile: newInfo.mobile,
+      dob: newInfo.dob
     };
 
     postRequest('/edit-profile', payload, (response) => {
@@ -431,6 +434,20 @@ const Profile = () => {
                     <p className="text-[16px] font-bold text-[#1e293b]">{userInfo.mobile}</p>
                   </div>
                 </div>
+
+                <div className="w-full h-px bg-gray-50"></div>
+
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] flex items-center justify-center text-[#94a3b8]">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-1">Birthday</p>
+                    <p className="text-[16px] font-bold text-[#1e293b]">
+                      {userInfo.dob ? (new Date(userInfo.dob).toString() !== 'Invalid Date' ? new Date(userInfo.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : userInfo.dob) : 'Not set'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -458,9 +475,15 @@ const Profile = () => {
                       <img src={mentor.avatar || mentor.profile_image || `https://ui-avatars.com/api/?name=${mentor.name}&background=f97316&color=fff`} className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-100" alt="" />
                       <div>
                         <h4 className="text-[16px] font-black text-[#1e293b]">{mentor.name}</h4>
+                        {mentor.email && (
+                          <div className="flex items-center gap-1.5 text-gray-400 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                            <span className="text-[12px] font-bold tracking-tight text-gray-500">{mentor.email}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1.5 text-gray-400 mt-1">
-                          <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                          <span className="text-[12px] font-bold tracking-tight">{mentor.temple}</span>
+                          {/* <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg> */}
+                          {/* <span className="text-[12px] font-bold tracking-tight">{mentor.temple || 'Mentor Connection'}</span> */}
                         </div>
                       </div>
                     </div>
@@ -485,7 +508,8 @@ const Profile = () => {
                   </motion.div>
                 ))}
               </div>
-            </section>            {/* Notification Preferences */}
+            </section>
+            {/* Notification Preferences */}
             <section className="px-8 mb-10">
               <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6">
                 <div className="flex items-center justify-between">

@@ -22,12 +22,68 @@ const timeToMinutes = (timeStr) => {
 };
 
 const minutesToTime = (totalMinutes) => {
-  if (isNaN(totalMinutes) || totalMinutes === null) return "00:00 AM";
+  if (isNaN(totalMinutes) || totalMinutes === null || totalMinutes === 0) return "00:00 AM";
   let hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const minutes = Math.round(totalMinutes % 60);
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12; hours = hours ? hours : 12;
   return `${hours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+};
+
+const formatActivityMetric = (act) => {
+  const name = act.name || 'Activity';
+  const type = (act.activity_type || act.type || '').toLowerCase();
+  const lowerName = name.toLowerCase();
+
+  let rawTotal = 0;
+  let countEntries = 0;
+
+  if (Array.isArray(act.daily_data)) {
+    const validEntries = act.daily_data.filter(d => d.count !== null && d.count !== undefined && d.count !== '');
+    countEntries = validEntries.length;
+    rawTotal = validEntries.reduce((acc, curr) => {
+      const c = curr.count;
+      if (typeof c === 'string' && c.includes(':')) return acc + timeToMinutes(c);
+      return acc + (Number(c) || 0);
+    }, 0);
+  } else if (act.total_count) {
+    rawTotal = Number(act.total_count) || 0;
+    countEntries = 1;
+  }
+
+  if (type === 'time' || lowerName.includes('wakeup') || lowerName.includes('sleep') || lowerName.includes('wake up')) {
+    if (countEntries > 0 && (lowerName.includes('wakeup') || lowerName.includes('wake up') || lowerName.includes('sleep'))) {
+      const avgMinutes = Math.round(rawTotal / countEntries);
+      return `${name}: Avg Time ${minutesToTime(avgMinutes)}`;
+    }
+    const hrs = Math.floor(rawTotal / 60);
+    const mins = Math.round(rawTotal % 60);
+    if (hrs > 0) return `${name}: Total ${hrs}h ${mins}m`;
+    return `${name}: Total ${mins} mins`;
+  }
+
+  if (type === 'yes_no' || type === 'boolean') {
+    return `${name}: Completed ${rawTotal} day(s)`;
+  }
+
+  let unitStr = act.unit || '';
+  if (!unitStr || lowerName.includes('read') || unitStr === 'pages' || unitStr === 'page') {
+    if (lowerName.includes('chant')) unitStr = 'rounds';
+    else if (lowerName.includes('read')) unitStr = 'mins';
+    else if (!unitStr) unitStr = 'times';
+  }
+
+  return `${name}: Total ${rawTotal} ${unitStr}`;
+};
+
+const getAsyncRequest = (url, params) => {
+  return new Promise((resolve) => {
+    getRequest(url, params, (response) => {
+      resolve(response?.data);
+    }, () => {
+      resolve(null);
+    });
+  });
 };
 
 const DailyTooltip = ({ dateStr, value, label, position }) => {
@@ -122,7 +178,6 @@ const DUMMY_CHART = ({ label }) => (
   <div className="w-full h-40 mt-4 flex items-center justify-center text-gray-300 text-[12px] border border-dashed border-gray-200 rounded-xl">No data for {label}</div>
 );
 
-
 const formatValue = (val) => {
   if (val === null || val === undefined) return '0';
   const strVal = String(val);
@@ -176,7 +231,6 @@ const StudentReport = () => {
     setIsSending(true);
     postRequest('/cusotm-notification', { user_id: userDetails.user_id, student_id: id, heading: '', description: notificationDesc }, (res) => {
       setIsSending(false);
-      // Handle both { status: 1 } and { success: true } API response wrappers 
       if (res.data?.status === 1 || res.data?.success === true) {
         setIsNotificationModalOpen(false);
         showToast('Notification Sent!');
@@ -187,28 +241,89 @@ const StudentReport = () => {
     });
   };
 
-  /* AI Analysis — commented out for individual report view
-  const handleAiAnalysis = () => {
-    const dataForAi = [{ student_id: id, name: reportData?.student?.name || 'Student', date: new Date().toISOString().split('T')[0], activities: reportData?.activities_analytics || [] }];
-    navigate('/counsellor/ai-chat', { state: { studentsData: dataForAi } });
-  };
-  */
-
   const studentInfo = reportData?.student || location.state?.student || { name: 'Loading...' };
+
+  const handleMenteeAiAnalysis = async () => {
+    const newWin = window.open('about:blank', '_blank');
+    const studentName = studentInfo.name || 'Mentee';
+
+    const openGptWithActivities = (activities) => {
+      let promptText = `Please analyze the spiritual sadhana performance analytics for the LAST 30 DAYS for student: ${studentName}.\n\n`;
+
+      if (activities && activities.length > 0) {
+        promptText += `Student Sadhana Performance (Last 30 Days):\n`;
+        activities.forEach(act => {
+          promptText += `- ${formatActivityMetric(act)}\n`;
+        });
+        promptText += `\nPlease provide a comprehensive evaluation of this student's sadhana over the last 30 days, including strengths, weaknesses, consistency, and actionable guidance for their spiritual growth.`;
+      } else {
+        promptText += `No activity data recorded in the last 30 days for student ${studentName}. Please provide general guidance on how a spiritual counsellor should guide this mentee to establish a regular daily sadhana routine.`;
+      }
+
+      const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
+      if (newWin) {
+        newWin.location.href = chatGptUrl;
+      } else {
+        window.open(chatGptUrl, '_blank');
+      }
+    };
+
+    try {
+      const resData = await getAsyncRequest('/student-details', {
+        user_id: userDetails.user_id,
+        student_id: id,
+        filter: '30days'
+      });
+
+      const dataObj = resData?.data || resData;
+      let payloadArray = [];
+
+      if (Array.isArray(dataObj)) payloadArray = dataObj;
+      else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
+      else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
+
+      if (payloadArray.length === 0 && reportData?.activities_analytics?.length > 0) {
+        payloadArray = reportData.activities_analytics;
+      }
+
+      openGptWithActivities(payloadArray);
+    } catch (err) {
+      console.error('Error fetching 30-day analytics for ChatGPT:', err);
+      openGptWithActivities(reportData?.activities_analytics || []);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white pb-28">
       <AnimatePresence>{toastMessage && (<motion.div initial={{ y: -20 }} animate={{ y: 0 }} exit={{ y: -20 }} className="fixed top-24 left-0 right-0 z-50 flex justify-center"><div className="bg-gray-800 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm">{toastMessage}</div></motion.div>)}</AnimatePresence>
+      
+      {/* Top Header */}
       <div className="flex items-center justify-between px-6 py-6 border-b border-gray-50">
         <button onClick={() => navigate(-1)}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></button>
         <h1 className="font-black text-lg">Mentee Report</h1>
-        <div className="w-6" />
+        <button
+          onClick={handleMenteeAiAnalysis}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all"
+          title="30-Day AI Sadhana Analysis"
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span>AI Analysis</span>
+        </button>
       </div>
+
       <div className="px-6 py-8 max-w-md mx-auto">
         <div className="flex flex-col items-center mb-8">
           <img src={studentInfo.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentInfo.name)}&background=random&color=fff&bold=true`} className="w-24 h-24 rounded-full border-4 border-blue-50 mb-4 shadow-md" />
           <h2 className="text-2xl font-black text-center">{studentInfo.name}</h2>
-          <p className="text-blue-500 font-bold text-sm mt-1 mb-5">{studentInfo.center_name || 'No Group'} • {studentInfo.label_name || 'No Label'}</p>
+          <p className="text-blue-500 font-bold text-sm mt-1 mb-3">{studentInfo.center_name || 'No Group'} • {studentInfo.label_name || 'No Label'}</p>
+
+          <button
+            onClick={handleMenteeAiAnalysis}
+            className="mb-5 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+          >
+            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span>30-Day AI Analysis</span>
+          </button>
 
           <div className="grid grid-cols-3 gap-2 w-full">
             <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center text-center">
@@ -230,6 +345,7 @@ const StudentReport = () => {
             <span>{studentInfo.email || 'N/A'}</span>
           </div>
         </div>
+
         <div className="flex p-1 bg-gray-50 rounded-full mb-8">
           {['7 Days', 'Month', 'Custom'].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-2 rounded-full font-bold text-sm transition-all ${activeTab === t ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}>{t}</button>)}
         </div>
@@ -262,15 +378,22 @@ const StudentReport = () => {
           </div>
         )}
       </div>
-      <div className="fixed bottom-[80px] left-0 right-0 px-6 py-4 max-w-md mx-auto bg-white/80 backdrop-blur-md flex gap-3">
-        <button onClick={() => navigate(`/counsellor/mentee/${id}/conversation`, { state: { student: studentInfo } })} className="flex-1 py-4 bg-indigo-600 rounded-2xl font-black text-sm text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2">
-          Counselling Notes
+
+      {/* Bottom Action Bar */}
+      <div className="fixed bottom-[80px] left-0 right-0 px-6 py-4 max-w-md mx-auto bg-white/80 backdrop-blur-md flex gap-2 z-40">
+        <button onClick={handleMenteeAiAnalysis} className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          AI Analysis
         </button>
-        <button onClick={() => setIsNotificationModalOpen(true)} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black text-sm text-white shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6.5C21 8.98 18.76 11 16 11s-5-2.02-5-4.5S13.24 2 16 2s5 2.02 5 4.5zM16 3c-2.21 0-4 1.12-4 2.5S13.79 8 16 8s4-1.12 4-2.5S18.21 3 16 3zm-1 13H4a2 2 0 0 1-2-2v-1c0-2.66 5.33-4 8-4 .92 0 2.06.17 3.18.47A7.5 7.5 0 0 0 13 11.1C12.12 10.96 11.08 10.9 10 10.9 7.33 10.9 2 12.13 2 14v1h13v-1c0-.34.04-.67.1-1l.9.1zm-5-5C7.24 11 5 8.98 5 6.5S7.24 2 10 2c1.26 0 2.41.44 3.27 1.15A6.58 6.58 0 0 0 11 6.5c0 1.56.62 2.98 1.63 4.03A5.33 5.33 0 0 1 10 11z" /></svg>
+        <button onClick={() => navigate(`/counsellor/mentee/${id}/conversation`, { state: { student: studentInfo } })} className="flex-1 py-3.5 bg-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-1.5">
+          Notes
+        </button>
+        <button onClick={() => setIsNotificationModalOpen(true)} className="flex-1 py-3.5 bg-blue-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/30 flex items-center justify-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6.5C21 8.98 18.76 11 16 11s-5-2.02-5-4.5S13.24 2 16 2s5 2.02 5 4.5zM16 3c-2.21 0-4 1.12-4 2.5S13.79 8 16 8s4-1.12 4-2.5S18.21 3 16 3zm-1 13H4a2 2 0 0 1-2-2v-1c0-2.66 5.33-4 8-4 .92 0 2.06.17 3.18.47A7.5 7.5 0 0 0 13 11.1C12.12 10.96 11.08 10.9 10 10.9 7.33 10.9 2 12.13 2 14v1h13v-1c0-.34.04-.67.1-1l.9.1zm-5-5C7.24 11 5 8.98 5 6.5S7.24 2 10 2c1.26 0 2.41.44 3.27 1.15A6.58 6.58 0 0 0 11 6.5c0 1.56.62 2.98 1.63 4.03A5.33 5.33 0 0 1 10 11z" /></svg>
           Notify
         </button>
       </div>
+
       <AnimatePresence>
         {isNotificationModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setIsNotificationModalOpen(false)}>
@@ -292,3 +415,4 @@ const StudentReport = () => {
 };
 
 export default StudentReport;
+
