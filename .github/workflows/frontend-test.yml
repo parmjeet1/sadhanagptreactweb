@@ -1,0 +1,34 @@
+name: Deploy Frontend (Test)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: backup/all-work
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy dist to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_TEST_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_TEST_SSH_KEY }}
+          source: "dist/*"
+          target: "/home/ubuntu/test-frontend/dist"
+          strip_components: 1
