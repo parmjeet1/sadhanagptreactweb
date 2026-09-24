@@ -11,6 +11,7 @@ import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 import ThemeToggle from '../../components/shared/ThemeToggle';
+import InstallButton from '../../components/shared/InstallButton';
 import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
 
 import NotificationReminderSection from '../../components/shared/NotificationReminderSection';
@@ -601,6 +602,15 @@ const StudentDashboard = () => {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
+              onClick={() => navigate('/student/analytics')}
+              aria-label="Analytics"
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-[#1a73e8] hover:bg-gray-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 20V12M12 20V4M17 20v-7" />
+              </svg>
+            </button>
+            <button
               onClick={() => {
                 setShowNotifications(true);
                 setUnreadCount(0);
@@ -614,6 +624,7 @@ const StudentDashboard = () => {
                 </span>
               )}
             </button>
+            <InstallButton />
           </div>
         </div>
 
