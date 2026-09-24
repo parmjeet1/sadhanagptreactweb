@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mic } from 'lucide-react';
 import SadhnaAssistant from '../../sadhna-assistant/SadhnaAssistant';
@@ -19,6 +19,21 @@ const SadhnaAssistantLauncher = () => {
   // Created once and reused for the lifetime of this component so the chat
   // doesn't lose its adapter identity (and re-fetch everything) on re-render.
   const adapter = useMemo(() => new RealSadhnaGptAdapter(), []);
+
+  // PWA: the installed app's manifest start_url is
+  // "/student/dashboard?assistant=open" so launching the installed app
+  // opens straight into the chat instead of just the Activities screen.
+  // Strip the param right after so a later refresh/back-navigation to this
+  // same URL doesn't keep reopening it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('assistant') === 'open') {
+      setIsOpen(true);
+      params.delete('assistant');
+      const rest = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (rest ? `?${rest}` : ''));
+    }
+  }, []);
 
   return (
     <>
