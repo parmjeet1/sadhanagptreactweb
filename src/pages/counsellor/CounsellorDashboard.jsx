@@ -11,6 +11,7 @@ import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 import ThemeToggle from '../../components/shared/ThemeToggle';
+import InstallButton from '../../components/shared/InstallButton';
 
 import NotificationReminderSection from '../../components/shared/NotificationReminderSection';
 
@@ -595,6 +596,7 @@ const CounsellorDashboard = () => {
                 </span>
               )}
             </button>
+            <InstallButton />
           </div>
         </div>
 
