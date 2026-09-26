@@ -8,6 +8,7 @@ import ReportSettingsModal from '../../components/counsellor/ReportSettingsModal
 import ThemeToggle from '../../components/shared/ThemeToggle';
 import { postRequest, getRequest } from '../../services/api';
 import { openChatGPTWithPrompt } from '../../utils/chatGptUtils';
+import AiDateFilterModal from '../../components/AiAnalysis/AiDateFilterModal';
 const timeToMinutes = (timeStr) => {
   if (!timeStr) return 0;
   if (typeof timeStr === 'number') return timeStr;
@@ -115,6 +116,8 @@ const CounsellorAnalytics = () => {
   const [selectedGroupForOptions, setSelectedGroupForOptions] = useState(null);
 
   const [toastState, setToastState] = useState({ show: false, message: '', type: 'success' });
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [selectedGroupForAi, setSelectedGroupForAi] = useState(null);
   
   const showToast = (message, type = 'success') => {
     const msg = Array.isArray(message) ? message[0] : message;
@@ -122,272 +125,14 @@ const CounsellorAnalytics = () => {
     setTimeout(() => setToastState(prev => ({ ...prev, show: false })), 4000);
   };
 
-  const handleAllGroupsAiAnalysis = async () => {
-    if (!userDetails?.user_id) return;
-
-    const newWin = window.open('about:blank', '_blank');
-    if (newWin && newWin.document) {
-      newWin.document.write('<div style="font-family:sans-serif;padding:40px;text-align:center;color:#1e293b;"><h2>Generating AI Analysis for All Groups...</h2><p>Gathering 30-day sadhana performance data for all groups under counsellor...</p></div>');
-      newWin.document.close();
-    }
-
-    showToast("Collecting data for all groups under counselor...", 'info');
-
-    try {
-      const dEnd = new Date();
-      const dStart = new Date();
-      dStart.setDate(dStart.getDate() - 30);
-      const startDateStr = dStart.toISOString().split('T')[0];
-      const endDateStr = dEnd.toISOString().split('T')[0];
-
-      const payload = {
-        filter: '30',
-        start_date: startDateStr,
-        end_date: endDateStr,
-        user_id: userDetails.user_id
-      };
-      
-      let reportRows = [];
-      try {
-        const res = await postRequest('/export-bulk-student-reports', payload);
-        const data = res?.data;
-        if (data?.status === 1 && Array.isArray(data.data) && data.data.length > 0) {
-          reportRows = data.data;
-        }
-      } catch (err) {
-        console.warn("Could not fetch bulk export report for all groups:", err);
-      }
-
-      let allGroupsText = "";
-
-      if (reportRows.length > 0) {
-        const groupsMap = {};
-        reportRows.forEach(row => {
-          const groupName = row.center_name || 'Unassigned Group';
-          if (!groupsMap[groupName]) {
-            groupsMap[groupName] = {};
-          }
-          const studentName = row.student_name || 'Unknown Student';
-          if (!groupsMap[groupName][studentName]) {
-            groupsMap[groupName][studentName] = {
-              mobile: row.mobile || 'N/A',
-              subgroup: row.label_name || 'Uncategorized',
-              activities: []
-            };
-          }
-          if (row.activity_name) {
-            groupsMap[groupName][studentName].activities.push({
-              date: row.activity_date || '',
-              name: row.activity_name || '',
-              value: row.activity_value ?? '',
-              marks: row.activity_marks ?? ''
-            });
-          }
-        });
-
-        allGroupsText = Object.entries(groupsMap).map(([gName, stMap], gIdx) => {
-          const studentEntries = Object.entries(stMap).map(([sName, sInfo], sIdx) => {
-            const actLines = sInfo.activities.map(a => `      - Date: ${a.date} | Activity: ${a.name} | Value: ${a.value} | Marks: ${a.marks}`).join('\n');
-            return `   Student #${sIdx + 1}: ${sName} (Subgroup: ${sInfo.subgroup})\n${actLines || '      - No activity logs recorded'}`;
-          }).join('\n');
-
-          return `GROUP #${gIdx + 1}: "${gName}" (${Object.keys(stMap).length} Mentees)\n${studentEntries}`;
-        }).join('\n\n========================================\n\n');
-      } else {
-        allGroupsText = groups.map((g, idx) => {
-          return `GROUP #${idx + 1}: "${g.name}" (${g.members || 0} Members)\n   - General activity metrics logged under counselor.`;
-        }).join('\n\n');
-      }
-
-      const promptText = `Please provide a comprehensive AI Analysis of spiritual sadhana performance across ALL GROUPS managed under Counsellor "${userDetails?.name || 'Counsellor'}" over the LAST 30 DAYS (${startDateStr} to ${endDateStr}):
-
-========================================
-COUNSELLOR GROUPS OVERVIEW
-========================================
-- Counsellor Name: ${userDetails?.name || 'Counsellor'}
-- Time Duration: Last 30 Days (${startDateStr} to ${endDateStr})
-- Total Groups Managed: ${groups.length}
-
-GROUP-BY-GROUP PERFORMANCE & MENTEE ACTIVITY DATA:
-${allGroupsText}
-
-========================================
-REQUESTED INSIGHTS & STRATEGIC GUIDANCE
-========================================
-Please provide:
-1. OVERALL COUNSELLOR EXECUTIVE SUMMARY: High-level evaluation of overall spiritual sadhana consistency, chanting, reading, and morning wake-up discipline across all groups over the last 30 days.
-2. GROUP COMPARISON & HIGHLIGHTS: Top-performing groups vs groups requiring additional counsellor attention/motivation.
-3. CRITICAL LAGGINGS & CONCERNS: Key areas needing improvement (e.g. missed japa rounds, irregular wake-up times, low reading/chanting marks).
-4. ACTIONABLE COUNSELING STRATEGY: Specific, empathetic guidance and action plan for the counsellor to uplift spiritual standards across all groups.`;
-
-      try {
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(promptText);
-        }
-      } catch (clipErr) {
-        console.warn("Could not copy prompt to clipboard:", clipErr);
-      }
-
-      showToast("Prompt copied & redirecting to ChatGPT!", "success");
-      await openChatGPTWithPrompt(promptText, newWin);
-    } catch (err) {
-      console.error("Error generating all groups AI analysis:", err);
-      if (newWin && !newWin.closed) newWin.close();
-      showToast("Failed to generate AI analysis for all groups", "error");
-    }
+  const handleAllGroupsAiAnalysis = () => {
+    setSelectedGroupForAi(null);
+    setIsAiModalOpen(true);
   };
 
-  const handleGroupAiAnalysis = async (group) => {
-    if (!userDetails?.user_id) return;
-
-    // Open window synchronously inside user click gesture to bypass popup blocker
-    const newWin = window.open('about:blank', '_blank');
-    if (newWin) {
-      newWin.document.write('<div style="font-family:sans-serif;padding:40px;text-align:center;color:#1e293b;"><h2>Generating AI Analysis...</h2><p>Gathering 30-day sadhana data for group <b>' + (group.name || 'Group') + '</b></p></div>');
-      newWin.document.close();
-    }
-
-    showToast(`Preparing 30-day AI report for group "${group.name}"...`, 'success');
-
-    try {
-      // 1. Fetch subgroups for this center
-      const labelRes = await getAsyncRequest('/lable-list', {
-        user_id: userDetails.user_id,
-        center_id: group.id
-      });
-      let subgroups = [];
-      if (labelRes) {
-        const rawLabels = Array.isArray(labelRes.data)
-          ? labelRes.data
-          : (labelRes.data && Array.isArray(labelRes.data.data) ? labelRes.data.data : []);
-        subgroups = rawLabels.map(l => l.label_name || l.name || l.label).filter(Boolean);
-      }
-
-      // 2. Fetch students for this center (with local fallback filtering)
-      const targetCenterId = group.id || group.center_id;
-      const studentRes = await getAsyncRequest('/student-list', {
-        user_id: userDetails.user_id,
-        page_no: 1,
-        rowSelected: 100,
-        limit: 100,
-        center_id: targetCenterId
-      });
-
-      const extractStudents = (resObj) => {
-        if (!resObj) return [];
-        let rawArr = [];
-        if (Array.isArray(resObj.data)) {
-          rawArr = resObj.data;
-        } else if (resObj.data && Array.isArray(resObj.data.data)) {
-          rawArr = resObj.data.data;
-        } else if (Array.isArray(resObj)) {
-          rawArr = resObj;
-        }
-        return rawArr.map(s => ({
-          user_id: s.user_id,
-          name: s.name,
-          center_id: s.center_id,
-          center_name: s.center_name || s.group || '',
-          label_name: s.label_name || s.label || 'General'
-        }));
-      };
-
-      let students = extractStudents(studentRes);
-
-      // Fallback: If direct center_id filter returned 0 students, query all counsellor students and filter locally
-      if (students.length === 0) {
-        const allStudentsRes = await getAsyncRequest('/student-list', {
-          user_id: userDetails.user_id,
-          page_no: 1,
-          rowSelected: 200,
-          limit: 200
-        });
-        const allStudents = extractStudents(allStudentsRes);
-        students = allStudents.filter(s =>
-          String(s.center_id) === String(targetCenterId) ||
-          (s.center_name && group.name && s.center_name.toLowerCase().trim() === group.name.toLowerCase().trim())
-        );
-      }
-
-      // 3. Fetch 30-day analytics for each student in parallel
-      const studentDataPromises = students.map(async (student) => {
-        let activitiesSummary = [];
-        if (student.user_id) {
-          try {
-            let analyticsRes = await getAsyncRequest('/student-details', {
-              user_id: userDetails.user_id,
-              student_id: student.user_id,
-              filter: '30days'
-            });
-
-            let dataObj = analyticsRes?.data || analyticsRes;
-            let payloadArray = [];
-            if (Array.isArray(dataObj)) payloadArray = dataObj;
-            else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-            else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-
-            if (payloadArray.length === 0) {
-              analyticsRes = await getAsyncRequest('/student-activities-analytics', {
-                user_id: student.user_id,
-                filter: '30days'
-              });
-              dataObj = analyticsRes?.data || analyticsRes;
-              if (Array.isArray(dataObj)) payloadArray = dataObj;
-              else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-              else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-            }
-
-            activitiesSummary = payloadArray.map(act => formatActivityMetric(act));
-          } catch (e) {
-            console.error(`Error fetching 30-day sadhana for ${student.name}:`, e);
-          }
-        }
-
-        return {
-          name: student.name || 'Student',
-          subgroup: student.label_name || 'General',
-          activities: activitiesSummary
-        };
-      });
-
-      const students30DayData = await Promise.all(studentDataPromises);
-
-      // 4. Construct ChatGPT prompt
-      let promptText = `Please provide an in-depth AI Analysis of spiritual sadhana performance for Group: "${group.name}" over the LAST 30 DAYS.\n\n`;
-      promptText += `Group Overview:\n`;
-      promptText += `- Group Name: ${group.name}\n`;
-      promptText += `- Total Members: ${students.length}\n`;
-      if (subgroups.length > 0) {
-        promptText += `- Subgroups: ${subgroups.join(', ')}\n`;
-      }
-      promptText += `\nStudents' 30-Day Sadhana Performance Data:\n`;
-
-      if (students30DayData.length > 0) {
-        students30DayData.forEach((st, idx) => {
-          promptText += `${idx + 1}. Student: ${st.name} (Subgroup: ${st.subgroup})\n`;
-          if (st.activities.length > 0) {
-            st.activities.forEach(actStr => {
-              promptText += `   - ${actStr}\n`;
-            });
-          } else {
-            promptText += `   - No sadhana report logged in the last 30 days\n`;
-          }
-        });
-      } else {
-        promptText += `No students currently assigned to this group.\n`;
-      }
-
-      promptText += `\nRequested Insights:\n`;
-      promptText += `1. Comprehensive evaluation of 30-day sadhana performance across all subgroups and students in group "${group.name}".\n`;
-      promptText += `2. Highlight top consistent performers and flag students requiring mentorship/follow-up.\n`;
-      promptText += `3. Provide actionable recommendations for the counsellor to improve group participation and spiritual discipline.`;
-
-      await openChatGPTWithPrompt(promptText, newWin);
-    } catch (err) {
-      console.error("Error generating group AI analysis:", err);
-      if (newWin && !newWin.closed) newWin.close();
-      showToast("Failed to generate AI analysis for group", "error");
-    }
+  const handleGroupAiAnalysis = (group) => {
+    setSelectedGroupForAi(group);
+    setIsAiModalOpen(true);
   };
 
   const fetchGroups = async () => {
@@ -575,7 +320,11 @@ Please provide:
               ) : topRanks.length > 0 ? (
                 <div className="space-y-3">
                   {topRanks.map((student, idx) => (
-                    <div key={student.student_id} className="flex items-center text-sm font-semibold text-gray-500 dark:text-slate-300 gap-3">
+                    <div 
+                      key={student.student_id} 
+                      onClick={() => navigate(`/counsellor/mentee/${student.student_id}`, { state: { student: { id: student.student_id, name: student.student_name } } })}
+                      className="flex items-center text-sm font-semibold text-gray-500 dark:text-slate-300 gap-3 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
                       <span className="w-4 text-center">{idx + 1}</span>
                       <span className="text-gray-400 dark:text-slate-500">-</span>
                       <span className="truncate flex-1" title={student.student_name}>{student.student_name}</span>
@@ -610,7 +359,11 @@ Please provide:
               ) : bottomRanks.length > 0 ? (
                 <div className="space-y-3">
                   {bottomRanks.map((student, idx) => (
-                    <div key={student.student_id} className="flex items-center text-sm font-semibold text-red-700 dark:text-red-300 gap-3">
+                    <div 
+                      key={student.student_id} 
+                      onClick={() => navigate(`/counsellor/mentee/${student.student_id}`, { state: { student: { id: student.student_id, name: student.student_name } } })}
+                      className="flex items-center text-sm font-semibold text-red-700 dark:text-red-300 gap-3 cursor-pointer hover:underline transition-all"
+                    >
                       <span className="w-4 text-center">{idx + 1}</span>
                       <span className="text-red-300 dark:text-red-500">-</span>
                       <span className="truncate flex-1" title={student.student_name}>{student.student_name}</span>
@@ -938,6 +691,23 @@ Please provide:
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AiDateFilterModal
+        isOpen={isAiModalOpen}
+        onClose={() => {
+          setIsAiModalOpen(false);
+          setSelectedGroupForAi(null);
+        }}
+        title={selectedGroupForAi ? `AI Analysis: ${selectedGroupForAi.name}` : "Overall Analytics AI Report"}
+        subtitle={selectedGroupForAi ? `Select date window for group "${selectedGroupForAi.name}"` : "Select date window for overall counselor performance analysis"}
+        strategy="COUNSELLOR_ANALYTICS"
+        entityParams={{
+          userId: userDetails?.user_id,
+          counsellorName: userDetails?.name || 'Counsellor',
+          group: selectedGroupForAi,
+          contextName: selectedGroupForAi ? `Group "${selectedGroupForAi.name}" Analysis` : "All Groups Analysis"
+        }}
+      />
 
       <CounsellorBottomNavigation />
 

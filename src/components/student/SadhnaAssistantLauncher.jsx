@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Mic } from 'lucide-react';
 import SadhnaAssistant from '../../sadhna-assistant/SadhnaAssistant';
 import { RealSadhnaGptAdapter } from '../../sadhna-assistant/adapters/RealSadhnaGptAdapter';
+import { emitSadhnaActivityUpdated } from '../../utils/sadhnaEvents';
 
 /**
  * Floating launcher for the SadhnaAssistant chat widget — a single, big,
@@ -19,6 +20,11 @@ const SadhnaAssistantLauncher = () => {
   // Created once and reused for the lifetime of this component so the chat
   // doesn't lose its adapter identity (and re-fetch everything) on re-render.
   const adapter = useMemo(() => new RealSadhnaGptAdapter(), []);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    emitSadhnaActivityUpdated({ trigger: 'modal_close' });
+  };
 
   // PWA: the installed app's manifest start_url is
   // "/student/dashboard?assistant=open" so launching the installed app
@@ -59,7 +65,7 @@ const SadhnaAssistantLauncher = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(e) => {
-              if (e.target === e.currentTarget) setIsOpen(false);
+              if (e.target === e.currentTarget) handleClose();
             }}
           >
             <motion.div
@@ -71,7 +77,7 @@ const SadhnaAssistantLauncher = () => {
             >
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 aria-label="Close Sadhna Assistant"
                 className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-[#0f172a]"
               >

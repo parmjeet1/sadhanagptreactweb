@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
-import AiAnalysisModals from '../../../components/AiAnalysis/AiAnalysisModals';
+import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 import { getRequest, postRequest, deleteRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
 import CustomActivitiesPage from '../activites/custom-activities/addActivityPage';
@@ -158,127 +158,12 @@ const GroupMenteesList = () => {
 
   const SELECTION_LIMIT = 50;
 
-  const handleSubgroupAiAnalysis = async (subgroupName, studentList) => {
-    if (!userDetails?.user_id) return;
+  const [selectedSubgroupForAi, setSelectedSubgroupForAi] = useState(null);
 
-    const newWin = window.open('about:blank', '_blank');
-    if (newWin) {
-      newWin.document.write('<div style="font-family:sans-serif;padding:40px;text-align:center;color:#1e293b;"><h2>Generating AI Analysis...</h2><p>Gathering 30-day sadhana data for <b>' + (subgroupName || 'Subgroup') + '</b></p></div>');
-      newWin.document.close();
-    }
-
-    showSuccess(`Preparing 30-day AI report for "${subgroupName}"...`);
-
-    try {
-      let studentsToAnalyze = studentList ? [...studentList] : [];
-      const isUncategorized = (subgroupName || '').toLowerCase().includes('uncategorized');
-
-      if (isUncategorized && studentsToAnalyze.length === 0) {
-        const uncategorizedRes = await getAsyncRequest('/student-list', {
-          user_id: userDetails.user_id,
-          page_no: 1,
-          limit: 100,
-          rowSelected: 100,
-          center_id: centerId,
-          categroy: 'un-categorized'
-        });
-        const rawArr = Array.isArray(uncategorizedRes?.data) ? uncategorizedRes.data : (uncategorizedRes?.data?.data || []);
-        studentsToAnalyze = rawArr.map(s => ({
-          id: s.user_id,
-          user_id: s.user_id,
-          name: s.name,
-          subgroup: 'Uncategorized'
-        }));
-      }
-
-      if (studentsToAnalyze.length === 0) {
-        let promptText = `Please provide an in-depth AI Analysis of spiritual sadhana performance for Category/Subgroup: "${subgroupName}" in Group: "${groupName || 'Group'}".\n\nNo students currently in this category.`;
-        const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
-        if (newWin && !newWin.closed) newWin.location.replace(chatGptUrl);
-        else window.open(chatGptUrl, '_blank');
-        return;
-      }
-
-      const studentDataPromises = studentsToAnalyze.map(async (student) => {
-        const studentId = student.id || student.user_id;
-        let activitiesSummary = [];
-
-        if (studentId) {
-          try {
-            let analyticsRes = await getAsyncRequest('/student-details', {
-              user_id: userDetails.user_id,
-              student_id: studentId,
-              filter: '30days'
-            });
-
-            let dataObj = analyticsRes?.data || analyticsRes;
-            let payloadArray = [];
-            if (Array.isArray(dataObj)) payloadArray = dataObj;
-            else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-            else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-
-            if (payloadArray.length === 0) {
-              analyticsRes = await getAsyncRequest('/student-activities-analytics', {
-                user_id: studentId,
-                filter: '30days'
-              });
-              dataObj = analyticsRes?.data || analyticsRes;
-              if (Array.isArray(dataObj)) payloadArray = dataObj;
-              else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-              else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-            }
-
-            activitiesSummary = payloadArray.map(act => formatActivityMetric(act));
-          } catch (e) {
-            console.error(`Error fetching 30-day sadhana for ${student.name}:`, e);
-          }
-        }
-
-        return {
-          name: student.name || 'Student',
-          subgroup: subgroupName,
-          activities: activitiesSummary
-        };
-      });
-
-      const students30DayData = await Promise.all(studentDataPromises);
-
-      let promptText = `Please provide an in-depth AI Analysis of spiritual sadhana performance over the LAST 30 DAYS for Subgroup/Category: "${subgroupName}" in Group: "${groupName || 'Group'}".\n\n`;
-      promptText += `Overview:\n`;
-      promptText += `- Group Name: ${groupName || 'Group'}\n`;
-      promptText += `- Subgroup / Category: ${subgroupName}\n`;
-      promptText += `- Total Members: ${studentsToAnalyze.length}\n\n`;
-      promptText += `Students' 30-Day Sadhana Performance Data:\n`;
-
-      students30DayData.forEach((st, idx) => {
-        promptText += `${idx + 1}. Student: ${st.name}\n`;
-        if (st.activities.length > 0) {
-          st.activities.forEach(actStr => {
-            promptText += `   - ${actStr}\n`;
-          });
-        } else {
-          promptText += `   - No sadhana report logged in the last 30 days\n`;
-        }
-      });
-
-      promptText += `\nRequested Insights:\n`;
-      promptText += `1. Comprehensive evaluation of 30-day sadhana performance across all students in "${subgroupName}".\n`;
-      promptText += `2. Highlight top consistent performers and flag students requiring mentorship/follow-up.\n`;
-      promptText += `3. Provide actionable recommendations for the counsellor to improve sadhana participation and spiritual discipline.`;
-
-      const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
-
-      if (newWin && !newWin.closed) {
-        newWin.location.replace(chatGptUrl);
-      } else {
-        window.open(chatGptUrl, '_blank');
-      }
-
-    } catch (err) {
-      console.error("Error generating subgroup AI analysis:", err);
-      if (newWin && !newWin.closed) newWin.close();
-      showError("Failed to generate AI analysis");
-    }
+  const handleSubgroupAiAnalysis = (subgroupName, studentList) => {
+    setSelectedSubgroupForAi({ name: subgroupName, students: studentList || [] });
+    setAiAnalysisStudents(studentList || []);
+    setIsAiAnalysisModalOpen(true);
   };
 
 
@@ -1015,11 +900,32 @@ const GroupMenteesList = () => {
           </motion.div>
         )}
 
-        <AiAnalysisModals
+        <AiDateFilterModal
           isOpen={isAiAnalysisModalOpen}
-          onClose={() => setIsAiAnalysisModalOpen(false)}
-          students={students.filter(s => selectedStudents.includes(s.id))}
-          userDetails={userDetails}
+          onClose={() => {
+            setIsAiAnalysisModalOpen(false);
+            setSelectedSubgroupForAi(null);
+            setAiAnalysisStudents([]);
+          }}
+          title={
+            selectedSubgroupForAi 
+              ? `AI Analysis: ${selectedSubgroupForAi.name}`
+              : (aiAnalysisStudents.length > 0 
+                ? `AI Analysis (${aiAnalysisStudents.length} Mentees)`
+                : "Group Mentees AI Analysis")
+          }
+          subtitle={
+            selectedSubgroupForAi 
+              ? `Select date window for subgroup "${selectedSubgroupForAi.name}"`
+              : "Select date window to generate ChatGPT prompt"
+          }
+          strategy="BULK_MENTEES"
+          entityParams={{
+            studentIds: aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+            fallbackStudents: aiAnalysisStudents,
+            userId: userDetails?.user_id,
+            contextName: selectedSubgroupForAi ? `Subgroup "${selectedSubgroupForAi.name}" Analysis` : "Group Mentees Analysis"
+          }}
         />
 
         {isBulkAssignOpen && (
@@ -1681,11 +1587,32 @@ const GroupMenteesList = () => {
         )}
       </AnimatePresence>
 
-      <AiAnalysisModals
+      <AiDateFilterModal
         isOpen={isAiAnalysisModalOpen}
-        onClose={() => setIsAiAnalysisModalOpen(false)}
-        students={aiAnalysisStudents}
-        userDetails={userDetails}
+        onClose={() => {
+          setIsAiAnalysisModalOpen(false);
+          setSelectedSubgroupForAi(null);
+          setAiAnalysisStudents([]);
+        }}
+        title={
+          selectedSubgroupForAi 
+            ? `AI Analysis: ${selectedSubgroupForAi.name}`
+            : (aiAnalysisStudents.length > 0 
+              ? `AI Analysis (${aiAnalysisStudents.length} Mentees)`
+              : "Group Mentees AI Analysis")
+        }
+        subtitle={
+          selectedSubgroupForAi 
+            ? `Select date window for subgroup "${selectedSubgroupForAi.name}"`
+            : "Select date window to generate ChatGPT prompt"
+        }
+        strategy="BULK_MENTEES"
+        entityParams={{
+          studentIds: aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+          fallbackStudents: aiAnalysisStudents,
+          userId: userDetails?.user_id,
+          contextName: selectedSubgroupForAi ? `Subgroup "${selectedSubgroupForAi.name}" Analysis` : "Group Mentees Analysis"
+        }}
       />
 
       <CounsellorBottomNavigation />

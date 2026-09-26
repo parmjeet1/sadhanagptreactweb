@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation, useOutletContext } from 'react-rou
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest } from '../../../services/api';
+import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 
 // --- Premium Chart Helpers (same as PersonalSadhanaAnalytics) ---
 const timeToMinutes = (timeStr) => {
@@ -211,6 +212,7 @@ const StudentReport = () => {
   const [notificationDesc, setNotificationDesc] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const showToast = (msg) => { setToastMessage(msg); setTimeout(() => setToastMessage(''), 3000); };
 
@@ -302,9 +304,9 @@ const StudentReport = () => {
         <button onClick={() => navigate(-1)}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></button>
         <h1 className="font-black text-lg">Mentee Report</h1>
         <button
-          onClick={handleMenteeAiAnalysis}
+          onClick={() => setIsAiModalOpen(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all"
-          title="30-Day AI Sadhana Analysis"
+          title="AI Sadhana Analysis"
         >
           <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           <span>AI Analysis</span>
@@ -318,11 +320,11 @@ const StudentReport = () => {
           <p className="text-blue-500 font-bold text-sm mt-1 mb-3">{studentInfo.center_name || 'No Group'} • {studentInfo.label_name || 'No Label'}</p>
 
           <button
-            onClick={handleMenteeAiAnalysis}
+            onClick={() => setIsAiModalOpen(true)}
             className="mb-5 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
           >
             <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            <span>30-Day AI Analysis</span>
+            <span>AI Sadhana Analysis</span>
           </button>
 
           <div className="grid grid-cols-3 gap-2 w-full">
@@ -381,7 +383,7 @@ const StudentReport = () => {
 
       {/* Bottom Action Bar */}
       <div className="fixed bottom-[80px] left-0 right-0 px-6 py-4 max-w-md mx-auto bg-white/80 backdrop-blur-md flex gap-2 z-40">
-        <button onClick={handleMenteeAiAnalysis} className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+        <button onClick={() => setIsAiModalOpen(true)} className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
           <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           AI Analysis
         </button>
@@ -409,6 +411,20 @@ const StudentReport = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AiDateFilterModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        title="AI Mentee Analysis"
+        subtitle={`Analyze Sadhana performance for ${studentInfo.name || 'Mentee'}`}
+        strategy="SINGLE_STUDENT"
+        entityParams={{
+          userId: userDetails?.user_id,
+          studentId: id,
+          studentName: studentInfo.name || 'Mentee'
+        }}
+      />
+
       <CounsellorBottomNavigation />
     </div>
   );

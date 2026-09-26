@@ -326,8 +326,8 @@ const StudentDashboard = () => {
   useEffect(() => {
     const onAssistantUpdate = () => {
       if (!userDetails?.user_id) return;
+      fetchActivities();
       const activeDateObj = dates?.find((d) => d.active)?.fullDate || new Date();
-      fetchDailyReport(activeDateObj, null, true);
       fetchDailyScore(activeDateObj, true);
     };
     window.addEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);

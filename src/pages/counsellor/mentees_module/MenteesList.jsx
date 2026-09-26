@@ -5,6 +5,7 @@ import CounsellorBottomNavigation from '../../../components/counsellor/Counsello
 import { getRequest, postRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
 import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
+import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 
 const MenteesList = () => {
   const navigate = useNavigate();
@@ -393,30 +394,18 @@ Please provide:
           </motion.div>
         )}
 
-        {isAiAnalysisModalOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center">
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} className="bg-white w-full max-w-md p-10 rounded-t-[48px]">
-               <h2 className="text-2xl font-black mb-2">AI Analysis Setup</h2>
-               <p className="text-gray-400 font-bold mb-6">Analyzing {selectedStudents.length} students</p>
-               
-               <div className="flex gap-2 overflow-x-auto pb-4 mb-6 hide-scrollbar">
-                  {students.filter(s => selectedStudents.includes(s.id)).map(s => (
-                    <div key={s.id} className="flex flex-col items-center min-w-[60px]">
-                      <img src={s.avatar} className="w-10 h-10 rounded-full border border-gray-100" />
-                      <span className="text-[10px] font-bold mt-1 text-gray-400 truncate w-full text-center">{s.name.split(' ')[0]}</span>
-                    </div>
-                  ))}
-               </div>
-
-               <div className="space-y-6">
-                  <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date From</label><input type="date" value={aiDateFrom} onChange={e=>setAiDateFrom(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl font-bold" /></div>
-                  <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Date To</label><input type="date" value={aiDateTo} onChange={e=>setAiDateTo(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl font-bold" /></div>
-                  <button onClick={handleAiAnalysis} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Generate AI Insights</button>
-                  <button onClick={()=>setIsAiAnalysisModalOpen(false)} className="w-full py-4 text-gray-400 font-bold">Close</button>
-               </div>
-            </motion.div>
-          </motion.div>
-        )}
+        <AiDateFilterModal
+          isOpen={isAiAnalysisModalOpen}
+          onClose={() => setIsAiAnalysisModalOpen(false)}
+          title="AI Mentee Analysis"
+          subtitle={`Analyzing ${selectedStudents.length} selected mentees`}
+          strategy="BULK_MENTEES"
+          entityParams={{
+            studentIds: selectedStudents,
+            fallbackStudents: students.filter(s => selectedStudents.includes(s.id)),
+            userId: userDetails?.user_id
+          }}
+        />
 
         {isBulkAssignOpen && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setIsBulkAssignOpen(false)}>

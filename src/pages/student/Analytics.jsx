@@ -4,6 +4,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
+import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
 
 // Helper to convert time string (05:00 AM) to numeric minutes for graphing
 const timeToMinutes = (timeStr) => {
@@ -449,6 +450,14 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchAnalytics();
+  }, [activeTab, fromDate, toDate, userDetails]);
+
+  useEffect(() => {
+    const onAssistantUpdate = () => {
+      fetchAnalytics();
+    };
+    window.addEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
+    return () => window.removeEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
   }, [activeTab, fromDate, toDate, userDetails]);
 
   return (

@@ -75,11 +75,12 @@ export class RealSadhnaGptAdapter extends SadhnaAdapter {
 
   async updateActivity(payload) {
     const result = await callPost("/assistant/activities/update", payload);
-    if (result.success) emitSadhnaActivityUpdated({ ...payload, date: "today" });
+    const isSuccess = result?.status === 1 || result?.success === true || result?.data?.status === 1 || result?.data?.success === true;
+    if (isSuccess) emitSadhnaActivityUpdated({ ...payload, date: "today" });
     return {
-      success: !!result.success,
-      record: result.record,
-      error: result.error,
+      success: isSuccess,
+      record: result?.data?.record || result?.record,
+      error: result?.error || result?.message,
     };
   }
 
@@ -89,16 +90,14 @@ export class RealSadhnaGptAdapter extends SadhnaAdapter {
 
   async updateActivityForDate(payload) {
     const result = await callPost("/assistant/activities/update-for-date", payload);
-    // The dashboard only ever shows "today" — only tell it to refetch when
-    // the chatbot actually wrote to today's date (a "kal"/particular-date
-    // save elsewhere doesn't change what's currently on screen).
-    if (result.success && payload?.date === todayISO()) {
+    const isSuccess = result?.status === 1 || result?.success === true || result?.data?.status === 1 || result?.data?.success === true;
+    if (isSuccess) {
       emitSadhnaActivityUpdated(payload);
     }
     return {
-      success: !!result.success,
-      record: result.record,
-      error: result.error,
+      success: isSuccess,
+      record: result?.data?.record || result?.record,
+      error: result?.error || result?.message,
     };
   }
 
