@@ -2,6 +2,15 @@ name: Deploy Frontend (Test)
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch to deploy"
+        required: true
+        default: "backup/all-work"
+
+concurrency:
+  group: deploy-frontend-test
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -10,25 +19,71 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: backup/all-work
+          ref: ${{ inputs.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_IMAGE_URL: ${{ vars.VITE_IMAGE_URL }}
+          VITE_GOOGLE_AUTH_URL: ${{ vars.VITE_GOOGLE_AUTH_URL }}
+          VITE_CALLBACK_URL: ${{ vars.VITE_CALLBACK_URL }}
+          VITE_AUTHORIZATION_KEY: ${{ vars.VITE_AUTHORIZATION_KEY }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
 
-      - name: Deploy dist to server
+      - name: Verify build
+        run: |
+          grep -q "test.sadhanagpt.com/api" dist/assets/*.js \
+            || { echo "API base URL missing in bundle"; exit 1; }
+          if grep -qE "AIza[0-9A-Za-z_-]{35}|sk-or-|GOCSPX-" dist/assets/*.js; then
+            echo "Secret key found in bundle"; exit 1
+          fi
+          echo "Build verified"
+
+      - name: Upload to staging folder
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEPLOY_TEST_HOST }}
           username: ubuntu
           key: ${{ secrets.DEPLOY_TEST_SSH_KEY }}
           source: "dist/*"
-          target: "/home/ubuntu/test-frontend/dist"
+          target: "/home/ubuntu/test-frontend/dist_new"
           strip_components: 1
+          rm: true
+
+      - name: Swap to live (atomic)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_TEST_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_TEST_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/test-frontend
+            rm -rf dist_old
+            if [ -d dist ]; then mv dist dist_old; fi
+            mv dist_new dist
+            echo "Deployed"
+
+      - name: Show live commit
+        run: |
+          {
+            echo "## Deployed to test.sadhanagpt.com"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Branch | \`${{ inputs.ref }}\` |"
+            echo "| Commit | \`$(git rev-parse --short HEAD)\` |"
+            echo "| Message | $(git log -1 --pretty=%s) |"
+            echo "| Author | $(git log -1 --pretty=%an) |"
+            echo "| Commit date | $(git log -1 --pretty=%cd --date=local) |"
+            echo "| Deployed at (UTC) | $(date -u '+%Y-%m-%d %H:%M:%S') |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
