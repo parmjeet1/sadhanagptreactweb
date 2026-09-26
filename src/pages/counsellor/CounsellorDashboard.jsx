@@ -92,12 +92,18 @@ const CounsellorDashboard = () => {
     const checkSubscription = async () => {
       if (!userDetails?.user_id) return;
       const cachedStatus = localStorage.getItem(`push_enabled_${userDetails.user_id}`);
-      if (cachedStatus !== null) {
-        setIsPushEnabled(cachedStatus === 'true');
+      if (cachedStatus === 'false') {
+        setIsPushEnabled(false);
+      } else if (cachedStatus === 'true') {
+        setIsPushEnabled(true);
       }
+
       getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
         const backendHasSub = response.data?.isSubscribed;
-        if (backendHasSub !== undefined) {
+        // If user explicitly disabled notifications locally, keep false
+        if (cachedStatus === 'false') {
+          setIsPushEnabled(false);
+        } else if (backendHasSub !== undefined) {
           setIsPushEnabled(Boolean(backendHasSub));
           localStorage.setItem(`push_enabled_${userDetails.user_id}`, Boolean(backendHasSub) ? 'true' : 'false');
         }

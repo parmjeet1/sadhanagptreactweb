@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
+import { openChatGPTWithPrompt } from '../../utils/chatGptUtils';
 
 const AIChat = () => {
     const navigate = useNavigate();
@@ -129,11 +130,9 @@ Analyze the student's activity data above and answer the user's prompt thoughtfu
         }]);
 
         // 4. Directly open ChatGPT app / web
-        const encodedPrompt = encodeURIComponent(`[Sadhana GPT Context Attached for ${studentName}]\nPrompt: ${messageText}`);
-        const chatGptUrl = `https://chatgpt.com/?q=${encodedPrompt}`;
-
+        const fullPromptText = `[Sadhana GPT Context Attached for ${studentName}]\nPrompt: ${messageText}`;
         setTimeout(() => {
-            window.open(chatGptUrl, '_blank');
+            openChatGPTWithPrompt(fullPromptText);
         }, 1000);
     };
 

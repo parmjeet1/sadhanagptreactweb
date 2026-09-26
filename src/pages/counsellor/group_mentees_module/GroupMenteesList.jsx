@@ -99,8 +99,48 @@ const GroupMenteesList = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { userDetails } = useOutletContext();
+  const stateCenterId = location.state?.centerId;
+  const stateGroupName = location.state?.groupName;
 
-  const { centerId, groupName } = location.state || { centerId: '', groupName: 'Group' };
+  const [centerId, setCenterId] = useState(
+    stateCenterId || (typeof window !== 'undefined' ? sessionStorage.getItem('last_center_id') || '' : '')
+  );
+  const [groupName, setGroupName] = useState(
+    stateGroupName || (typeof window !== 'undefined' ? sessionStorage.getItem('last_group_name') || 'Group' : 'Group')
+  );
+
+  useEffect(() => {
+    if (stateCenterId) {
+      setCenterId(stateCenterId);
+      try { sessionStorage.setItem('last_center_id', stateCenterId); } catch (e) {}
+    }
+    if (stateGroupName) {
+      setGroupName(stateGroupName);
+      try { sessionStorage.setItem('last_group_name', stateGroupName); } catch (e) {}
+    }
+  }, [stateCenterId, stateGroupName]);
+
+  // If page is refreshed directly without active centerId, load counselor's first group automatically
+  useEffect(() => {
+    if (!centerId && userDetails?.user_id) {
+      getRequest('/group-list', { user_id: userDetails.user_id }, (res) => {
+        const data = res?.data?.data || res?.data;
+        if (Array.isArray(data) && data.length > 0) {
+          const firstGroup = data[0];
+          const gId = firstGroup.id || firstGroup.center_id || '';
+          const gName = firstGroup.name || firstGroup.group_name || 'Group';
+          if (gId) {
+            setCenterId(gId);
+            setGroupName(gName);
+            try {
+              sessionStorage.setItem('last_center_id', gId);
+              sessionStorage.setItem('last_group_name', gName);
+            } catch (e) {}
+          }
+        }
+      });
+    }
+  }, [centerId, userDetails?.user_id]);
 
   const [students, setStudents] = useState([]);
   const [labels, setLabels] = useState([]);
@@ -149,6 +189,7 @@ const GroupMenteesList = () => {
   const [exportDuration, setExportDuration] = useState('7');
   const [exportStartDate, setExportStartDate] = useState('');
   const [exportEndDate, setExportEndDate] = useState('');
+  const [exportFormat, setExportFormat] = useState('EXCEL');
 
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [uncategorizedStudents, setUncategorizedStudents] = useState([]);
@@ -330,12 +371,13 @@ const GroupMenteesList = () => {
 
     const filename = `students_export_${durationLabel}_${new Date().getTime()}`;
 
-    if (format === 'Excel (.xls)') {
-      exportBulkReportsToExcel(exportData, `${filename}.xls`, startDate, endDate);
-    } else if (format === 'CSV (.csv)') {
+    const normalizedFmt = (format || '').toUpperCase();
+    if (normalizedFmt.includes('EXCEL') || normalizedFmt.includes('XLS')) {
+      await exportBulkReportsToExcel(exportData, `${filename}.xlsx`, startDate, endDate);
+    } else if (normalizedFmt.includes('CSV')) {
       exportBulkReportsToCSV(exportData, `${filename}.csv`, startDate, endDate);
-    } else if (format === 'Print PDF') {
-      exportBulkReportsToPDF(exportData, durationLabel, `${filename}.pdf`, startDate, endDate);
+    } else {
+      await exportBulkReportsToPDF(exportData, durationLabel, `${filename}.pdf`, startDate, endDate);
     }
 
     showSuccess('Export file generated successfully!');
@@ -1233,44 +1275,206 @@ const GroupMenteesList = () => {
             </motion.div>
           </motion.div>
         )}
-
         {isDownloadModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDownloadModalOpen(false)} className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
-            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <div className="flex flex-col gap-4 mb-8">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-black text-[#0f172a] dark:text-[#F8FAFC]">Export Students</h2>
-                  <select
-                    value={exportDuration}
-                    onChange={(e) => setExportDuration(e.target.value)}
-                    className="bg-gray-100 dark:bg-[#1E293B] text-gray-700 dark:text-[#F8FAFC] font-bold px-3 py-1.5 rounded-lg text-sm outline-none cursor-pointer border border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-                  >
-                    <option value="7">Last 7 Days</option>
-                    <option value="30">Last 30 Days</option>
-                    <option value="90">Last 90 Days</option>
-                    <option value="all">All Time</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                {exportDuration === 'custom' && (
-                  <div className="flex gap-2 items-center text-sm font-bold bg-gray-50 dark:bg-[#1E293B] p-3 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} className="w-full bg-transparent outline-none dark:text-white dark:[color-scheme:dark]" />
-                    <span className="text-gray-400">to</span>
-                    <input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} className="w-full bg-transparent outline-none dark:text-white dark:[color-scheme:dark]" />
-                  </div>
-                )}
+          <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+            {/* Dark Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDownloadModalOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[98]"
+            />
+
+            {/* Bottom Sheet Modal */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md mx-auto bg-white dark:bg-[#0F172A] rounded-t-[32px] sm:rounded-t-[32px] shadow-2xl z-[99] flex flex-col overflow-hidden max-h-[85vh]"
+            >
+              {/* Top Drag Handle */}
+              <div
+                className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0F172A] z-10 cursor-pointer"
+                onClick={() => setIsDownloadModalOpen(false)}
+              >
+                <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
               </div>
-              <div className="space-y-3">
-                {['Excel (.xls)', 'CSV (.csv)', 'Print PDF'].map(f => (
-                  <button key={f} onClick={() => handleExport(f)} className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold flex items-center justify-between group hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-                    <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400">{f}</span>
-                    <svg className="w-5 h-5 text-gray-400 dark:text-[#94A3B8]" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9V3.5L18.5,9H13Z" /></svg>
+
+              <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
+                {/* Header Section */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white tracking-tight leading-snug">
+                        Export Students
+                      </h2>
+                      <p className="text-[12px] font-medium text-gray-500 dark:text-slate-400 leading-tight mt-0.5">
+                        Choose file format and date range to export selected student data.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsDownloadModalOpen(false)}
+                    className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 active:scale-95 transition-all"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
-                ))}
-                <button onClick={() => setIsDownloadModalOpen(false)} className="w-full py-6 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Close</button>
+                </div>
+
+                {/* Select Date Range Section */}
+                <div className="space-y-2">
+                  <label className="text-[15px] font-extrabold text-[#0f172a] dark:text-white block">
+                    Select Date Range
+                  </label>
+
+                  {/* Preset Buttons */}
+                  <div className="flex items-center gap-2">
+                    {[
+                      { id: '7', label: '7 Days' },
+                      { id: '30', label: '30 Days' },
+                      { id: 'custom', label: 'Custom' }
+                    ].map((opt) => {
+                      const isSelected = exportDuration === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setExportDuration(opt.id)}
+                          className={`flex-1 py-2.5 px-3 rounded-xl text-[13px] font-bold transition-all ${isSelected
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Date Inputs */}
+                  {exportDuration === 'custom' && (
+                    <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 grid grid-cols-2 gap-3 pt-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase mb-1">From Date</label>
+                        <input
+                          type="date"
+                          value={exportStartDate}
+                          onChange={e => setExportStartDate(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-900 text-[#0f172a] dark:text-white font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 dark:border-slate-700 focus:border-blue-600 transition-all cursor-pointer dark:[color-scheme:dark]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-400 dark:text-slate-400 uppercase mb-1">To Date</label>
+                        <input
+                          type="date"
+                          value={exportEndDate}
+                          onChange={e => setExportEndDate(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-900 text-[#0f172a] dark:text-white font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 dark:border-slate-700 focus:border-blue-600 transition-all cursor-pointer dark:[color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[12px] font-medium text-gray-400 dark:text-slate-400">
+                    Select the date range for student records.
+                  </p>
+                </div>
+
+                {/* Choose File Format Section */}
+                <div className="space-y-2">
+                  <label className="text-[15px] font-extrabold text-[#0f172a] dark:text-white block">
+                    Choose File Format
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Excel Option */}
+                    <button
+                      type="button"
+                      onClick={() => setExportFormat('EXCEL')}
+                      className={`relative flex flex-col justify-between p-4 rounded-2xl border-2 text-left transition-all ${exportFormat === 'EXCEL'
+                        ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 shadow-sm'
+                        : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between w-full mb-3">
+                        <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
+                          X
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'EXCEL' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
+                          {exportFormat === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-[14px] text-[#0f172a] dark:text-white">Excel (.xlsx)</h4>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-400 font-medium leading-tight mt-1">
+                          Best for data analysis and further processing.
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* PDF Option */}
+                    <button
+                      type="button"
+                      onClick={() => setExportFormat('PDF')}
+                      className={`relative flex flex-col justify-between p-4 rounded-2xl border-2 text-left transition-all ${exportFormat === 'PDF'
+                        ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 shadow-sm'
+                        : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between w-full mb-3">
+                        <div className="w-11 h-11 rounded-xl bg-rose-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+                          PDF
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'PDF' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
+                          {exportFormat === 'PDF' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-[14px] text-[#0f172a] dark:text-white">PDF (.pdf)</h4>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-400 font-medium leading-tight mt-1">
+                          Best for printing and sharing.
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsDownloadModalOpen(false)}
+                    className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-extrabold text-[15px] rounded-2xl transition-all active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExport(exportFormat === 'EXCEL' ? 'Excel (.xls)' : 'Print PDF')}
+                    className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-[15px] rounded-2xl transition-all active:scale-[0.98] shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Export</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
 
         {isGroupActionMenuOpen && (

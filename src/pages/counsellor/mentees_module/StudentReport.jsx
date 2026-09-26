@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation, useOutletContext } from 'react-rou
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest } from '../../../services/api';
-import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
+import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
 
 // --- Premium Chart Helpers (same as PersonalSadhanaAnalytics) ---
 const timeToMinutes = (timeStr) => {
@@ -262,12 +262,7 @@ const StudentReport = () => {
         promptText += `No activity data recorded in the last 30 days for student ${studentName}. Please provide general guidance on how a spiritual counsellor should guide this mentee to establish a regular daily sadhana routine.`;
       }
 
-      const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
-      if (newWin) {
-        newWin.location.href = chatGptUrl;
-      } else {
-        window.open(chatGptUrl, '_blank');
-      }
+      openChatGPTWithPrompt(promptText, newWin);
     };
 
     try {

@@ -20,6 +20,11 @@ const NotificationReminderSection = ({
     setIsPushEnabled(true);
     if (userDetails?.user_id) {
       localStorage.setItem(`push_enabled_${userDetails.user_id}`, 'true');
+      postRequest('/update-reminder-preferences', {
+        user_id: userDetails.user_id,
+        reminder_enabled: true,
+        reminder_status: 1
+      }, () => {});
     }
     setShowEnableModal(false);
 
@@ -96,6 +101,15 @@ const NotificationReminderSection = ({
     setIsPushEnabled(false);
     if (userDetails?.user_id) {
       localStorage.setItem(`push_enabled_${userDetails.user_id}`, 'false');
+      postRequest('/update-reminder-preferences', {
+        user_id: userDetails.user_id,
+        reminder_enabled: false,
+        reminder_status: 0
+      }, () => {});
+
+      postRequest('/notifications-unsubscribe', {
+        user_id: userDetails.user_id
+      }, () => {});
     }
     setShowDisableModal(false);
 

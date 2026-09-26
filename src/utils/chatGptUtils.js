@@ -3,13 +3,20 @@
  * so it automatically submits into the ChatGPT chat thread and clears the input box.
  */
 export const openChatGPTWithPrompt = (fullPrompt, newWin = null) => {
+  // Copy full prompt to clipboard automatically so user has it ready if needed
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(fullPrompt).catch(() => {});
+    }
+  } catch (e) {}
+
   // Ensure prompt fits smoothly in query parameter (URL limit ~7500 chars)
   let promptForUrl = fullPrompt;
   if (promptForUrl.length > 7000) {
     promptForUrl = promptForUrl.substring(0, 7000) + "\n\n[Data formatted for direct ChatGPT chat input]";
   }
 
-  // Open ChatGPT with hints=search to auto-submit and clear the input textarea
+  // Open ChatGPT with hints=search parameter for auto-submission
   const chatGptUrl = `https://chatgpt.com/?hints=search&q=${encodeURIComponent(promptForUrl)}`;
 
   if (newWin && !newWin.closed) {
