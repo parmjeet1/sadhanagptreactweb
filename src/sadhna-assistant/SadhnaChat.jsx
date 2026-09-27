@@ -738,12 +738,28 @@ export function SadhnaChat({ adapter }) {
       }
     }
 
-    if (result.intent === "clarification_required" && result.clarification) {
+    // Both "clarification_required" and "unrecognized" can carry a real,
+    // AI-crafted `clarification` message by the time we get here (the
+    // backend always attempts the GPT-5 nano fallback once the fast local
+    // pass finds nothing, and fills in a helpful default message either
+    // way) — show it either way instead of only for "clarification_required",
+    // which was silently discarding that message for a plain "unrecognized"
+    // result and showing a generic line instead.
+    if (result.clarification) {
       pushBot(`🙏 ${result.clarification}`, "welcome");
-      return;
+    } else {
+      pushBot("🙏 I couldn't quite understand that — you can also use the menu below.", "welcome");
     }
 
-    pushBot("🙏 I couldn't quite understand that — you can also use the menu below.", "welcome");
+    // Give the user an explicit way to force a fresh AI look at the exact
+    // same message — mainly useful when the automatic AI fallback above hit
+    // a transient hiccup (network blip, a momentary API error) rather than
+    // genuinely being unable to relate the message to any activity. Skipped
+    // when THIS call was already a forced AI re-check, so a second AI
+    // attempt that still comes up empty doesn't just offer itself again.
+    if (!forceAI) {
+      pushBlock({ kind: "askAiRetry", text });
+    }
   };
 
   const handleNaturalLanguage = async (text) => {
@@ -872,6 +888,7 @@ export function SadhnaChat({ adapter }) {
             onNlConfirm={() => handleNlConfirm(block.id, block.updates, block.date)}
             onNlCorrect={() => handleNlCorrect(block.id)}
             onNlAskAI={() => handleNlAskAI(block.id, block.sourceText)}
+            onAskAiRetry={() => handleNlAskAI(block.id, block.text)}
             onDateSubmenuSelect={(v) => handleDateSubmenuSelect(block.id, v)}
             onDatePickerConfirm={(dateISO) => handleDatePickerConfirm(block.id, dateISO)}
             onDateRangeConfirm={(startISO, endISO) => handleDateRangeConfirm(block.id, startISO, endISO)}
@@ -912,6 +929,7 @@ function BlockRenderer({
   onNlConfirm,
   onNlCorrect,
   onNlAskAI,
+  onAskAiRetry,
   onDateSubmenuSelect,
   onDatePickerConfirm,
   onDateRangeConfirm,
@@ -1035,6 +1053,14 @@ function BlockRenderer({
               </span>
             </div>
           ))}
+        </div>
+      );
+
+    case "askAiRetry":
+      if (block.resolved) return null;
+      return (
+        <div className="mt-1">
+          <SecondaryButton onClick={onAskAiRetry}>🤖 Ask AI to take a closer look</SecondaryButton>
         </div>
       );
 
