@@ -4,6 +4,8 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest } from '../../services/api';
+import AiDateFilterModal from '../../components/AiAnalysis/AiDateFilterModal';
+import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
 
 // Helper to convert time string (05:00 AM) to numeric minutes for graphing
 const timeToMinutes = (timeStr) => {
@@ -344,6 +346,7 @@ const PersonalSadhanaAnalytics = () => {
   const [toDate, setToDate] = useState(todayDate);
   const [activitiesData, setActivitiesData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   const tabs = ['Weekly', '30 Days', 'Custom'];
   
@@ -441,6 +444,14 @@ const PersonalSadhanaAnalytics = () => {
     fetchAnalytics();
   }, [activeTab, fromDate, toDate, userDetails]);
 
+  useEffect(() => {
+    const onAssistantUpdate = () => {
+      fetchAnalytics();
+    };
+    window.addEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
+    return () => window.removeEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
+  }, [activeTab, fromDate, toDate, userDetails]);
+
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-28 relative overflow-x-hidden">
       <div className="w-full max-w-md mx-auto">
@@ -457,41 +468,7 @@ const PersonalSadhanaAnalytics = () => {
           <div className="flex flex-col items-center">
             <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight mt-1">My Sadhana</h1>
             <button
-              onClick={() => {
-                if (!userDetails?.user_id) return;
-
-                const openGpt = (dataArray) => {
-                  let promptText = `Please analyze my spiritual sadhana performance analytics for the LAST 30 DAYS for counsellor ${userDetails?.name || ''}.\n\n`;
-
-                  if (dataArray && dataArray.length > 0) {
-                    promptText += `Last 30 Days Activities Data:\n`;
-                    dataArray.forEach(act => {
-                      promptText += `- ${formatActivityMetric(act)}\n`;
-                    });
-                    promptText += `\nPlease provide a detailed evaluation of my 30-day consistency, areas of strength, weaknesses, and actionable guidance to improve my daily spiritual sadhana routine.`;
-                  } else {
-                    promptText += `Please provide insights and recommendations on how I can improve my daily spiritual sadhana routine, time management, and consistency over the last 30 days.`;
-                  }
-
-                  const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(promptText)}`;
-                  window.open(chatGptUrl, '_blank');
-                };
-
-                getRequest('/student-activities-analytics', { user_id: userDetails.user_id, filter: '30days' }, (response) => {
-                  const res = response?.data;
-                  const dataObj = res?.data || res;
-                  let payloadArray = [];
-
-                  if (Array.isArray(dataObj)) payloadArray = dataObj;
-                  else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-                  else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-
-                  openGpt(payloadArray);
-                }, (err) => {
-                  console.error("Error fetching 30 days analytics for ChatGPT:", err);
-                  openGpt(activitiesData);
-                });
-              }}
+              onClick={() => setIsAiModalOpen(true)}
               className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
@@ -632,6 +609,18 @@ const PersonalSadhanaAnalytics = () => {
       {/* Overlays */}
       <NotificationsPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
       
+      <AiDateFilterModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        title="Personal Sadhana Analysis"
+        subtitle="Analyze your personal Sadhana performance with ChatGPT"
+        strategy="PERSONAL_SADHANA"
+        entityParams={{
+          userId: userDetails?.user_id,
+          counsellorName: userDetails?.name || 'Counsellor'
+        }}
+      />
+
       <CounsellorBottomNavigation />
     </div>
   );

@@ -112,11 +112,19 @@ const StudentRanksList = () => {
 
         <div className="px-2">
           {students.map((student, idx) => (
-            <div key={`${student.id}-${idx}`} className="flex items-center px-4 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+            <div 
+              key={`${student.id}-${idx}`} 
+              onClick={() => navigate(`/counsellor/mentee/${student.id}`, { state: { student } })} 
+              className="flex items-center px-4 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer group"
+            >
               <span className="w-8 text-center font-bold text-gray-400">{idx + 1}</span>
-              <img src={student.avatar} className="w-12 h-12 rounded-full mr-4 border border-gray-100" />
+              <img 
+                src={student.avatar} 
+                className="w-12 h-12 rounded-full mr-4 border border-gray-100 group-hover:scale-105 transition-transform" 
+                alt={student.name}
+              />
               <div className="flex-1">
-                <h3 className="font-bold text-[16px] text-[#0f172a]">{student.name}</h3>
+                <h3 className="font-bold text-[16px] text-[#0f172a] group-hover:text-blue-600 transition-colors">{student.name}</h3>
                 <p className={`text-[12px] font-extrabold ${type === 'bottom' ? 'text-red-500' : 'text-blue-500'}`}>
                   {student.label}
                 </p>
