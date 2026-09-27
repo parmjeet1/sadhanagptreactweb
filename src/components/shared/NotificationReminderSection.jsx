@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { postRequest } from '../../services/api';
+
+const dismissedKey = (userId) => `notif_prompt_dismissed_${userId}`;
 
 const NotificationReminderSection = ({
   isPushEnabled,
@@ -12,9 +14,65 @@ const NotificationReminderSection = ({
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Guards the auto-popup so it only ever tries once per mount (i.e. once
+  // per dashboard visit) — without this, isPushEnabled flipping between its
+  // optimistic default and the real backend-checked value would fire it
+  // more than once.
+  const autoPromptedRef = useRef(false);
+
+  // Auto-popup: previously this "Enable Reminders" modal only ever opened
+  // when the user clicked the "Enable" button on the status card below —
+  // there was no prompt shown automatically when the dashboard opened, even
+  // though that's the actual point of a reminder feature (a user who never
+  // notices/clicks the card never gets asked at all). This effect opens it
+  // once, shortly after the dashboard mounts, whenever reminders are
+  // currently off — unless the user previously ticked "Don't show again"
+  // (persisted per-user below) or has already explicitly blocked
+  // notifications at the browser level (Notification.permission === 'denied'
+  // — re-showing our own modal in that case would just lead to a dead end,
+  // since the browser won't show its own permission prompt again either).
+  useEffect(() => {
+    if (autoPromptedRef.current) return;
+    if (!userDetails?.user_id) return;
+    if (isPushEnabled) return;
+
+    const dismissed = (() => {
+      try {
+        return localStorage.getItem(dismissedKey(userDetails.user_id)) === 'true';
+      } catch (e) {
+        return false;
+      }
+    })();
+    if (dismissed) return;
+
+    const browserBlocked =
+      typeof Notification !== 'undefined' && Notification.permission === 'denied';
+    if (browserBlocked) return;
+
+    autoPromptedRef.current = true;
+    const timer = setTimeout(() => setShowEnableModal(true), 900);
+    return () => clearTimeout(timer);
+  }, [isPushEnabled, userDetails?.user_id]);
+
+  // Persists the "Don't show again" choice so the auto-popup above stops
+  // nagging this user on future visits — previously this checkbox updated
+  // local state only and was never actually read or saved anywhere.
+  const persistDismissalIfChecked = () => {
+    if (dontShowAgain && userDetails?.user_id) {
+      try {
+        localStorage.setItem(dismissedKey(userDetails.user_id), 'true');
+      } catch (e) { /* ignore storage errors (private browsing, quota, ...) */ }
+    }
+  };
+
+  const handleCloseEnableModal = () => {
+    persistDismissalIfChecked();
+    setShowEnableModal(false);
+  };
 
   // Helper to handle enabling notifications
   const handleEnableNotifications = async () => {
+    persistDismissalIfChecked();
     setIsSubmitting(true);
     // Synchronously update UI and local storage
     setIsPushEnabled(true);
@@ -202,7 +260,7 @@ const NotificationReminderSection = ({
             >
               {/* Close Button */}
               <button
-                onClick={() => setShowEnableModal(false)}
+                onClick={handleCloseEnableModal}
                 className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1"
                 aria-label="Close"
               >
