@@ -140,8 +140,10 @@ Open `http://localhost:5173` in the browser.
 ## 📦 Environment Variables
 - Document any new env var in `.env.example` and update the **Environment Configuration** section of this `agent.md`.
 
-## 📚 Documentation Updates
-- Whenever a new route, component, or utility is added, immediately append a short entry to this `agent.md` so future agents have the latest conventions.
+## 📚 Documentation & Project Rules
+- **Changelog**: All recent changes are logged in [`CHANGELOG.md`](file:///d:/krsna%20kripa%20AI/reactweb/CHANGELOG.md).
+- **Project Standards**: Maintain UI preservation and centering rules in [`.agents/rules/project-standards.md`](file:///d:/krsna%20kripa%20AI/reactweb/.agents/rules/project-standards.md).
+- **Export & AI Rules**: Follow modal layout, date filtering, and ChatGPT prompt redirection rules in [`.agents/rules/export-and-ai-rules.md`](file:///d:/krsna%20kripa%20AI/reactweb/.agents/rules/export-and-ai-rules.md).
 
 ---
 
