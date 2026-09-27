@@ -11,6 +11,8 @@ import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
 import ThemeToggle from '../../components/shared/ThemeToggle';
+import InstallButton from '../../components/shared/InstallButton';
+import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
 
 import NotificationReminderSection from '../../components/shared/NotificationReminderSection';
 
@@ -90,12 +92,18 @@ const CounsellorDashboard = () => {
     const checkSubscription = async () => {
       if (!userDetails?.user_id) return;
       const cachedStatus = localStorage.getItem(`push_enabled_${userDetails.user_id}`);
-      if (cachedStatus !== null) {
-        setIsPushEnabled(cachedStatus === 'true');
+      if (cachedStatus === 'false') {
+        setIsPushEnabled(false);
+      } else if (cachedStatus === 'true') {
+        setIsPushEnabled(true);
       }
+
       getRequest('/check-push-status', { user_id: userDetails.user_id }, async (response) => {
         const backendHasSub = response.data?.isSubscribed;
-        if (backendHasSub !== undefined) {
+        // If user explicitly disabled notifications locally, keep false
+        if (cachedStatus === 'false') {
+          setIsPushEnabled(false);
+        } else if (backendHasSub !== undefined) {
           setIsPushEnabled(Boolean(backendHasSub));
           localStorage.setItem(`push_enabled_${userDetails.user_id}`, Boolean(backendHasSub) ? 'true' : 'false');
         }
@@ -317,6 +325,18 @@ const CounsellorDashboard = () => {
       fetchDailyScore();
     }
   }, [userDetails?.user_id]);
+
+  useEffect(() => {
+    const onAssistantUpdate = () => {
+      if (!userDetails?.user_id) return;
+      fetchActivities();
+      const activeDateObj = dates?.find((d) => d.active)?.fullDate || new Date();
+      fetchDailyScore(activeDateObj, true);
+    };
+    window.addEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
+    return () => window.removeEventListener(SADHNA_ACTIVITY_UPDATED, onAssistantUpdate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userDetails?.user_id, dates]);
   // 2. Generate dates logic...
   // Generate the last 30 days starting with 30 days ago, ending at Today
   useEffect(() => {
@@ -595,6 +615,7 @@ const CounsellorDashboard = () => {
                 </span>
               )}
             </button>
+            <InstallButton />
           </div>
         </div>
 

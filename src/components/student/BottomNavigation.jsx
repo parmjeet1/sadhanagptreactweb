@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import SadhnaAssistantLauncher from './SadhnaAssistantLauncher';
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -55,6 +56,7 @@ const BottomNavigation = () => {
 
   return (
     <div className="fixed bottom-0 w-full left-0 right-0 flex justify-center z-50">
+      <SadhnaAssistantLauncher />
       <div className="w-full max-w-md bg-white dark:bg-[#112240] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border-t border-gray-100 dark:border-slate-800 px-6 py-4 flex justify-between items-center transition-colors duration-300">
         {navItems.map((item) => {
           const active = isActive(item.path);
