@@ -87,3 +87,4 @@ jobs:
             echo "| Commit date | $(git log -1 --pretty=%cd --date=local) |"
             echo "| Deployed at (UTC) | $(date -u '+%Y-%m-%d %H:%M:%S') |"
           } | tee -a "$GITHUB_STEP_SUMMARY"
+

@@ -1,7 +1,7 @@
 // exportAnalytics.js
 // Keep this function compatible with the existing API response.
-// Rank remains subgroup-level. Average marks is normalized against the
-// applicable daily maximum returned by the backend marking-scheme pipeline.
+// Rank remains subgroup-level and average marks keeps the existing business rule:
+// total marks / all dates in the selected subgroup/date range.
 
 export const computeGroupExportAnalytics = (
   reportsData,
@@ -119,9 +119,6 @@ export const computeGroupExportAnalytics = (
         groupName,
         subgroup: subgroupName,
         totalMarks: 0,
-        totalMaxPossibleMarks: 0,
-        maxMarksKeys: new Set(),
-        markingSchemeId: d.marking_scheme_id ?? null,
         activityLogs: {},
         marksByDate: {},
         dailyMatrixByStudent: {},
@@ -130,30 +127,6 @@ export const computeGroupExportAnalytics = (
     }
 
     const st = sg.studentsMap[studentId];
-
-    // Maximum marks are accumulated once per reported activity/date.
-    // This avoids applying today's activity set to historical/all-time data.
-    const rowActivityMax = Number(d.activity_max_possible_marks);
-    if (
-      actDate !== "-" &&
-      actName !== "No Logged Activity" &&
-      Number.isFinite(rowActivityMax) &&
-      rowActivityMax > 0
-    ) {
-      const maxKey = `${actDate}::${d.activity_id ?? actName}`;
-      if (!st.maxMarksKeys.has(maxKey)) {
-        st.maxMarksKeys.add(maxKey);
-        st.totalMaxPossibleMarks += rowActivityMax;
-      }
-=======
-    const rowDailyMax = Number(d.daily_max_possible_marks);
-    if (Number.isFinite(rowDailyMax) && rowDailyMax > 0) {
-      st.dailyMaxPossibleMarks = rowDailyMax;
->>>>>>> main
-    }
-    if (d.marking_scheme_id !== undefined && d.marking_scheme_id !== null) {
-      st.markingSchemeId = d.marking_scheme_id;
-    }
 
     if (
       actMarks !== null &&
@@ -280,7 +253,7 @@ export const computeGroupExportAnalytics = (
               timeVals.length;
 
             activityAverages[actName] =
-              minsToClock(avgMins, /\b(?:AM|PM)\b/i.test(String(vals[0])));
+              minsToHHMM(avgMins);
             return;
           }
 
@@ -309,12 +282,8 @@ export const computeGroupExportAnalytics = (
               ? loggedDays
               : 1;
 
-        const totalMaxPossibleMarks = st.totalMaxPossibleMarks;
-
         const avgMarksNum =
-          totalMaxPossibleMarks > 0
-            ? (st.totalMarks / totalMaxPossibleMarks) * 100
-            : 0;
+          st.totalMarks / totalDaysCount;
 
         return {
           id: st.id,
@@ -325,9 +294,6 @@ export const computeGroupExportAnalytics = (
           activityAverages,
           dailyActivityData,
           totalMarks: st.totalMarks,
-          dailyMaxPossibleMarks: st.dailyMaxPossibleMarks,
-          totalMaxPossibleMarks,
-          markingSchemeId: st.markingSchemeId,
           marksByDate: st.marksByDate,
           loggedDays,
           avgMarks: Number(avgMarksNum.toFixed(2)),
@@ -407,37 +373,25 @@ export const computeGroupExportAnalytics = (
 function timeStrToMins(value) {
   if (typeof value !== "string") return null;
 
-  const str = value.trim().toUpperCase();
-  const match = str.match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\s*(AM|PM)?$/);
+  const match = value.trim().match(
+    /^(\d{1,3}):([0-5]\d)(?::([0-5]\d))?$/
+  );
+
   if (!match) return null;
 
-  let hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  const seconds = Number(match[3] || 0);
-  const meridiem = match[4];
-
-  if (meridiem) {
-    if (hours < 1 || hours > 12) return null;
-    if (meridiem === "PM" && hours < 12) hours += 12;
-    if (meridiem === "AM" && hours === 12) hours = 0;
-  } else if (hours > 23) {
-    return null;
-  }
-
-  return hours * 60 + minutes + seconds / 60;
+  return (
+    Number(match[1]) * 60 +
+    Number(match[2]) +
+    Number(match[3] || 0) / 60
+  );
 }
 
-function minsToClock(totalMinutes, useMeridiem = false) {
+function minsToHHMM(totalMinutes) {
   const rounded = Math.round(totalMinutes);
   const hours = Math.floor(rounded / 60);
   const minutes = rounded % 60;
 
-  if (useMeridiem) {
-    const normalizedHours = ((hours % 24) + 24) % 24;
-    const suffix = normalizedHours < 12 ? "AM" : "PM";
-    const displayHours = normalizedHours % 12 || 12;
-    return `${displayHours}:${String(minutes).padStart(2, "0")} ${suffix}`;
-  }
-
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  return `${String(hours).padStart(2, "0")}:${String(
+    minutes
+  ).padStart(2, "0")}`;
 }

@@ -1,0 +1,100 @@
+name: Deploy Frontend (Production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch to deploy"
+        required: true
+        default: "main"
+
+concurrency:
+  group: deploy-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_PROD_API_BASE_URL }}
+          VITE_IMAGE_URL: ${{ vars.VITE_PROD_IMAGE_URL }}
+          VITE_GOOGLE_AUTH_URL: ${{ vars.VITE_PROD_GOOGLE_AUTH_URL }}
+          VITE_CALLBACK_URL: ${{ vars.VITE_PROD_CALLBACK_URL }}
+          VITE_AUTHORIZATION_KEY: ${{ vars.VITE_PROD_AUTHORIZATION_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_PROD_GOOGLE_CLIENT_ID }}
+          VITE_SADHNA_NLP_MODEL: ${{ vars.VITE_PROD_SADHNA_NLP_MODEL }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_PROD_VAPID_PUBLIC_KEY }}
+          # TEMPORARY: still ends up in the public bundle. Move OpenAI calls to backend.
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_PROD_OPENAI_API_KEY }}
+
+      - name: Verify build
+        run: |
+          grep -q "https://sadhanagpt.com/api" dist/assets/*.js \
+            || { echo "Production API URL missing in bundle"; exit 1; }
+          if grep -q "test.sadhanagpt.com" dist/assets/*.js; then
+            echo "Test URL found in production bundle"; exit 1
+          fi
+          if grep -qE "AIza[0-9A-Za-z_-]{35}|sk-or-|GOCSPX-" dist/assets/*.js; then
+            echo "Secret key found in bundle"; exit 1
+          fi
+          echo "Build verified"
+
+      - name: Upload to staging folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_PROD_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_PROD_SSH_KEY }}
+          source: "dist/*"
+          target: "/home/ubuntu/sadhanagptpunjabibagh/dist_new"
+          strip_components: 1
+          rm: true
+
+      - name: Swap to live (atomic) and restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_PROD_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_PROD_SSH_KEY }}
+          script: |
+            set -e
+            cd /home/ubuntu/sadhanagptpunjabibagh
+            test -f dist_new/index.html || { echo "dist_new incomplete, aborting"; exit 1; }
+            chmod -R 755 dist_new
+            rm -rf dist_old
+            if [ -d dist ]; then mv dist dist_old; fi
+            mv dist_new dist
+            pm2 restart sadhanagpt-backend
+            echo "Deployed"
+
+      - name: Show live commit
+        run: |
+          {
+            echo "## Deployed to sadhanagpt.com"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Branch | \`${{ inputs.ref }}\` |"
+            echo "| Commit | \`$(git rev-parse --short HEAD)\` |"
+            echo "| Message | $(git log -1 --pretty=%s) |"
+            echo "| Author | $(git log -1 --pretty=%an) |"
+            echo "| Commit date | $(git log -1 --pretty=%cd --date=local) |"
+            echo "| Deployed at (UTC) | $(date -u '+%Y-%m-%d %H:%M:%S') |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
