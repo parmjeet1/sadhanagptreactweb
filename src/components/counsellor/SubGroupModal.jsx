@@ -12,6 +12,7 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
   const [editingName, setEditingName] = useState('');
   
   const [errorMsg, setErrorMsg] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null); // { label_id, label_name }
 
   useEffect(() => {
     if (isOpen && centerId) {
@@ -92,15 +93,29 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
     });
   };
 
-  const handleDeleteLabel = (labelId) => {
-    if (!window.confirm("Are you sure you want to delete this sub-group?")) return;
+  const handleDeleteLabel = (labelId, labelName) => {
+    // Proper themed confirmation instead of window.confirm(), per spec —
+    // explains the consequence and requires an explicit tap.
+    setDeleteTarget({ label_id: labelId, label_name: labelName });
+  };
 
+  const confirmDeleteLabel = () => {
+    if (!deleteTarget) return;
+    const { label_id: labelId } = deleteTarget;
+
+    // FIX: user_id is now required by the backend (it added an ownership
+    // check so one counsellor can't delete another's sub-group by id), and
+    // it also clears any student's assignment pointing at this label so
+    // they fall back to Uncategorised instead of silently keeping a
+    // reference to a deleted sub-group.
     const payload = {
+      user_id: userDetails.user_id,
       label_id: labelId
     };
 
     postRequest('/delete-lable', payload, (response) => {
       const resData = response.data;
+      setDeleteTarget(null);
       if (resData?.code === 200) {
         // Optimistically remove from local array
         setLabels(prev => prev.filter(l => l.label_id !== labelId));
@@ -198,7 +213,7 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
                             <button onClick={() => handleEditLabel(lbl.label_id, lbl.label_name)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                             </button>
-                            <button onClick={() => handleDeleteLabel(lbl.label_id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDeleteLabel(lbl.label_id, lbl.label_name)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
@@ -233,6 +248,29 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
             </div>
           </motion.div>
         </>
+      )}
+
+      {/* Delete Subgroup confirmation — students are NOT deleted, only the
+          subgroup itself; their Group stays unchanged and their Subgroup
+          reference is cleared to Uncategorised (backend-enforced). */}
+      {deleteTarget && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[95] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <h3 className="text-xl font-extrabold text-[#0f172a] mb-2">Delete '{deleteTarget.label_name}'?</h3>
+            <p className="text-gray-500 text-sm font-medium mb-6 leading-relaxed">
+              Students in this subgroup will NOT be deleted. Their Group stays unchanged, but their Subgroup will be cleared to Uncategorised.
+              <br /><br />This action cannot be undone.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button onClick={confirmDeleteLabel} className="w-full bg-red-500 text-white font-bold py-3.5 rounded-2xl active:scale-95 transition-all">Delete Subgroup</button>
+              <button onClick={() => setDeleteTarget(null)} className="w-full bg-gray-100 text-gray-700 font-bold py-3.5 rounded-2xl active:scale-95 transition-all">Cancel</button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -354,14 +354,15 @@ function buildDashboard(
       styleBodyCell(row.getCell(index + 1));
     });
 
-    // Excel internal worksheet hyperlink via HYPERLINK formula
+    // Native Excel internal hyperlink. This is more reliable across Excel
+    // and compatible spreadsheet viewers than a HYPERLINK formula cell.
     const nameCell = row.getCell(2);
-    const safeStudentName = String(student.name || 'Student').replace(/"/g, '""');
     const targetRow = student.detailRow || 1;
 
     nameCell.value = {
-      formula: `HYPERLINK("#'Student Details'!A${targetRow}", "${safeStudentName}")`,
-      result: student.name
+      text: String(student.name || "Student"),
+      hyperlink: `#'Student Details'!A${targetRow}`,
+      tooltip: "Open student details"
     };
 
     nameCell.font = {
@@ -435,9 +436,10 @@ function buildStudentDetails(
 
   students.forEach((student) => {
     student.detailRow = row;
+    const detailActivities = studentActivitiesWithData(student);
 
     const lastColumn =
-      Math.max(2, 2 + activities.length);
+      Math.max(2, 2 + detailActivities.length);
 
     ws.mergeCells(
       `A${row}:${columnLetter(lastColumn)}${row}`
@@ -486,8 +488,9 @@ function buildStudentDetails(
 
     const backCell = ws.getCell(`A${row}`);
     backCell.value = {
-      formula: `HYPERLINK("#'Mentor Dashboard'!A1", "← Back to Mentor Dashboard")`,
-      result: "← Back to Mentor Dashboard"
+      text: "← Back to Mentor Dashboard",
+      hyperlink: "#'Mentor Dashboard'!A1",
+      tooltip: "Back to Mentor Dashboard"
     };
 
     backCell.font = {
@@ -504,7 +507,7 @@ function buildStudentDetails(
 
     const headers = [
       "Date",
-      ...activities
+      ...detailActivities
     ];
 
     headers.forEach((header, index) => {
@@ -533,7 +536,7 @@ function buildStudentDetails(
         horizontal: "center"
       };
 
-      activities.forEach((activity, index) => {
+      detailActivities.forEach((activity, index) => {
         const value =
           findActivityValue(
             student,
@@ -583,27 +586,31 @@ function buildStudentDetails(
 
     row += 1;
 
-    activities.forEach((activity, index) => {
-      ws.getCell(row, index + 1).value =
-        activity;
-      ws.getCell(row, index + 1).font = {
-        bold: true
-      };
+    // Keep averages as a vertical two-column table. The previous horizontal
+    // layout overlapped each activity with the preceding activity's value.
+    ws.getCell(`A${row}`).value = "Activity";
+    ws.getCell(`B${row}`).value = "Average";
+    styleHeader(ws.getCell(`A${row}`));
+    styleHeader(ws.getCell(`B${row}`));
+    row += 1;
 
-      ws.getCell(row, index + 2).value =
-        student.activityAverages?.[activity] ??
-        NO_VALUE;
+    detailActivities.forEach((activity) => {
+      ws.getCell(`A${row}`).value = activity;
+      ws.getCell(`A${row}`).font = { bold: true };
+      styleBodyCell(ws.getCell(`A${row}`));
 
-      styleBodyCell(
-        ws.getCell(row, index + 2)
-      );
+      ws.getCell(`B${row}`).value =
+        student.activityAverages?.[activity] ?? NO_VALUE;
+      styleBodyCell(ws.getCell(`B${row}`));
+      row += 1;
     });
 
-    row += 2;
+    row += 1;
 
-    // Add a native Excel-friendly trend image.
-    // Each image contains exactly one activity series.
-    activities.forEach((activity) => {
+    // Add trend images in a two-column grid. Each image still contains
+    // exactly one activity series, preserving the existing data semantics.
+    let chartIndex = 0;
+    detailActivities.forEach((activity) => {
       const points = dates
         .map((date) => ({
           date,
@@ -632,20 +639,24 @@ function buildStudentDetails(
           extension: "png"
         });
 
+      const chartColumn = chartIndex % 2 === 0 ? 0 : 6;
+
       ws.addImage(imageId, {
         tl: {
-          col: 0,
+          col: chartColumn,
           row
         },
         ext: {
-          width: 620,
+          width: 430,
           height: 230
         }
       });
 
-      row += 13;
+      chartIndex += 1;
+      if (chartIndex % 2 === 0) row += 13;
     });
 
+    if (chartIndex % 2 === 1) row += 13;
     row += 2;
   });
 }
@@ -687,10 +698,22 @@ function addStudentPdfSection(
   );
 
   const dates = studentDates(student, analytics);
+  const detailActivities = studentActivitiesWithData(student);
+
+  if (!dates.length || student.loggedDays === 0) {
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text(
+      `No Sadhna data reported during ${formatDate(analytics.overallMinDate)} to ${formatDate(analytics.overallMaxDate)}.`,
+      12,
+      42
+    );
+    return;
+  }
 
   const tableRows = dates.map((date) => [
     formatDate(date),
-    ...activities.map(
+    ...detailActivities.map(
       (activity) =>
         findActivityValue(
           student,
@@ -703,7 +726,7 @@ function addStudentPdfSection(
   autoTable(doc, {
     head: [[
       "Date",
-      ...activities
+      ...detailActivities
     ]],
     body: tableRows,
     startY: 34,
@@ -735,7 +758,7 @@ function addStudentPdfSection(
   let chartX = 12;
   let chartY = y;
 
-  activities.forEach((activity) => {
+  detailActivities.forEach((activity) => {
     const points = dates
       .map((date) => ({
         date,
@@ -893,17 +916,36 @@ function drawPdfLineChart(
   doc.setFontSize(5.5);
   doc.setTextColor(100, 100, 100);
 
+  const timeSeries = isClockTimeActivity(title);
+  const minLabel = timeSeries ? minutesToClockLabel(min) : String(min);
+  const maxLabel = timeSeries ? minutesToClockLabel(max) : String(max);
+
   doc.text(
-    String(min),
+    minLabel,
     chartX,
     chartY + chartH + 5
   );
 
   doc.text(
-    String(max),
-    chartX + chartW - 8,
+    maxLabel,
+    chartX + chartW - 16,
     chartY - 2
   );
+}
+
+function isClockTimeActivity(activityName) {
+  const name = String(activityName || "").toLowerCase();
+  return name.includes("wake") || name.includes("sleep") || name.includes("completion time");
+}
+
+function minutesToClockLabel(totalMinutes) {
+  const rounded = Math.round(Number(totalMinutes));
+  const normalized = ((rounded % 1440) + 1440) % 1440;
+  const hours24 = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  const suffix = hours24 < 12 ? "AM" : "PM";
+  const hours12 = hours24 % 12 || 12;
+  return `${hours12}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
 
 function createTrendChartDataUrl(
@@ -912,8 +954,7 @@ function createTrendChartDataUrl(
 ) {
   const width = 900;
   const height = 320;
-  const canvas =
-    document.createElement("canvas");
+  const canvas = document.createElement("canvas");
 
   canvas.width = width;
   canvas.height = height;
@@ -921,83 +962,104 @@ function createTrendChartDataUrl(
   const ctx = canvas.getContext("2d");
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(
-    0,
-    0,
-    width,
-    height
-  );
+  ctx.fillRect(0, 0, width, height);
 
   ctx.fillStyle = "#1F4E78";
   ctx.font = "bold 24px Arial";
-  ctx.fillText(
-    title,
-    40,
-    35
-  );
+  ctx.fillText(title, 40, 35);
 
-  const values = points.map((p) =>
-    Number(p.value)
-  );
+  const values = points.map((p) => Number(p.value));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max === min ? 1 : max - min;
+  const clockTime = isClockTimeActivity(title);
 
-  const min =
-    Math.min(...values);
-  const max =
-    Math.max(...values);
-
-  const range =
-    max === min ? 1 : max - min;
-
-  const left = 60;
+  const left = 105;
   const top = 55;
   const right = 30;
-  const bottom = 45;
+  const bottom = 55;
+  const w = width - left - right;
+  const h = height - top - bottom;
 
-  const w =
-    width - left - right;
-  const h =
-    height - top - bottom;
+  // Light horizontal grid with readable y-axis labels.
+  const gridLines = 4;
+  ctx.font = "15px Arial";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i <= gridLines; i += 1) {
+    const ratio = i / gridLines;
+    const y = top + ratio * h;
+    const value = max - ratio * range;
 
-  ctx.strokeStyle = "#D9D9D9";
+    ctx.strokeStyle = "#E6E9ED";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(left + w, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "#666666";
+    const label = clockTime
+      ? minutesToClockLabel(value)
+      : Number(value.toFixed(1)).toString();
+    ctx.fillText(label, left - 10, y);
+  }
+
+  // X-axis date labels and faint vertical guides.
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  points.forEach((point, index) => {
+    const px = left +
+      (index / Math.max(1, points.length - 1)) * w;
+
+    ctx.strokeStyle = "#F0F1F3";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px, top);
+    ctx.lineTo(px, top + h);
+    ctx.stroke();
+
+    const d = new Date(point.date);
+    const label = Number.isNaN(d.getTime())
+      ? String(point.date)
+      : d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+    ctx.fillStyle = "#666666";
+    ctx.fillText(label, px, top + h + 10);
+  });
+
+  ctx.strokeStyle = "#B7BDC6";
   ctx.lineWidth = 1;
+  ctx.strokeRect(left, top, w, h);
 
-  ctx.strokeRect(
-    left,
-    top,
-    w,
-    h
-  );
-
+  // Trend line.
   ctx.strokeStyle = "#1F4E78";
   ctx.lineWidth = 3;
   ctx.beginPath();
 
   points.forEach((point, index) => {
-    const px =
-      left +
-      (index /
-        Math.max(1, points.length - 1)) *
-        w;
+    const px = left +
+      (index / Math.max(1, points.length - 1)) * w;
+    const py = top + h -
+      ((Number(point.value) - min) / range) * h;
 
-    const py =
-      top +
-      h -
-      ((Number(point.value) - min) /
-        range) *
-        h;
-
-    if (index === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
+    if (index === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   });
-
   ctx.stroke();
 
-  return canvas.toDataURL(
-    "image/png"
-  );
+  // Data points.
+  points.forEach((point, index) => {
+    const px = left +
+      (index / Math.max(1, points.length - 1)) * w;
+    const py = top + h -
+      ((Number(point.value) - min) / range) * h;
+    ctx.fillStyle = "#1F4E78";
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  return canvas.toDataURL("image/png");
 }
 
 function flattenStudents(processedGroups) {
@@ -1047,14 +1109,18 @@ function uniqueActivities(students) {
 }
 
 function studentDates(student, analytics) {
-  if (
-    Array.isArray(student.dateList) &&
-    student.dateList.length
-  ) {
-    return student.dateList;
-  }
-
   return studentDatesFromStudent(student);
+}
+
+function studentActivitiesWithData(student) {
+  return (student.activityNames || []).filter((activity) => {
+    const points = student.dailyActivityData?.[activity] || [];
+    return points.some((point) =>
+      point.value !== null &&
+      point.value !== undefined &&
+      point.value !== "-"
+    );
+  });
 }
 
 function studentDatesFromStudent(student) {

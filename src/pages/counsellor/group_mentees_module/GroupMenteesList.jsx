@@ -1732,6 +1732,7 @@ const GroupMenteesList = () => {
                     setIsDeleteSubgroupConfirmOpen(false);
                     setActionMenuSubgroup(null);
                     postRequest('/delete-lable', {
+                      user_id: userDetails.user_id,
                       label_id: actionMenuSubgroup.id
                     }, (res) => {
                       const data = res.data;

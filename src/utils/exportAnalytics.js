@@ -1,7 +1,7 @@
 // exportAnalytics.js
 // Keep this function compatible with the existing API response.
-// Rank remains subgroup-level and average marks keeps the existing business rule:
-// total marks / all dates in the selected subgroup/date range.
+// Rank remains subgroup-level. Average marks is normalized against the
+// applicable daily maximum returned by the backend marking-scheme pipeline.
 
 export const computeGroupExportAnalytics = (
   reportsData,
@@ -119,6 +119,8 @@ export const computeGroupExportAnalytics = (
         groupName,
         subgroup: subgroupName,
         totalMarks: 0,
+        dailyMaxPossibleMarks: Number(d.daily_max_possible_marks) || 0,
+        markingSchemeId: d.marking_scheme_id ?? null,
         activityLogs: {},
         marksByDate: {},
         dailyMatrixByStudent: {},
@@ -127,6 +129,14 @@ export const computeGroupExportAnalytics = (
     }
 
     const st = sg.studentsMap[studentId];
+
+    const rowDailyMax = Number(d.daily_max_possible_marks);
+    if (Number.isFinite(rowDailyMax) && rowDailyMax > 0) {
+      st.dailyMaxPossibleMarks = rowDailyMax;
+    }
+    if (d.marking_scheme_id !== undefined && d.marking_scheme_id !== null) {
+      st.markingSchemeId = d.marking_scheme_id;
+    }
 
     if (
       actMarks !== null &&
@@ -253,7 +263,7 @@ export const computeGroupExportAnalytics = (
               timeVals.length;
 
             activityAverages[actName] =
-              minsToHHMM(avgMins);
+              minsToClock(avgMins, /\b(?:AM|PM)\b/i.test(String(vals[0])));
             return;
           }
 
@@ -282,8 +292,15 @@ export const computeGroupExportAnalytics = (
               ? loggedDays
               : 1;
 
+        const totalMaxPossibleMarks =
+          st.dailyMaxPossibleMarks > 0
+            ? st.dailyMaxPossibleMarks * totalDaysCount
+            : 0;
+
         const avgMarksNum =
-          st.totalMarks / totalDaysCount;
+          totalMaxPossibleMarks > 0
+            ? (st.totalMarks / totalMaxPossibleMarks) * 100
+            : 0;
 
         return {
           id: st.id,
@@ -294,6 +311,9 @@ export const computeGroupExportAnalytics = (
           activityAverages,
           dailyActivityData,
           totalMarks: st.totalMarks,
+          dailyMaxPossibleMarks: st.dailyMaxPossibleMarks,
+          totalMaxPossibleMarks,
+          markingSchemeId: st.markingSchemeId,
           marksByDate: st.marksByDate,
           loggedDays,
           avgMarks: Number(avgMarksNum.toFixed(2)),
@@ -373,25 +393,37 @@ export const computeGroupExportAnalytics = (
 function timeStrToMins(value) {
   if (typeof value !== "string") return null;
 
-  const match = value.trim().match(
-    /^(\d{1,3}):([0-5]\d)(?::([0-5]\d))?$/
-  );
-
+  const str = value.trim().toUpperCase();
+  const match = str.match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\s*(AM|PM)?$/);
   if (!match) return null;
 
-  return (
-    Number(match[1]) * 60 +
-    Number(match[2]) +
-    Number(match[3] || 0) / 60
-  );
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3] || 0);
+  const meridiem = match[4];
+
+  if (meridiem) {
+    if (hours < 1 || hours > 12) return null;
+    if (meridiem === "PM" && hours < 12) hours += 12;
+    if (meridiem === "AM" && hours === 12) hours = 0;
+  } else if (hours > 23) {
+    return null;
+  }
+
+  return hours * 60 + minutes + seconds / 60;
 }
 
-function minsToHHMM(totalMinutes) {
+function minsToClock(totalMinutes, useMeridiem = false) {
   const rounded = Math.round(totalMinutes);
   const hours = Math.floor(rounded / 60);
   const minutes = rounded % 60;
 
-  return `${String(hours).padStart(2, "0")}:${String(
-    minutes
-  ).padStart(2, "0")}`;
+  if (useMeridiem) {
+    const normalizedHours = ((hours % 24) + 24) % 24;
+    const suffix = normalizedHours < 12 ? "AM" : "PM";
+    const displayHours = normalizedHours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, "0")} ${suffix}`;
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
