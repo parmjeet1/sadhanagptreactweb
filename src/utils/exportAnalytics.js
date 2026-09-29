@@ -145,11 +145,6 @@ export const computeGroupExportAnalytics = (
         st.maxMarksKeys.add(maxKey);
         st.totalMaxPossibleMarks += rowActivityMax;
       }
-=======
-    const rowDailyMax = Number(d.daily_max_possible_marks);
-    if (Number.isFinite(rowDailyMax) && rowDailyMax > 0) {
-      st.dailyMaxPossibleMarks = rowDailyMax;
->>>>>>> main
     }
     if (d.marking_scheme_id !== undefined && d.marking_scheme_id !== null) {
       st.markingSchemeId = d.marking_scheme_id;
