@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest, deleteRequest } from '../../../services/api';
 import { processResponse } from '../../../utils/apiUtils';
-import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
+import { openChatGPTWithPrompt, buildCompactStudentData } from '../../../utils/chatGptUtils';
 import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 import { exportBulkReportsToCSV, exportBulkReportsToExcel, exportBulkReportsToPDF } from '../../../utils/exportUtils';
 
@@ -439,7 +439,7 @@ const MenteesList = () => {
         if (manageSubgroupsCenterId === selectedGroup) fetchLabels(selectedGroup, setLabels);
         refreshAfterMutation();
       } else {
-        showError(processResponse(resData)?.message || 'Failed to delete sub-group');
+        showError((processResponse(resData)?.message || 'Failed to delete sub-group') + (resData?.error_detail ? ` — ${resData.error_detail}` : ''));
       }
     });
   };
@@ -480,31 +480,7 @@ const MenteesList = () => {
     const selectedStudentObjects = students.filter(s => selectedStudents.includes(s.id));
 
     if (reportRows.length > 0) {
-      const grouped = {};
-      reportRows.forEach(row => {
-        const key = row.student_name || 'Unknown Student';
-        if (!grouped[key]) {
-          grouped[key] = {
-            mobile: row.mobile || 'N/A',
-            center: row.center_name || 'N/A',
-            label: row.label_name || 'Uncategorized',
-            activities: []
-          };
-        }
-        if (row.activity_name) {
-          grouped[key].activities.push({
-            date: row.activity_date || '',
-            name: row.activity_name || '',
-            value: row.activity_value ?? '',
-            marks: row.activity_marks ?? ''
-          });
-        }
-      });
-
-      studentDataText = Object.entries(grouped).map(([name, info], idx) => {
-        const actLines = info.activities.map(a => `  - Date: ${a.date} | Activity: ${a.name} | Value: ${a.value} | Marks: ${a.marks}`).join('\n');
-        return `Student #${idx + 1}: ${name} (Mobile: ${info.mobile}, Group: ${info.center}, Sub-Group: ${info.label})\nActivities Logged:\n${actLines || '  - No activity logs recorded in this period'}`;
-      }).join('\n\n');
+      studentDataText = buildCompactStudentData(reportRows, { startDate: aiDateFrom, endDate: aiDateTo }).text;
     } else {
       studentDataText = selectedStudentObjects.map((s, idx) => {
         const acts = Array.isArray(s.activities) && s.activities.length > 0
