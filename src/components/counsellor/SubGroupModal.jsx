@@ -122,7 +122,7 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
         if (onLabelsUpdated) onLabelsUpdated();
       } else {
         const resMessage = processResponse(resData);
-        setErrorMsg((resMessage?.message || 'Failed to delete sub-group') + (resData?.error_detail ? ` — ${resData.error_detail}` : ''));
+        setErrorMsg(resMessage?.message || 'Failed to delete sub-group');
         setTimeout(() => setErrorMsg(''), 3000);
       }
     });

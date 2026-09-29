@@ -105,7 +105,6 @@ const CounsellorAnalytics = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
   const [groups, setGroups] = useState([]);
-  const [ungroupedCount, setUngroupedCount] = useState(0);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
   const [totalMentees, setTotalMentees] = useState(0);
 
@@ -162,12 +161,6 @@ const CounsellorAnalytics = () => {
           setTotalMentees(sumMentees);
         }
         setIsLoadingGroups(false);
-      });
-
-      // Mentees not in any group -> "Ungrouped" card (shown only when > 0)
-      getRequest('/student-list', { user_id: userDetails.user_id, page_no: 1, rowSelected: 1, categroy: 'un-categorized' }, (response) => {
-        const r = response.data;
-        if (r && r.code === 200) setUngroupedCount(Number(r.total ?? r.total_records ?? 0) || 0);
       });
 
       // Query student-list to ensure accurate total count of all mentees
@@ -474,28 +467,6 @@ const CounsellorAnalytics = () => {
                     </div>
                   ))}
                   
-                  {ungroupedCount > 0 && (
-                    <div className="relative flex-shrink-0">
-                      <div
-                        onClick={() => navigate('/counsellor/ungrouped')}
-                        className="w-[195px] bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700/80 rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.33 0-8 1.67-8 5v1h16v-1c0-3.33-4.67-5-8-5z" /></svg>
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="font-extrabold text-[#0f172a] dark:text-white text-[14px] leading-tight truncate">Ungrouped</h3>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-[#64748b] dark:text-slate-400 text-[11px] font-medium">{ungroupedCount} members</span>
-                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">No group</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   <div 
                     onClick={() => setIsAddGroupOpen(true)}
                     className="flex-shrink-0 w-[195px] bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-200/60 dark:border-blue-900/40 border-dashed rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-950/40 active:scale-[0.98] transition-all min-h-[105px]"
