@@ -201,8 +201,8 @@ const GroupMenteesList = () => {
 
   const [selectedSubgroupForAi, setSelectedSubgroupForAi] = useState(null);
 
-  const handleSubgroupAiAnalysis = (subgroupName, studentList) => {
-    setSelectedSubgroupForAi({ name: subgroupName, students: studentList || [] });
+  const handleSubgroupAiAnalysis = (subgroupName, studentList, subgroupLabelId) => {
+    setSelectedSubgroupForAi({ name: subgroupName, students: studentList || [], labelId: subgroupLabelId });
     setAiAnalysisStudents(studentList || []);
     setIsAiAnalysisModalOpen(true);
   };
@@ -666,7 +666,7 @@ const GroupMenteesList = () => {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => handleSubgroupAiAnalysis(groupData.labelName, groupData.students)}
+                    onClick={() => handleSubgroupAiAnalysis(groupData.labelName, groupData.students, groupData.labelId)}
                     title="AI Analysis for Subgroup (30-Day Data)"
                     className="h-8 px-3 rounded-lg border border-purple-400/70 dark:border-purple-600 flex items-center justify-center text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors bg-white dark:bg-slate-800 text-[13px] font-bold gap-1.5 shadow-sm active:scale-95"
                   >
@@ -966,7 +966,11 @@ const GroupMenteesList = () => {
           }
           strategy="BULK_MENTEES"
           entityParams={{
-            studentIds: aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+            // Whole subgroup: the server selects ALL its students (the list on
+            // screen is only the current page). Otherwise use the ticked students.
+            studentIds: (selectedSubgroupForAi && selectedSubgroupForAi.labelId && centerId) ? [] : aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+            centerId: centerId,
+            labelId: selectedSubgroupForAi ? selectedSubgroupForAi.labelId : undefined,
             fallbackStudents: aiAnalysisStudents,
             userId: userDetails?.user_id,
             contextName: selectedSubgroupForAi ? `Subgroup "${selectedSubgroupForAi.name}" Analysis` : "Group Mentees Analysis"
@@ -1744,7 +1748,7 @@ const GroupMenteesList = () => {
                         fetchLabels();
                         fetchStudents(page, false);
                       } else {
-                        showError(data?.message || 'Failed to delete sub-group');
+                        showError((data?.message || 'Failed to delete sub-group') + (data?.error_detail ? ` — ${data.error_detail}` : (data?.error_code ? ` (${data.error_code})` : '')));
                       }
                     });
                   }}
@@ -1816,7 +1820,9 @@ const GroupMenteesList = () => {
         }
         strategy="BULK_MENTEES"
         entityParams={{
-          studentIds: aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+          studentIds: (selectedSubgroupForAi && selectedSubgroupForAi.labelId && centerId) ? [] : aiAnalysisStudents.map(s => s.id || s.user_id).filter(Boolean),
+          centerId: centerId,
+          labelId: selectedSubgroupForAi ? selectedSubgroupForAi.labelId : undefined,
           fallbackStudents: aiAnalysisStudents,
           userId: userDetails?.user_id,
           contextName: selectedSubgroupForAi ? `Subgroup "${selectedSubgroupForAi.name}" Analysis` : "Group Mentees Analysis"
