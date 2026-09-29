@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
@@ -39,12 +39,18 @@ jobs:
           VITE_CALLBACK_URL: ${{ vars.VITE_PROD_CALLBACK_URL }}
           VITE_AUTHORIZATION_KEY: ${{ vars.VITE_PROD_AUTHORIZATION_KEY }}
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_PROD_GOOGLE_CLIENT_ID }}
+          VITE_SADHNA_NLP_MODEL: ${{ vars.VITE_PROD_SADHNA_NLP_MODEL }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_PROD_VAPID_PUBLIC_KEY }}
+          # TEMPORARY: still ends up in the public bundle. Move OpenAI calls to backend.
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_PROD_OPENAI_API_KEY }}
 
       - name: Verify build
         run: |
-          grep -q "sadhanagpt.com/api" dist/assets/*.js \
-            || { echo "API base URL missing in bundle"; exit 1; }
+          grep -q "https://sadhanagpt.com/api" dist/assets/*.js \
+            || { echo "Production API URL missing in bundle"; exit 1; }
+          if grep -q "test.sadhanagpt.com" dist/assets/*.js; then
+            echo "Test URL found in production bundle"; exit 1
+          fi
           if grep -qE "AIza[0-9A-Za-z_-]{35}|sk-or-|GOCSPX-" dist/assets/*.js; then
             echo "Secret key found in bundle"; exit 1
           fi
@@ -68,11 +74,13 @@ jobs:
           username: ubuntu
           key: ${{ secrets.DEPLOY_PROD_SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/sadhanagptpunjabibagh
+            test -f dist_new/index.html || { echo "dist_new incomplete, aborting"; exit 1; }
+            chmod -R 755 dist_new
             rm -rf dist_old
             if [ -d dist ]; then mv dist dist_old; fi
             mv dist_new dist
-            chmod -R 755 dist
             pm2 restart sadhanagpt-backend
             echo "Deployed"
 
