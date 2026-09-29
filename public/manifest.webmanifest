@@ -2,7 +2,7 @@
   "name": "SadhanaGPT",
   "short_name": "SadhanaGPT",
   "description": "Track your daily sadhana — chanting, reading, hearing and more — and follow your spiritual progress over time.",
-  "start_url": "/",
+  "start_url": "/student/dashboard?assistant=open",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

@@ -4,15 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest } from '../../../services/api';
 import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
-// This was missing entirely — <AiDateFilterModal> is rendered unconditionally
-// near the bottom of this component (its `isOpen` prop is conditional, but
-// the element itself is always in the JSX tree), so with no import binding
-// for it, React threw "AiDateFilterModal is not defined" on every single
-// render of this page — a hard crash with no error boundary, producing a
-// blank white screen no matter which student was opened or from where
-// (group list, weekly rank list, etc.), regardless of whether the backend
-// data itself was correct.
-import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 
 // --- Premium Chart Helpers (same as PersonalSadhanaAnalytics) ---
 const timeToMinutes = (timeStr) => {

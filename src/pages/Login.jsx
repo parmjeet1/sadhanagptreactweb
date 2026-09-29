@@ -63,19 +63,7 @@ const Login = () => {
         if (user.user_type) {
           // If they already have a role, send them to dashboard or Step 2
           if (user.access_token) {
-            // PWA install fix: the manifest's start_url now points here
-            // ("/") for BOTH student and counsellor installs, so this is
-            // the single place that decides which dashboard the installed
-            // app opens into, based on the logged-in user's own role —
-            // instead of the old hardcoded "/student/dashboard" start_url,
-            // which sent a counsellor/mentor's installed app to the
-            // student screen too. The "?assistant=open" auto-open-chatbot
-            // behavior is preserved, but only for students — it has no
-            // equivalent on the counsellor side.
-            const target = user.user_type === 'student'
-              ? '/student/dashboard?assistant=open'
-              : `/${user.user_type}/dashboard`;
-            navigate(target);
+            navigate(`/${user.user_type}/dashboard`);
           } else {
             navigate(`/${user.user_type}/onboarding-step-2`);
           }
