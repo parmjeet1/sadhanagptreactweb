@@ -76,17 +76,22 @@ const CounsellorDashboard = () => {
   useEffect(() => {
     if (!userDetails?.user_id) return;
 
-    // Check if counsellor is currently rank #1 — show splash
-    getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
-      const data = res?.data?.data;
-      if (data?.isTopRanker) {
-        const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
-        setRankSplashScore(topUser?.total_marks ?? null);
-        setRankSplashTitle('#1 Rank!');
-        setRankSplashSubtitle("You've topped the leaderboard!");
-        setShowRankSplash(true);
-      }
-    });
+    // Check if counsellor is currently rank #1 — show splash.
+    // PERFORMANCE: heaviest query the dashboard fires, only feeds a decorative
+    // splash — deferred so it doesn't compete with the data the screen needs.
+    const timer = setTimeout(() => {
+      getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
+        const data = res?.data?.data;
+        if (data?.isTopRanker) {
+          const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
+          setRankSplashScore(topUser?.total_marks ?? null);
+          setRankSplashTitle('#1 Rank!');
+          setRankSplashSubtitle("You've topped the leaderboard!");
+          setShowRankSplash(true);
+        }
+      });
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [userDetails?.user_id]);
 
   useEffect(() => {
@@ -179,7 +184,13 @@ const CounsellorDashboard = () => {
                 newStatus = count ? 'Completed' : 'Pending';
               } else {
                 newProgress = `${count} / ${target}`;
-                newStatus = count >= target ? 'Completed' : 'Pending';
+                // FIX: count and target arrive as VARCHAR strings, and
+                // `"60" >= "120"` is a lexicographic compare (true), which
+                // wrongly marked partial minutes values as Completed after a
+                // reload. Compare numerically.
+                const countNum = parseFloat(count);
+                const targetNum = parseFloat(target);
+                newStatus = (Number.isFinite(countNum) && Number.isFinite(targetNum) && countNum >= targetNum) ? 'Completed' : 'Pending';
               }
 
               return { ...act, progress: newProgress, status: newStatus };
@@ -836,28 +847,17 @@ const CounsellorDashboard = () => {
           title="Bird's Eye View"
           className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#1a73e8] to-[#4a9bff] text-white shadow-lg shadow-blue-500/40 flex items-center justify-center active:scale-95 transition-transform animate-sadhna-glow-loop-blue"
         >
-          {/* Original "sitting bird" glyph — a plump perched bluebird, not
-              based on any emblem/seal/mascot. */}
-          <svg width="38" height="38" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Perch */}
-            <path d="M5 25.5h22" stroke="#0d47a1" strokeWidth="1.4" strokeLinecap="round" opacity="0.55"/>
-            {/* Tail */}
-            <path d="M9 22c-2.2.3-4-.3-5.4-1.7 1.9-.6 3.6-.5 5.1.4l.3 1.3z" fill="#e3edff"/>
-            {/* Body */}
-            <path d="M16 8.5c4.4 0 7.8 3.7 7.8 8.2 0 4.6-3.6 8.3-9 8.3-4.9 0-8.8-3-8.8-7.1 0-3 1.9-5.3 4.8-6 .6-2.1 2.5-3.4 5.2-3.4z" fill="#ffffff"/>
-            {/* Wing */}
-            <path d="M14.5 13.2c2.6-.3 4.6 1 5.3 3.3.6 2-.1 4.2-2.1 5.4-1.7 1-3.9 1-5.6-.2 1.9-.2 3.3-1.1 4-2.6.8-1.7.5-3.6-1.6-5.9z" fill="#bcd6ff"/>
-            {/* Head */}
-            <circle cx="10.6" cy="12.4" r="4.3" fill="#ffffff"/>
-            {/* Head-cap */}
-            <path d="M6.6 12.1a4.3 4.3 0 018-2.1c-1.6-.2-3 .1-4.3 1-1.2.9-2 2.1-2.4 3.6-.7-.7-1.1-1.6-1.3-2.5z" fill="#bcd6ff"/>
-            {/* Beak */}
-            <path d="M6.4 12.9l-2.6.4c-.4.05-.5.5-.2.75l1.9 1.5.9-2.65z" fill="#f6a623"/>
-            {/* Eye */}
-            <circle cx="10.9" cy="11.6" r="0.9" fill="#0d1b2a"/>
-            <circle cx="11.2" cy="11.3" r="0.3" fill="#ffffff"/>
-            {/* Belly shading */}
-            <path d="M11 22.6c1.6.6 3.4.5 5-.5-.9 1.9-2.7 2.9-4.9 2.9-2.5 0-4.6-1.2-5.6-3.1 1.9 1 3.6 1.1 5.5.7z" fill="#e3edff"/>
+          {/* Original flying-bird glyph (wing raised, gentle float). */}
+          <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'birdFloat 2.4s ease-in-out infinite' }}>
+            <path d="M27 25C25 17 19 11 11 9c1.6 4 2.4 8 2.8 13z" fill="#bcd6ff"/>
+            <path d="M12 27L2.5 28.5 4.6 31.2 2.8 34.4 13 31.5z" fill="#e3edff"/>
+            <path d="M10.5 28.5C14 22.5 24 21.5 32 23.4c3.6.9 6.4 2.1 8.6 3.9-2.8.9-5.4 2.6-8.6 4.6-6.6 4-15 3.6-21.5-3.4z" fill="#ffffff"/>
+            <circle cx="35.2" cy="24" r="4.3" fill="#ffffff"/>
+            <path d="M38.6 23.2L45.5 25l-6.9 2z" fill="#f6a623"/>
+            <circle cx="36.4" cy="23.1" r="0.95" fill="#0d1b2a"/>
+            <circle cx="36.7" cy="22.8" r="0.3" fill="#fff"/>
+            <path d="M31.5 25.5C28.5 15.5 20 8 8.5 4.5c2.6 5 4.2 10.5 5.6 21z" fill="#e3edff" stroke="#ffffff" strokeWidth="1" strokeLinejoin="round"/>
+            <path d="M27 23C24 16.5 18.5 11.5 12 8.6M22.5 24.5C21 19.5 17.5 15.5 13.5 13" stroke="#8fb8f5" strokeWidth="1" strokeLinecap="round"/>
           </svg>
         </button>
       </div>

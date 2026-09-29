@@ -76,17 +76,24 @@ const StudentDashboard = () => {
   useEffect(() => {
     if (!userDetails?.user_id) return;
 
-    // Check if user is currently rank #1 — show splash
-    getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
-      const data = res?.data?.data;
-      if (data?.isTopRanker) {
-        const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
-        setRankSplashScore(topUser?.total_marks ?? null);
-        setRankSplashTitle('#1 Rank!');
-        setRankSplashSubtitle("You've topped the leaderboard!");
-        setShowRankSplash(true);
-      }
-    });
+    // Check if user is currently rank #1 — show splash.
+    // PERFORMANCE: /weekly-ranking aggregates every student's marks for the
+    // day (the heaviest query the dashboard fires) and it only feeds a
+    // decorative splash, so it is deferred a few seconds instead of racing the
+    // activity list / daily report / score requests the screen actually needs.
+    const timer = setTimeout(() => {
+      getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
+        const data = res?.data?.data;
+        if (data?.isTopRanker) {
+          const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
+          setRankSplashScore(topUser?.total_marks ?? null);
+          setRankSplashTitle('#1 Rank!');
+          setRankSplashSubtitle("You've topped the leaderboard!");
+          setShowRankSplash(true);
+        }
+      });
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [userDetails?.user_id]);
 
   useEffect(() => {
@@ -186,7 +193,19 @@ const StudentDashboard = () => {
                 newStatus = count ? 'Completed' : 'Pending';
               } else {
                 newProgress = `${count} / ${target}`;
-                newStatus = count >= target ? 'Completed' : 'Pending';
+                // FIX: daily_report.count and fix_activities.target both come
+                // back from the API as STRINGS (the columns are VARCHAR — they
+                // also hold time values like "4:25 AM"). `"60" >= "120"` is a
+                // LEXICOGRAPHIC string compare in JS and evaluates to true
+                // ("6" > "1"), so any minutes value from 2-99 against a
+                // 3-digit target (e.g. 120 min) was flagged "Completed" the
+                // moment the dashboard reloaded from the server, while the
+                // same value looked correctly "Pending" right after dragging
+                // the slider (that path compares real numbers). Compare
+                // numerically instead.
+                const countNum = parseFloat(count);
+                const targetNum = parseFloat(target);
+                newStatus = (Number.isFinite(countNum) && Number.isFinite(targetNum) && countNum >= targetNum) ? 'Completed' : 'Pending';
               }
 
               return { ...act, progress: newProgress, status: newStatus };

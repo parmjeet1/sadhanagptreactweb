@@ -1,4 +1,17 @@
-export { exportBulkReportsToExcel, exportBulkReportsToPDF } from './studentReportExport';
+// PERFORMANCE: studentReportExport.js statically imports exceljs + jspdf +
+// jspdf-autotable (~1MB+ of JS). Re-exporting it directly put all of that in
+// the main bundle, so it was downloaded and parsed on the login page and on
+// every screen even though it's only needed when someone taps Export. These
+// thin wrappers keep the exact same call signature (callers already `await`
+// them) but load the heavy module on first use only.
+export const exportBulkReportsToExcel = async (...args) => {
+  const mod = await import('./studentReportExport');
+  return mod.exportBulkReportsToExcel(...args);
+};
+export const exportBulkReportsToPDF = async (...args) => {
+  const mod = await import('./studentReportExport');
+  return mod.exportBulkReportsToPDF(...args);
+};
 export { computeGroupExportAnalytics } from './exportAnalytics';
 
 export const exportAnalyticsToCSV = (activitiesData, activeTab) => {
