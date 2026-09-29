@@ -636,13 +636,31 @@ export function SadhnaChat({ adapter }) {
     }
 
     setBusy(true);
-    for (const dateISO of dates) {
-      for (const [activity_id, value] of flow.map.entries()) {
-        // eslint-disable-next-line no-await-in-loop
-        await adapter.updateActivityForDate({ activity_id, value, date: dateISO });
+    const updates = [...flow.map.entries()].map(([activity_id, value]) => ({ activity_id, value }));
+    let batchResult = { success: true };
+    if (typeof adapter.updateActivitiesForDates === "function") {
+      try {
+        // ONE request for every date and every activity.
+        batchResult = await adapter.updateActivitiesForDates({ dates, updates });
+      } catch (e) {
+        batchResult = { success: false, error: e?.message };
+      }
+    } else {
+      // Adapter without batch support (e.g. a custom host adapter): old path.
+      for (const dateISO of dates) {
+        for (const u of updates) {
+          // eslint-disable-next-line no-await-in-loop
+          await adapter.updateActivityForDate({ ...u, date: dateISO });
+        }
       }
     }
     setBusy(false);
+
+    if (batchResult && batchResult.success === false && !(batchResult.saved > 0)) {
+      pushBot("⚠️ Sorry, I couldn't save those days. Please try again.");
+      pushActionButtons([{ label: "Back to Menu", value: "backToMenu" }]);
+      return;
+    }
 
     pushBot(
       `✅ The same Sadhna has been recorded for ${dates.length} day${dates.length === 1 ? "" : "s"} (${flow.dateLabel}).`,

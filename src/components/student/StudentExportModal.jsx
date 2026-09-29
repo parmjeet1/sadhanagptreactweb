@@ -55,50 +55,23 @@ const StudentExportModal = ({
         end_date: endDate
       };
 
-      getRequest('/student-activities-analytics', params, (response) => {
+      // FIX: the old endpoint (/student-activities-analytics) has no marks and
+      // no max-possible marks, so every export showed 0%. This returns the same
+      // row shape the mentor export uses, scoped to the logged-in student.
+      getRequest('/student-export-report', params, (response) => {
         const res = response?.data;
-        const dataObj = res?.data || res;
-        let payloadArray = [];
-
-        if (Array.isArray(dataObj)) payloadArray = dataObj;
-        else if (dataObj && Array.isArray(dataObj.activities_analytics)) payloadArray = dataObj.activities_analytics;
-        else if (dataObj && Array.isArray(dataObj.data)) payloadArray = dataObj.data;
-
+        const list = Array.isArray(res?.data) ? res.data : [];
         const studentName = userDetails?.name || 'Student';
-        const rows = [];
+        const rows = list.map((r) => ({
+          ...r,
+          student_name: r.student_name || studentName,
+          center_name: r.center_name || 'Personal Sadhana',
+          label_name: r.label_name || 'My Sadhana'
+        }));
 
-        if (Array.isArray(payloadArray) && payloadArray.length > 0) {
-          payloadArray.forEach(act => {
-            const actName = act.name || act.activity_name || 'Activity';
-            if (Array.isArray(act.daily_data) && act.daily_data.length > 0) {
-              act.daily_data.forEach(d => {
-                rows.push({
-                  student_id: userDetails?.user_id || 'student',
-                  student_name: studentName,
-                  center_name: 'Personal Sadhana',
-                  label_name: 'My Sadhana',
-                  activity_date: d.activity_date || d.date || '-',
-                  activity_name: actName,
-                  activity_value: d.count ?? d.value ?? '-',
-                  activity_marks: d.marks ?? 0
-                });
-              });
-            } else {
-              rows.push({
-                student_id: userDetails?.user_id || 'student',
-                student_name: studentName,
-                center_name: 'Personal Sadhana',
-                label_name: 'My Sadhana',
-                activity_date: 'No Logged Activity',
-                activity_name: actName,
-                activity_value: act.value ?? act.count ?? '-',
-                activity_marks: act.marks ?? 0
-              });
-            }
-          });
-        }
-
-        resolve({ rows, startDate, endDate });
+        // No real log rows in the range -> report as empty (caller alerts).
+        const hasLogs = rows.some((r) => r.activity_date && r.activity_date !== '-');
+        resolve({ rows: hasLogs ? rows : [], startDate, endDate });
       }, (err) => {
         reject(err);
       });

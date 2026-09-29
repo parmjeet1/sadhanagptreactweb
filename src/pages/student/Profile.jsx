@@ -8,6 +8,7 @@ import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import { compressImage } from '../../utils/imageCompressor';
+import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
 
 
 const Profile = () => {
@@ -103,6 +104,23 @@ const Profile = () => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [isTogglingPush, setIsTogglingPush] = useState(false);
+
+  const handleTogglePush = async () => {
+    if (isTogglingPush) return;
+    if (isPushEnabled && !window.confirm('Disable push notifications? You will no longer receive weekly push notifications from SadhnaGPT.')) return;
+    setIsTogglingPush(true);
+    if (isPushEnabled) {
+      setIsPushEnabled(false);
+      await disablePushNotifications(userDetails);
+      showToast('Push notifications disabled', 'success');
+    } else {
+      setIsPushEnabled(true);
+      await enablePushNotifications(userDetails);
+      showToast('Push notifications enabled!', 'success');
+    }
+    setIsTogglingPush(false);
+  };
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -507,6 +525,25 @@ const Profile = () => {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            </section>
+            {/* Push notifications on/off (moved here from the home screen) */}
+            <section className="px-8 mb-6">
+              <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between">
+                <div>
+                  <h4 className="text-[16px] font-black text-[#1e293b]">Push Notifications</h4>
+                  <p className="text-[13px] font-bold text-gray-400 mt-1">
+                    {isPushEnabled ? 'On — you receive weekly push reminders' : 'Off — turn on to get weekly push reminders'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleTogglePush}
+                  disabled={isTogglingPush}
+                  aria-label={isPushEnabled ? 'Disable push notifications' : 'Enable push notifications'}
+                  className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 disabled:opacity-60 ${isPushEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isPushEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
               </div>
             </section>
             {/* Notification Preferences */}

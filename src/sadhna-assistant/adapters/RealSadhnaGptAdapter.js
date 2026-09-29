@@ -101,6 +101,26 @@ export class RealSadhnaGptAdapter extends SadhnaAdapter {
     };
   }
 
+  /**
+   * ONE HTTP request for "Fill Same Sadhna for Certain Days": every date and
+   * every activity value goes in a single POST (previously one request per
+   * date x activity). payload: { dates: [ISO...], updates: [{activity_id, value}] }
+   */
+  async updateActivitiesForDates(payload) {
+    const result = await callPost("/assistant/activities/update-for-dates", payload);
+    const isSuccess = result?.success === true || result?.data?.success === true;
+    const saved = result?.data?.saved ?? 0;
+    if (saved > 0) {
+      emitSadhnaActivityUpdated({ dates: payload.dates, date: payload.dates[payload.dates.length - 1], batch: true });
+    }
+    return {
+      success: isSuccess,
+      saved,
+      total: result?.data?.total,
+      error: result?.error || (Array.isArray(result?.message) ? result.message[0] : result?.message),
+    };
+  }
+
   getTodayMarks() {
     return callGet("/assistant/marks/today");
   }

@@ -63,6 +63,7 @@ const CounsellorDashboard = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(true); // Default true to avoid flash
+  const [pushStatusReady, setPushStatusReady] = useState(false); // true once real on/off status is known
   const [dateColors, setDateColors] = useState({});
   const [dailyScore, setDailyScore] = useState(null);
   const [isScoreLoading, setIsScoreLoading] = useState(true);
@@ -100,6 +101,7 @@ const CounsellorDashboard = () => {
       const cachedStatus = localStorage.getItem(`push_enabled_${userDetails.user_id}`);
       if (cachedStatus === 'false') {
         setIsPushEnabled(false);
+        setPushStatusReady(true);
       } else if (cachedStatus === 'true') {
         setIsPushEnabled(true);
       }
@@ -113,6 +115,7 @@ const CounsellorDashboard = () => {
           setIsPushEnabled(Boolean(backendHasSub));
           localStorage.setItem(`push_enabled_${userDetails.user_id}`, Boolean(backendHasSub) ? 'true' : 'false');
         }
+        setPushStatusReady(true);
       });
     };
 
@@ -707,6 +710,7 @@ const CounsellorDashboard = () => {
           setIsPushEnabled={setIsPushEnabled}
           userDetails={userDetails}
           toast={toast}
+          statusReady={pushStatusReady}
         />
 
         {/* Activities List */}
