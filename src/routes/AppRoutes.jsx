@@ -37,6 +37,7 @@ import DefaultSchemeDetail from '../pages/counsellor/marking-scheme/DefaultSchem
 import SchemeDetail from '../pages/counsellor/marking-scheme/SchemeDetail';
 import CustomActivities from "../pages/counsellor/activites/custom-activities/CustomActivities";
 import CustomActivitiesPage from "../pages/counsellor/activites/custom-activities/addActivityPage";
+import StoryBehindSadhanaGpt from '../pages/StoryBehindSadhanaGpt';
 
 const AppRoutes = () => {
   return (
@@ -52,6 +53,8 @@ const AppRoutes = () => {
 
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
+          {/* Shared Module for Student & Counsellor */}
+          <Route path="/story-behind-sadhanagpt" element={<StoryBehindSadhanaGpt />} />
 
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/applied-marking-scheme" element={<StudentAppliedMarkingScheme />} />
