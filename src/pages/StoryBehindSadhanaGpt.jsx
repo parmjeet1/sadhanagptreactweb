@@ -38,7 +38,9 @@ const StoryBehindSadhanaGpt = () => {
   const formatDependency = (rawObj) => {
     if (!rawObj || typeof rawObj !== 'object') return null;
     return {
+      ...rawObj,
       story_title: rawObj.story_title || '',
+      story_desc: rawObj.story_desc || rawObj.story_description || '',
       story_content: rawObj.story_content || '',
       story_url: rawObj.story_url || '',
       story_url_text: rawObj.story_url_text || '',
@@ -55,6 +57,7 @@ const StoryBehindSadhanaGpt = () => {
 
   const initialDep = formatDependency(location.state?.dependency) || {
     story_title: '',
+    story_desc: '',
     story_content: '',
     story_url: '',
     story_url_text: '',
@@ -482,7 +485,7 @@ const StoryBehindSadhanaGpt = () => {
             </h1>
 
             <p className="text-amber-100/95 text-sm sm:text-base leading-relaxed max-w-2xl">
-              {dependency.story_title || ''}
+              {dependency.story_desc || ''}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
