@@ -756,6 +756,12 @@ export function SadhnaChat({ adapter }) {
       }
     }
 
+    // Not a sadhana entry — the assistant answers conversationally.
+    if (result.intent === "chat" && result.reply) {
+      pushBot(`🙏 ${result.reply}`, "welcome");
+      return;
+    }
+
     if (result.intent === "clarification_required" && result.clarification) {
       pushBot(`🙏 ${result.clarification}`, "welcome");
       return;
