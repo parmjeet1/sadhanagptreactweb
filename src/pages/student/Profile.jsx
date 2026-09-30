@@ -188,8 +188,6 @@ const Profile = () => {
     });
   };
 
-  const [dependencyData, setDependencyData] = useState(null);
-
   console.log("User details in Profile:", userDetails);
   const fetchProfile = () => {
     if (!userDetails?.user_id) return;
@@ -208,12 +206,6 @@ const Profile = () => {
           reminder_enabled: dataObj.user.reminder_enabled === 1 || dataObj.user.reminder_enabled === true || dataObj.user.reminder_status === 1 || dataObj.user.reminder_status === true,
           reminder_days: dataObj.user.report_frequency_days || dataObj.user.reminder_days || 3
         });
-      }
-
-      // Capture db_dependency object from API
-      const depObj = dataObj.dependency || dataObj.db_dependency || dataObj.user?.dependency;
-      if (depObj && typeof depObj === 'object') {
-        setDependencyData(depObj);
       }
 
       if (Array.isArray(dataObj.mentors)) setMentors(dataObj.mentors);
@@ -688,7 +680,7 @@ const Profile = () => {
       />
 
       {/* Developed by tripa.in */}
-      <DevelopedByTripa className="mt-8 mb-4 pb-20" dependency={dependencyData} />
+      <DevelopedByTripa className="mt-8 mb-4 pb-20" />
 
       <BottomNavigation />
 

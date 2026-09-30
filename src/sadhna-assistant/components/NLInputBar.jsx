@@ -107,25 +107,23 @@ export function NLInputBar({ onSend, disabled, activityNames = [], adapter }) {
     // one across the component's lifetime — reusing a previously-aborted
     // instance is a common source of the same instant-stop behavior.
     const recognition = new SpeechRecognitionCtor();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = "en-IN";
 
     const prefix = text.trim() ? `${text.trim()} ` : "";
+    let finalTranscript = "";
 
     recognition.onstart = () => setListening(true);
 
     recognition.onresult = (event) => {
-      let transcript = "";
+      let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          transcript += `${event.results[i][0].transcript} `;
-        }
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += `${chunk} `;
+        else interim += chunk;
       }
-      if (transcript.trim()) {
-        setText(`${prefix}${transcript.trim()}`.trim());
-      }
+      setText(`${prefix}${finalTranscript}${interim}`.trim());
     };
 
     recognition.onerror = (event) => {
@@ -214,16 +212,12 @@ export function NLInputBar({ onSend, disabled, activityNames = [], adapter }) {
   };
 
   const toggleListening = () => {
-    // Prefer recording + backend transcription on every browser where it is
-    // available. This gives Android, iPhone, Mac and Windows the same
-    // transcription path instead of relying on browser-specific Web Speech.
-    if (canRecordAudio) {
-      if (listening) stopRecording();
-      else startRecording();
-    } else if (SpeechRecognitionCtor) {
-      // Last-resort fallback for browsers that cannot record audio.
+    if (SpeechRecognitionCtor) {
       if (listening) stopListening();
       else startListening();
+    } else if (canRecordAudio) {
+      if (listening) stopRecording();
+      else startRecording();
     }
   };
 

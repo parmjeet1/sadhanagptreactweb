@@ -178,8 +178,6 @@ const CounsellorProfile = () => {
     });
   };
 
-  const [dependencyData, setDependencyData] = useState(null);
-
   console.log("User details in CounsellorProfile:", userDetails);
   const fetchCounsellorProfile = () => {
     if (!userDetails?.user_id) return;
@@ -201,12 +199,6 @@ const CounsellorProfile = () => {
         });
 
         if (Array.isArray(resData.data.mentors)) setMentors(resData.data.mentors);
-
-        // Capture db_dependency object from API
-        const depObj = resData.data.dependency || resData.data.db_dependency || resData.data.user?.dependency;
-        if (depObj && typeof depObj === 'object') {
-          setDependencyData(depObj);
-        }
       }
 
       setIsLoading(false);
@@ -734,7 +726,7 @@ const CounsellorProfile = () => {
       />
 
       {/* Developed by tripa.in */}
-      <DevelopedByTripa className="mt-8 mb-4 pb-20" dependency={dependencyData} />
+      <DevelopedByTripa className="mt-8 mb-4 pb-20" />
 
       <CounsellorBottomNavigation />
 
