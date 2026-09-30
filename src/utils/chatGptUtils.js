@@ -50,7 +50,7 @@ const showFullPromptBox = (fullPrompt, copied) => {
     h.textContent = 'Full data ready for ChatGPT';
     const p = document.createElement('div');
     p.style.cssText = 'font-size:13px;color:#475569;line-height:1.4';
-    p.textContent = (copied ? 'The complete data has been copied. ' : 'Tap "Copy full data" below. ')
+    p.textContent = (copied ? 'The complete data has been copied. ' : 'Tap "Copy Data n Paste to ChatGPT window" below. ')
       + 'It is too long to fit in a link, so in the ChatGPT tab paste it (long-press → Paste, or Ctrl+V) and send. '
       + `(${fullPrompt.length.toLocaleString()} characters — nothing is left out.)`;
     const ta = document.createElement('textarea');
@@ -62,7 +62,7 @@ const showFullPromptBox = (fullPrompt, copied) => {
     const btnCss = 'flex:1;padding:12px;border-radius:999px;font-weight:700;font-size:14px;border:0;cursor:pointer';
     const copyBtn = document.createElement('button');
     copyBtn.style.cssText = btnCss + ';background:#1a73e8;color:#fff';
-    copyBtn.textContent = 'Copy full data';
+    copyBtn.textContent = 'Copy Data n Paste to ChatGPT window';
     copyBtn.onclick = async () => {
       const ok = await copyText(fullPrompt);
       if (!ok) { ta.focus(); ta.select(); }
@@ -95,7 +95,8 @@ export const openChatGPTWithPrompt = async (fullPrompt, newWin = null) => {
   }
 
   const copied = await copyText(fullPrompt);
-  const short = 'I am about to paste Sadhana performance data (with analysis instructions) in my next message. Please wait for it, then follow the instructions in it. (Paste now: long-press → Paste, or Ctrl+V, then send.)';
+  //const short = 'I am about to paste Sadhana performance data (with analysis instructions) in my next message. Please wait for it, then follow the instructions in it. (Paste now: long-press → Paste, or Ctrl+V, then send.)';
+  const short = 'Please paste the data here for analysis. It is already copied. If not copied, please copy from SadhnaGPT window';
   go(`https://chatgpt.com/?hints=search&q=${encodeURIComponent(short)}`);
   showFullPromptBox(fullPrompt, copied);
   return { mode: 'clipboard', copied, length: fullPrompt.length };
