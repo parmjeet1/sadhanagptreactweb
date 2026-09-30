@@ -140,20 +140,19 @@ export class RealSadhnaGptAdapter extends SadhnaAdapter {
    * No AI/API key of any kind lives in this file or anywhere in the browser.
    */
   interpretNaturalLanguage(text, context, { forceAI = false } = {}) {
-    return new Promise((resolve) => {
+    const attempt = () => new Promise((resolve) => {
       postRequest("/assistant/nlp/interpret", { text, context, forceAI }, (response) => {
         const body = response?.data;
-        if (body && body.status === 1) {
-          resolve(body.data);
-        } else {
-          // Fail soft — the widget treats this as "please rephrase".
-          resolve({
-            intent: "clarification_required",
-            updates: [],
-            clarification: "Something went wrong understanding that — could you rephrase?",
-          });
-        }
+        resolve(body && body.status === 1 ? body.data : null);
       });
+    });
+    // Interpreting is read-only, so if the first request fails (timeout,
+    // gateway error, dropped connection) just try once more before giving up.
+    return attempt().then((first) => first || attempt()).then((result) => result || {
+      // Fail soft — the widget treats this as "please rephrase".
+      intent: "clarification_required",
+      updates: [],
+      clarification: "I couldn't reach the assistant just now — please try again in a moment.",
     });
   }
 
