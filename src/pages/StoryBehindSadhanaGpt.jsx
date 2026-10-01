@@ -112,6 +112,8 @@ const StoryBehindSadhanaGpt = () => {
 
   // Fetch backend data if not passed via navigation state (fallback)
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
     if (location.state?.dependency) {
       const formatted = formatDependency(location.state.dependency);
       if (formatted) {
