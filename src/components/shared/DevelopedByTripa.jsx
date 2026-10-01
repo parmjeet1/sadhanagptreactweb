@@ -9,7 +9,7 @@ const DevelopedByTripa = ({ className = "", dependency = null }) => {
     <div className={`flex justify-center items-center ${className}`}>
       <button
         type="button"
-        onClick={() => navigate('/story-behind-sadhanagpt', { state: { dependency } })}
+        onClick={() => navigate('/story-behind-sadhanagpt', { state: { dependency, openProjectModal: true } })}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-600/10 hover:from-amber-500/20 hover:via-orange-500/20 hover:to-amber-600/20 border border-amber-500/30 shadow-sm text-xs font-bold text-amber-900 transition-all group active:scale-95 cursor-pointer select-none"
         title="Discover the story behind SadhanaGpt"
       >

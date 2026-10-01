@@ -80,6 +80,7 @@ const StoryBehindSadhanaGpt = () => {
 
   // Project Inquiry Form State
   const [inquiryName, setInquiryName] = useState('');
+  const [inquiryPhone, setInquiryPhone] = useState('');
   const [inquiryMessage, setInquiryMessage] = useState('');
 
   // Payment State
@@ -167,6 +168,18 @@ const StoryBehindSadhanaGpt = () => {
 
     fetchStoryData();
     loadRazorpaySDK();
+
+    if (location.state?.openProjectModal) {
+      setIsProjectModalOpen(true);
+    }
+    try {
+      const storedUser = localStorage.getItem('user_details') || localStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.name && !inquiryName) setInquiryName(parsed.name);
+        if ((parsed.mobile || parsed.phone) && !inquiryPhone) setInquiryPhone(parsed.mobile || parsed.phone);
+      }
+    } catch (err) { }
   }, [location.state]);
 
   // Parse YouTube video URL to embed format
@@ -324,6 +337,7 @@ const StoryBehindSadhanaGpt = () => {
   // Unified Project Inquiry Handler sending email via backend emailQueue
   const handleSendProjectInquiry = () => {
     const name = inquiryName.trim();
+    const phone = inquiryPhone.trim();
     const msg = inquiryMessage.trim();
     if (!msg) {
       showToast('Please enter your project details before submitting.', 'error');
@@ -334,7 +348,7 @@ const StoryBehindSadhanaGpt = () => {
 
     let userId = null;
     let userEmail = '';
-    let userPhone = '';
+    let userPhone = phone;
 
     try {
       const storedUser = localStorage.getItem('user_details') || localStorage.getItem('user');
@@ -342,7 +356,7 @@ const StoryBehindSadhanaGpt = () => {
         const parsed = JSON.parse(storedUser);
         userId = parsed.user_id || parsed.id || null;
         userEmail = parsed.email || '';
-        userPhone = parsed.mobile || parsed.phone || '';
+        if (!userPhone) userPhone = parsed.mobile || parsed.phone || '';
       }
     } catch (err) { }
 
@@ -951,6 +965,17 @@ const StoryBehindSadhanaGpt = () => {
                     value={inquiryName}
                     onChange={(e) => setInquiryName(e.target.value)}
                     placeholder="Enter your name"
+                    className="w-full bg-white text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-amber-200 uppercase tracking-wider">Contact Number</label>
+                  <input
+                    type="tel"
+                    value={inquiryPhone}
+                    onChange={(e) => setInquiryPhone(e.target.value)}
+                    placeholder="Enter your contact number"
                     className="w-full bg-white text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
                   />
                 </div>

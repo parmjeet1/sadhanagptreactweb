@@ -535,6 +535,9 @@ const Profile = () => {
                 ))}
               </div>
             </section>
+
+            {/* Developed by tripa.in (Story behind SadhanaGpt button placed after My Mentors) */}
+            <DevelopedByTripa className="px-8 mt-2 mb-8" dependency={dependencyData} />
             {/* Push notifications on/off (moved here from the home screen) */}
             <section className="px-8 mb-6">
               <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between">
@@ -686,9 +689,6 @@ const Profile = () => {
         userInfo={userInfo}
         onSave={handleSaveInfo}
       />
-
-      {/* Developed by tripa.in */}
-      <DevelopedByTripa className="mt-8 mb-4 pb-20" dependency={dependencyData} />
 
       <BottomNavigation />
 
