@@ -169,9 +169,6 @@ const StoryBehindSadhanaGpt = () => {
     fetchStoryData();
     loadRazorpaySDK();
 
-    if (location.state?.openProjectModal) {
-      setIsProjectModalOpen(true);
-    }
     try {
       const storedUser = localStorage.getItem('user_details') || localStorage.getItem('user');
       if (storedUser) {
