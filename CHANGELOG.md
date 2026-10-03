@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-03, 09:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Safety net for counsellors who installed the app BEFORE the PWA fix. Their installed icon still opens the student dashboard launch address. Now, only when that exact launch address (`?assistant=open`) is opened by a logged-in counsellor, they are sent to the counsellor dashboard. Students and normal visits are not affected. Works immediately after deploy, with no reinstall.
+- **Files touched**: `src/pages/student/StudentDashboard.jsx`, `CHANGELOG.md`
+
+---
+
 ## 🐛 [Fix] - 2026-10-03, 09:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

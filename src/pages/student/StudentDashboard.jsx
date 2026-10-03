@@ -53,6 +53,21 @@ const getColors = (index) => {
 const StudentDashboard = () => {
   const { userDetails } = useOutletContext();
   const navigate = useNavigate();
+
+  // Safety net for counsellors who installed the app (PWA) BEFORE the fix: their
+  // installed icon still opens "/student/dashboard?assistant=open". Only that
+  // exact launch address, for a counsellor, is sent to the counsellor dashboard;
+  // normal visits are never touched. The address is read once on first render
+  // because the assistant launcher removes the "?assistant=open" part itself.
+  const [cameFromOldInstall] = useState(
+    () => new URLSearchParams(window.location.search).get('assistant') === 'open'
+  );
+  useEffect(() => {
+    if (cameFromOldInstall && userDetails?.user_type === 'counsellor') {
+      navigate('/counsellor/dashboard', { replace: true });
+    }
+  }, [cameFromOldInstall, userDetails, navigate]);
+
   const [activities, setActivities] = useState([]);
   const [dates, setDates] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
