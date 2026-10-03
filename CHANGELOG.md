@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🧪 [Test] - 2026-10-03, 06:52 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Added a temporary test. A browser alert saying "hello from claude" now shows when the login page (`/`) opens. Remove after testing.
+- **Files touched**: `src/pages/Login.jsx`, `CHANGELOG.md`
+
+---
+
 ## 🚀 [v1.2.0] - 2026-09-27
 
 ### 🎨 Features & Redesigns
