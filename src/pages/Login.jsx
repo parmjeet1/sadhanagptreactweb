@@ -68,7 +68,15 @@ const Login = () => {
         if (user.user_type) {
           // If they already have a role, send them to dashboard or Step 2
           if (user.access_token) {
-            navigate(`/${user.user_type}/dashboard`);
+            // Installed app (PWA) opens at "/?source=pwa" for everyone, so each
+            // role lands on its own dashboard. Students also get the Sadhna
+            // assistant opened straight away; counsellors do not.
+            const fromPwa = new URLSearchParams(window.location.search).get('source') === 'pwa';
+            if (fromPwa && user.user_type === 'student') {
+              navigate('/student/dashboard?assistant=open', { replace: true });
+            } else {
+              navigate(`/${user.user_type}/dashboard`);
+            }
           } else {
             navigate(`/${user.user_type}/onboarding-step-2`);
           }

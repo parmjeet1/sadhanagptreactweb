@@ -28,8 +28,8 @@ const SadhnaAssistantLauncher = () => {
     emitSadhnaActivityUpdated({ trigger: 'modal_close' });
   };
 
-  // PWA: the installed app's manifest start_url is
-  // "/student/dashboard?assistant=open" so launching the installed app
+  // PWA: the installed app opens "/?source=pwa"; Login.jsx sends a student on
+  // to "/student/dashboard?assistant=open" so launching the installed app
   // opens straight into the chat instead of just the Activities screen.
   // Strip the param right after so a later refresh/back-navigation to this
   // same URL doesn't keep reopening it.
