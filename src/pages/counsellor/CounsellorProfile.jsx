@@ -7,6 +7,7 @@ import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal
 import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { compressImage } from '../../utils/imageCompressor';
+import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
 
 
 const CounsellorProfile = () => {
@@ -102,6 +103,23 @@ const CounsellorProfile = () => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [isTogglingPush, setIsTogglingPush] = useState(false);
+
+  const handleTogglePush = async () => {
+    if (isTogglingPush) return;
+    if (isPushEnabled && !window.confirm('Disable push notifications? You will no longer receive weekly push notifications from SadhnaGPT.')) return;
+    setIsTogglingPush(true);
+    if (isPushEnabled) {
+      setIsPushEnabled(false);
+      await disablePushNotifications(userDetails);
+      showToast('Push notifications disabled', 'success');
+    } else {
+      setIsPushEnabled(true);
+      await enablePushNotifications(userDetails);
+      showToast('Push notifications enabled!', 'success');
+    }
+    setIsTogglingPush(false);
+  };
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -160,6 +178,8 @@ const CounsellorProfile = () => {
     });
   };
 
+  const [dependencyData, setDependencyData] = useState(null);
+
   console.log("User details in CounsellorProfile:", userDetails);
   const fetchCounsellorProfile = () => {
     if (!userDetails?.user_id) return;
@@ -181,6 +201,12 @@ const CounsellorProfile = () => {
         });
 
         if (Array.isArray(resData.data.mentors)) setMentors(resData.data.mentors);
+
+        // Capture db_dependency object from API
+        const depObj = resData.data.dependency || resData.data.db_dependency || resData.data.user?.dependency;
+        if (depObj && typeof depObj === 'object') {
+          setDependencyData(depObj);
+        }
       }
 
       setIsLoading(false);
@@ -512,6 +538,28 @@ const CounsellorProfile = () => {
               </div>
             </section>
 
+            {/* Developed by tripa.in (Story behind SadhanaGpt button placed after My Mentors) */}
+            <DevelopedByTripa className="px-8 mt-2 mb-8" dependency={dependencyData} />
+
+            {/* Push notifications on/off (moved here from the home screen) */}
+            <section className="px-8 mb-6">
+              <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between">
+                <div>
+                  <h4 className="text-[16px] font-black text-[#1e293b]">Push Notifications</h4>
+                  <p className="text-[13px] font-bold text-gray-400 mt-1">
+                    {isPushEnabled ? 'On — you receive weekly push reminders' : 'Off — turn on to get weekly push reminders'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleTogglePush}
+                  disabled={isTogglingPush}
+                  aria-label={isPushEnabled ? 'Disable push notifications' : 'Enable push notifications'}
+                  className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 disabled:opacity-60 ${isPushEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isPushEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+            </section>
             {/* Notification Preferences */}
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
@@ -687,9 +735,6 @@ const CounsellorProfile = () => {
         userInfo={userInfo}
         onSave={handleSaveInfo}
       />
-
-      {/* Developed by tripa.in */}
-      <DevelopedByTripa className="mt-8 mb-4 pb-20" />
 
       <CounsellorBottomNavigation />
 

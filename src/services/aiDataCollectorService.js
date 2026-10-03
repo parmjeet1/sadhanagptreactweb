@@ -1,5 +1,5 @@
 import { postRequest, getRequest } from './api';
-import { openChatGPTWithPrompt, buildSadhanaPrompt, getDateRangeForPreset } from '../utils/chatGptUtils';
+import { openChatGPTWithPrompt, buildSadhanaParts, openChatGPTWithParts, buildCompactStudentData, getDateRangeForPreset } from '../utils/chatGptUtils';
 
 /**
  * Centralized service to execute dynamic API strategy, format prompt, copy to clipboard,
@@ -33,33 +33,20 @@ export const collectAndRedirectToChatGPT = async ({
         end_date: endDate,
         student_ids: entityParams.studentIds || []
       };
+      // Whole subgroup / group: let the server select every student (not just
+      // the ones on the page currently shown on screen).
+      if (!payload.student_ids.length) {
+        if (entityParams.centerId) payload.center_id = entityParams.centerId;
+        if (entityParams.labelId) payload.label_id = entityParams.labelId;
+      }
 
       const res = await postRequest('/export-bulk-student-reports', payload);
       const dataRows = res?.data?.data || [];
 
       if (Array.isArray(dataRows) && dataRows.length > 0) {
-        const grouped = {};
-        dataRows.forEach(row => {
-          const name = row.student_name || 'Student';
-          if (!grouped[name]) {
-            grouped[name] = {
-              mobile: row.mobile || 'N/A',
-              center: row.center_name || 'N/A',
-              label: row.label_name || 'Uncategorized',
-              activities: []
-            };
-          }
-          if (row.activity_name) {
-            grouped[name].activities.push(
-              `  - Date: ${row.activity_date || ''} | Activity: ${row.activity_name} | Value: ${row.activity_value ?? ''} | Marks: ${row.activity_marks ?? ''}`
-            );
-          }
-        });
-
-        dataText = Object.entries(grouped).map(([name, info], idx) => {
-          const acts = info.activities.length > 0 ? info.activities.join('\n') : '  - No activity logs recorded';
-          return `Student #${idx + 1}: ${name} (Mobile: ${info.mobile}, Group: ${info.center}, Sub-Group: ${info.label})\nActivities Logged:\n${acts}`;
-        }).join('\n\n');
+        const compact = buildCompactStudentData(dataRows, { startDate, endDate });
+        dataText = compact.text;
+        studentCount = compact.studentCount;
       } else if (entityParams.fallbackStudents && entityParams.fallbackStudents.length > 0) {
         dataText = entityParams.fallbackStudents.map((s, idx) => {
           const acts = Array.isArray(s.activities) && s.activities.length > 0
@@ -126,24 +113,19 @@ export const collectAndRedirectToChatGPT = async ({
         end_date: endDate,
         student_ids: entityParams.studentIds || []
       };
+      // Filter by group on the SERVER (by id). The old client-side filter
+      // matched on fields the API doesn't return and silently fell back to
+      // every group's data.
+      const gId = entityParams.group ? (entityParams.group.id || entityParams.group.center_id) : null;
+      if (gId) payload.center_id = gId;
 
       const bulkRes = await postRequest('/export-bulk-student-reports', payload);
-      let dataRows = bulkRes?.data?.data || [];
-
-      if (entityParams.group && Array.isArray(dataRows) && dataRows.length > 0) {
-        const gName = (entityParams.group.name || '').toLowerCase().trim();
-        const gId = String(entityParams.group.id || entityParams.group.center_id || '');
-        const filtered = dataRows.filter(row => 
-          String(row.center_id) === gId || 
-          (row.center_name && row.center_name.toLowerCase().trim() === gName)
-        );
-        if (filtered.length > 0) dataRows = filtered;
-      }
+      const dataRows = bulkRes?.data?.data || [];
 
       if (Array.isArray(dataRows) && dataRows.length > 0) {
-        dataText = dataRows.map(row => 
-          `- Date: ${row.activity_date || ''} | Mentee: ${row.student_name} | Group: ${row.center_name || 'N/A'} | Activity: ${row.activity_name} | Value: ${row.activity_value} | Marks: ${row.activity_marks}`
-        ).join('\n');
+        const compact = buildCompactStudentData(dataRows, { startDate, endDate });
+        dataText = compact.text;
+        studentCount = compact.studentCount;
       } else {
         const groupLabel = entityParams.group ? `Group "${entityParams.group.name}"` : 'All Groups';
         dataText = `Analytics (${startDate} to ${endDate}) for ${groupLabel}: No activity records logged in this timeframe.`;
@@ -153,13 +135,15 @@ export const collectAndRedirectToChatGPT = async ({
     }
   } catch (err) {
     console.warn(`collectAndRedirectToChatGPT issue [${strategy}]:`, err);
-    dataText = `Assessment period: ${startDate} to ${endDate}. Note: Direct backend data fetch warning, analyzing general logs for this period.`;
+    // Never send ChatGPT a placeholder instead of the real data — surface the
+    // failure so the caller can tell the user and let them retry.
+    throw err;
   }
 
   notify("Constructing prompt & redirecting to ChatGPT...");
 
   const contextTitle = entityParams.contextName || entityParams.studentName || 'Sadhana Report Analysis';
-  const fullPrompt = buildSadhanaPrompt({
+  const parts = buildSadhanaParts({
     contextName: contextTitle,
     startDate,
     endDate,
@@ -167,5 +151,5 @@ export const collectAndRedirectToChatGPT = async ({
     dataText
   });
 
-  await openChatGPTWithPrompt(fullPrompt, newWindowHandle);
+  return await openChatGPTWithParts(parts, newWindowHandle);
 };

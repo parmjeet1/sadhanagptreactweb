@@ -153,6 +153,30 @@
   }
 }
 
+/* Blue variant of the looping glow, for the Bird's Eye View button
+   (CounsellorDashboard.jsx) — kept separate from sadhna-glow/
+   .animate-sadhna-glow-loop above so the shared orange mic-launcher glow
+   is left untouched. */
+@keyframes sadhna-glow-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(26, 115, 232, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(26, 115, 232, 0);
+  }
+}
+.animate-sadhna-glow-loop-blue {
+  animation: sadhna-glow-blue 2.2s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-sadhna-glow-loop-blue {
+    animation: none !important;
+  }
+}
+
 @keyframes sadhna-sparkle-float {
   0% {
     opacity: 0;
@@ -204,3 +228,5 @@
     animation: none !important;
   }
 }
+
+@keyframes birdFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}

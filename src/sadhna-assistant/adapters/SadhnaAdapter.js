@@ -150,6 +150,19 @@ export class SadhnaAdapter {
   async updateActivityForDate(_payload) {
     throw new Error("SadhnaAdapter.updateActivityForDate() not implemented");
   }
+  /** Optional: apply the same values to many dates in ONE call. Hosts that
+   * don't implement it fall back to per-date updateActivityForDate calls. */
+  async updateActivitiesForDates({ dates = [], updates = [] } = {}) {
+    let saved = 0;
+    for (const date of dates) {
+      for (const u of updates) {
+        // eslint-disable-next-line no-await-in-loop
+        const r = await this.updateActivityForDate({ ...u, date });
+        if (r && r.success) saved += 1;
+      }
+    }
+    return { success: saved === dates.length * updates.length, saved, total: dates.length * updates.length };
+  }
   async getTodayMarks() {
     throw new Error("SadhnaAdapter.getTodayMarks() not implemented");
   }

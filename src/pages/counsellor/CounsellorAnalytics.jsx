@@ -6,9 +6,10 @@ import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import AddGroupModal from '../../components/shared/AddGroupModal';
 import ReportSettingsModal from '../../components/counsellor/ReportSettingsModal';
 import ThemeToggle from '../../components/shared/ThemeToggle';
-import { postRequest, getRequest } from '../../services/api';
+import { postRequest, getRequest, deleteRequest } from '../../services/api';
 import { openChatGPTWithPrompt } from '../../utils/chatGptUtils';
 import AiDateFilterModal from '../../components/AiAnalysis/AiDateFilterModal';
+import { processResponse } from '../../utils/apiUtils';
 const timeToMinutes = (timeStr) => {
   if (!timeStr) return 0;
   if (typeof timeStr === 'number') return timeStr;
@@ -104,6 +105,7 @@ const CounsellorAnalytics = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAddGroupOpen, setIsAddGroupOpen] = useState(false);
   const [groups, setGroups] = useState([]);
+  const [ungroupedCount, setUngroupedCount] = useState(0);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
   const [totalMentees, setTotalMentees] = useState(0);
 
@@ -160,6 +162,12 @@ const CounsellorAnalytics = () => {
           setTotalMentees(sumMentees);
         }
         setIsLoadingGroups(false);
+      });
+
+      // Mentees not in any group -> "Ungrouped" card (shown only when > 0)
+      getRequest('/student-list', { user_id: userDetails.user_id, page_no: 1, rowSelected: 1, categroy: 'un-categorized' }, (response) => {
+        const r = response.data;
+        if (r && r.code === 200) setUngroupedCount(Number(r.total ?? r.total_records ?? 0) || 0);
       });
 
       // Query student-list to ensure accurate total count of all mentees
@@ -223,20 +231,20 @@ const CounsellorAnalytics = () => {
         if (type === 'success') {
           fetchGroups();
           setIsAddGroupOpen(false);
-          toast.success(message);
+          showToast(message, 'success');
         } else {
-          toast.error(message);
+          showToast(message, 'error');
         }
       });
     } catch (error) {
       console.error("Error adding group:", error);
-      toast.error("Failed to add group");
+      showToast("Failed to add group", 'error');
     }
   };
 
   const submitEditGroup = async () => {
     if (!editGroup.name.trim()) {
-      toast.error("Group name cannot be empty");
+      showToast("Group name cannot be empty", 'error');
       return;
     }
     try {
@@ -249,15 +257,15 @@ const CounsellorAnalytics = () => {
       postRequest('/edit-center', payload, (response) => {
         const { message, type } = processResponse(response.data);
         if (type === 'success') {
-          toast.success(message || "Group updated successfully");
+          showToast(message || "Group updated successfully", 'success');
           setEditGroup(null);
           fetchGroups();
         } else {
-          toast.error(message || "Failed to update group");
+          showToast(message || "Failed to update group", 'error');
         }
       });
     } catch (error) {
-      toast.error("Failed to update group");
+      showToast("Failed to update group", 'error');
     }
   };
 
@@ -267,18 +275,20 @@ const CounsellorAnalytics = () => {
         user_id: userDetails.user_id,
         center_id: deleteGroup.id
       };
-      postRequest('/delete-center', payload, (response) => {
+      // FIX: backend route '/delete-center' is registered DELETE-only
+      // (routes/Routes.js), so calling it via postRequest silently 404'd.
+      deleteRequest('/delete-center', payload, (response) => {
         const { message, type } = processResponse(response.data);
         if (type === 'success') {
-          toast.success(message || "Group deleted successfully");
+          showToast(message || "Group deleted successfully", 'success');
           setDeleteGroup(null);
           fetchGroups();
         } else {
-          toast.error(message || "Failed to delete group");
+          showToast(message || "Failed to delete group", 'error');
         }
       });
     } catch (error) {
-      toast.error("Failed to delete group");
+      showToast("Failed to delete group", 'error');
     }
   };
 
@@ -301,6 +311,18 @@ const CounsellorAnalytics = () => {
               <span className="absolute top-3 right-3 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 border-2 border-white dark:border-[#1e293b]"></span>
             </button>
           </div>
+        </div>
+
+        {/* Mentees n Group Management — moved to the top per redesign, so it's
+            the first thing a counsellor can act on. */}
+        <div className="px-6 mb-6">
+          <button
+            onClick={() => navigate('/counsellor/mentees')}
+            className="w-full bg-blue-600 text-white font-bold py-4 rounded-[20px] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-[16px]"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11M8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11M8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13M16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" /></svg>
+            Mentees n Group Management{!isLoadingGroups ? ` (Total - ${totalMentees})` : ''}
+          </button>
         </div>
 
         {/* Top 2 Columns: Students Rank & Students Need Follow-up */}
@@ -452,6 +474,28 @@ const CounsellorAnalytics = () => {
                     </div>
                   ))}
                   
+                  {ungroupedCount > 0 && (
+                    <div className="relative flex-shrink-0">
+                      <div
+                        onClick={() => navigate('/counsellor/ungrouped')}
+                        className="w-[195px] bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700/80 rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-3.33 0-8 1.67-8 5v1h16v-1c0-3.33-4.67-5-8-5z" /></svg>
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-[#0f172a] dark:text-white text-[14px] leading-tight truncate">Ungrouped</h3>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[#64748b] dark:text-slate-400 text-[11px] font-medium">{ungroupedCount} members</span>
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">No group</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div 
                     onClick={() => setIsAddGroupOpen(true)}
                     className="flex-shrink-0 w-[195px] bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-200/60 dark:border-blue-900/40 border-dashed rounded-2xl p-3.5 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-950/40 active:scale-[0.98] transition-all min-h-[105px]"
@@ -480,7 +524,7 @@ const CounsellorAnalytics = () => {
                 onClick={() => {
                   const encoded = btoa(userDetails.user_id);
                   const link = `https://sadhanagpt.com?ref=${encoded}`;
-                  navigator.clipboard.writeText(link).then(() => toast.success("Referral link copied!"));
+                  navigator.clipboard.writeText(link).then(() => showToast("Referral link copied!", 'success'));
                 }}
                 className="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
               >
@@ -531,16 +575,6 @@ const CounsellorAnalytics = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* View All Mentees Button */}
-        <div className="px-6 mb-8">
-          <button
-            onClick={() => navigate('/counsellor/mentees')}
-            className="w-full bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-[#1e3a8a] dark:text-blue-300 font-bold py-4 rounded-[20px] shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-[16px]"
-          >
-            View All Mentees (Total - {totalMentees}) <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-          </button>
         </div>
 
       </div>

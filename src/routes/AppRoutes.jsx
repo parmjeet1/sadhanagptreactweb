@@ -19,9 +19,11 @@ import CounsellorAnalytics from '../pages/counsellor/CounsellorAnalytics';
 import PersonalSadhanaAnalytics from '../pages/counsellor/PersonalSadhanaAnalytics';
 import CounsellorRewardsManagement from '../pages/counsellor/CounsellorRewardsManagement';
 import MenteesList from '../pages/counsellor/mentees_module/MenteesList';
+import BirdsEyeView from '../pages/counsellor/BirdsEyeView';
 import StudentReport from '../pages/counsellor/mentees_module/StudentReport';
 import MenteeConversation from '../pages/counsellor/mentees_module/MenteeConversation';
 import GroupMenteesList from '../pages/counsellor/group_mentees_module/GroupMenteesList';
+import UngroupedMentees from '../pages/counsellor/group_mentees_module/UngroupedMentees';
 import CounsellorAddContent from '../pages/counsellor/CounsellorAddContent';
 import CounsellorAiChat from '../pages/counsellor/CounsellorAiChat';
 import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsellors';
@@ -35,6 +37,7 @@ import DefaultSchemeDetail from '../pages/counsellor/marking-scheme/DefaultSchem
 import SchemeDetail from '../pages/counsellor/marking-scheme/SchemeDetail';
 import CustomActivities from "../pages/counsellor/activites/custom-activities/CustomActivities";
 import CustomActivitiesPage from "../pages/counsellor/activites/custom-activities/addActivityPage";
+import StoryBehindSadhanaGpt from '../pages/StoryBehindSadhanaGpt';
 
 const AppRoutes = () => {
   return (
@@ -50,6 +53,8 @@ const AppRoutes = () => {
 
         {/* Protected Routes */}
         <Route element={<AuthGuard />}>
+          {/* Shared Module for Student & Counsellor */}
+          <Route path="/story-behind-sadhanagpt" element={<StoryBehindSadhanaGpt />} />
 
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/applied-marking-scheme" element={<StudentAppliedMarkingScheme />} />
@@ -69,11 +74,13 @@ const AppRoutes = () => {
 
           {/* <Route path="/counsellor/rewards" element={<CounsellorRewardsManagement />} /> */}
           <Route path="/counsellor/mentees" element={<MenteesList />} />
+          <Route path="/counsellor/birds-eye" element={<BirdsEyeView />} />
           <Route path="/counsellor/mentee/:id" element={<StudentReport />} />
           <Route path="/counsellor/mentee/:id/conversation" element={<MenteeConversation />} />
           <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
           <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
           <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
+          <Route path="/counsellor/ungrouped" element={<UngroupedMentees />} />
           <Route path="/counsellor/sub-counsellors" element={<CounsellorSubCounsellors />} />
           <Route path="/counsellor/irregular-mentees" element={<IrregularMentees />} />
           <Route path="/counsellor/ranks/:type" element={<StudentRanksList />} />
