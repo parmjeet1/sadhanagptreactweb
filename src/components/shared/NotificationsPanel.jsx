@@ -5,7 +5,7 @@ import { getRequest } from '../../services/api';
 
 const NotificationsPanel = ({ isOpen, onClose }) => {
   const { userDetails } = useOutletContext();
-  const [activePanelTab, setActivePanelTab] = useState('notifications'); // 'notifications' | 'rankings'
+  const [activePanelTab, setActivePanelTab] = useState('rankings'); // 'notifications' | 'rankings' — opens on Rankings by default
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -16,7 +16,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
 
   // Rankings State
   const [rankingType, setRankingType] = useState('center'); // 'center' (Group) or 'global' (Global)
-  const [timeFilter, setTimeFilter] = useState('today'); // 'today' | 'yesterday' | 'weekly'
+  const [timeFilter, setTimeFilter] = useState('yesterday'); // 'today' | 'yesterday' | 'weekly' — opens on Previous Day by default
   const [rankings, setRankings] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(null);
   const [rankingPage, setRankingPage] = useState(1);
@@ -95,8 +95,10 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
         fetchRankings(1, false, rankingType, timeFilter);
       }
     } else {
-      // Reset defaults for next time panel is opened
-      setTimeFilter('today');
+      // Reset defaults for next time panel is opened:
+      // Rankings tab -> Group Rank -> Previous Day.
+      setActivePanelTab('rankings');
+      setTimeFilter('yesterday');
       setRankingType('center');
     }
   }, [isOpen, activePanelTab, rankingType, timeFilter]);
