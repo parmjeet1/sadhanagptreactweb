@@ -6,25 +6,13 @@ const SpeechRecognitionCtor =
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : undefined;
 
-// Live Web Speech API transcription (Chrome/Android) is the first choice
-// when available. Many mobile browsers — most notably iOS Safari and the
-// in-app webviews the app is often opened from — implement neither
-// SpeechRecognition nor webkitSpeechRecognition at all, which is why the
-// mic used to simply vanish on mobile. MediaRecorder + getUserMedia is
-// supported far more broadly (including iOS Safari 14.3+), so when native
-// speech recognition isn't available but recording is, the mic still shows
-// up and instead records a short clip and sends it to the backend (which
-// transcribes it via OpenAI) — see RealSadhnaGptAdapter.transcribeVoiceNote.
-const canRecordAudio =
-  typeof window !== "undefined" &&
-  !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) &&
-  typeof window.MediaRecorder !== "undefined";
-
-const RECORDER_MIME_CANDIDATES = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"];
-function pickRecorderMimeType() {
-  if (typeof window === "undefined" || !window.MediaRecorder?.isTypeSupported) return "";
-  return RECORDER_MIME_CANDIDATES.find((t) => window.MediaRecorder.isTypeSupported(t)) || "";
-}
+// Voice input uses the BROWSER's own speech recognition (Web Speech API) on
+// every device — Android, iPhone, desktop. Nothing is recorded or sent to our
+// backend, so it needs no server key and works the same everywhere. On a
+// browser that does not support it at all (e.g. some in-app webviews), the mic
+// button is simply hidden and the user types instead.
+const MAX_LISTEN_MS = 60000; // safety: the mic always closes after 60 seconds
+const FORCE_STOP_MS = 1500; // if the browser is slow to end after stop(), abort
 
 const ERROR_MESSAGES = {
   "not-allowed": "Microphone access denied — allow it in your browser's site settings and try again.",
@@ -35,43 +23,36 @@ const ERROR_MESSAGES = {
   network: "Speech service unavailable — check your connection and try again.",
 };
 
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(String(reader.result).split(",").pop());
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
 /**
  * The persistent "Just write/Speak your Sadhna" free-text bar, always
  * available at the bottom of the chat regardless of which flow/step is
  * active. `activityNames` is the live, dynamic list of active activities
  * (never hard-coded) shown in brackets as a hint of what can be filled.
  *
- * Offers a microphone button for dictating the update instead of typing it
- * — Web Speech API live transcription where supported, otherwise a
- * record-and-transcribe fallback (see `canRecordAudio` above) so voice
- * input works on mobile too, not just desktop Chrome. The mic is only
- * hidden on the rare browser that supports neither.
+ * Offers a microphone button for dictating the update instead of typing it,
+ * using the browser's built-in speech recognition. The words appear in the box
+ * live while speaking. The mic closes by itself when the user stops talking,
+ * when they tap the button again, or after MAX_LISTEN_MS at the latest.
  */
-export function NLInputBar({ onSend, disabled, activityNames = [], adapter }) {
+export function NLInputBar({ onSend, disabled, activityNames = [] }) {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
-  const [transcribing, setTranscribing] = useState(false);
   const [micError, setMicError] = useState("");
   const recognitionRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const mediaChunksRef = useRef([]);
-  const mediaStreamRef = useRef(null);
+  const startingRef = useRef(false);
   const errorTimeoutRef = useRef(null);
+  const maxTimerRef = useRef(null);
+  const forceStopTimerRef = useRef(null);
+
+  const clearListenTimers = () => {
+    clearTimeout(maxTimerRef.current);
+    clearTimeout(forceStopTimerRef.current);
+  };
 
   useEffect(() => {
     return () => {
+      clearListenTimers();
       recognitionRef.current?.abort();
-      mediaRecorderRef.current?.stop();
-      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
       clearTimeout(errorTimeoutRef.current);
     };
   }, []);
@@ -84,147 +65,96 @@ export function NLInputBar({ onSend, disabled, activityNames = [], adapter }) {
   };
 
   const stopListening = () => {
-    recognitionRef.current?.stop();
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      setListening(false);
+      return;
+    }
+    recognition.stop();
+    // Some mobile browsers are slow (or fail) to fire "end" after stop() —
+    // make sure the mic really closes and the button resets.
+    clearTimeout(forceStopTimerRef.current);
+    forceStopTimerRef.current = setTimeout(() => {
+      recognition.abort();
+      setListening(false);
+    }, FORCE_STOP_MS);
   };
 
   const startListening = async () => {
+    if (startingRef.current) return;
+    startingRef.current = true;
     setMicError("");
 
-    // Request mic permission explicitly first. Letting SpeechRecognition
-    // negotiate permission on its own is what causes the classic "starts
-    // then immediately stops" bug in Chrome — the audio pipeline hasn't
-    // warmed up yet when recognition.start() fires, so it aborts right
-    // away. Asking via getUserMedia first avoids that race.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((t) => t.stop()); // we only needed the permission grant
-    } catch (err) {
-      showMicError(ERROR_MESSAGES[err.name?.toLowerCase()] || ERROR_MESSAGES["not-allowed"]);
-      return;
-    }
-
-    // Build a fresh recognition instance per attempt rather than reusing
-    // one across the component's lifetime — reusing a previously-aborted
-    // instance is a common source of the same instant-stop behavior.
-    const recognition = new SpeechRecognitionCtor();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.lang = "en-IN";
-
-    const prefix = text.trim() ? `${text.trim()} ` : "";
-
-    recognition.onstart = () => setListening(true);
-
-    recognition.onresult = (event) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          transcript += `${event.results[i][0].transcript} `;
-        }
-      }
-      if (transcript.trim()) {
-        setText(`${prefix}${transcript.trim()}`.trim());
-      }
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error !== "aborted" && event.error !== "no-speech") {
-        showMicError(ERROR_MESSAGES[event.error] || "Voice input isn't available right now.");
-      }
-    };
-
-    recognition.onend = () => {
-      setListening(false);
-      recognitionRef.current = null;
-    };
-
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
-    } catch {
-      // Already-started/invalid-state — reset so the next click gets a clean instance.
-      recognitionRef.current = null;
-      setListening(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------
-  // Record-and-transcribe fallback (browsers without SpeechRecognition —
-  // notably iOS Safari and most in-app webviews).
-  // ---------------------------------------------------------------------
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop(); // onstop below handles the rest
-  };
-
-  const startRecording = async () => {
-    setMicError("");
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err) {
-      showMicError(ERROR_MESSAGES[err.name?.toLowerCase()] || ERROR_MESSAGES["not-allowed"]);
-      return;
-    }
-
-    mediaStreamRef.current = stream;
-    mediaChunksRef.current = [];
-    const mimeType = pickRecorderMimeType();
-    const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-
-    recorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) mediaChunksRef.current.push(e.data);
-    };
-
-    recorder.onstop = async () => {
-      mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-      mediaStreamRef.current = null;
-      setListening(false);
-
-      const blob = new Blob(mediaChunksRef.current, { type: recorder.mimeType || mimeType || "audio/webm" });
-      mediaChunksRef.current = [];
-
-      if (blob.size < 500) return; // essentially empty — user tapped stop instantly
-
-      if (!adapter?.transcribeVoiceNote) {
-        showMicError("Voice input isn't available right now.");
+      // Request mic permission explicitly first. Letting SpeechRecognition
+      // negotiate permission on its own is what causes the classic "starts
+      // then immediately stops" bug in Chrome — the audio pipeline hasn't
+      // warmed up yet when recognition.start() fires, so it aborts right
+      // away. Asking via getUserMedia first avoids that race.
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop()); // we only needed the permission grant
+      } catch (err) {
+        showMicError(ERROR_MESSAGES[err.name?.toLowerCase()] || ERROR_MESSAGES["not-allowed"]);
         return;
       }
 
-      setTranscribing(true);
-      try {
-        const base64 = await blobToBase64(blob);
-        const transcript = await adapter.transcribeVoiceNote(base64, blob.type);
-        if (transcript) {
-          const prefix = text.trim() ? `${text.trim()} ` : "";
-          setText(`${prefix}${transcript}`.trim());
-        } else {
-          showMicError("Didn't catch that — tap the mic and try again.");
-        }
-      } catch {
-        showMicError("Couldn't understand that voice note — please try again or type instead.");
-      } finally {
-        setTranscribing(false);
-      }
-    };
+      // Build a fresh recognition instance per attempt rather than reusing
+      // one across the component's lifetime — reusing a previously-aborted
+      // instance is a common source of the same instant-stop behavior.
+      const recognition = new SpeechRecognitionCtor();
+      recognition.continuous = false; // closes by itself after the user pauses
+      recognition.interimResults = true; // show words while speaking
+      recognition.maxAlternatives = 1;
+      recognition.lang = "en-IN";
 
-    mediaRecorderRef.current = recorder;
-    recorder.start();
-    setListening(true);
+      const prefix = text.trim() ? `${text.trim()} ` : "";
+
+      recognition.onstart = () => setListening(true);
+
+      recognition.onresult = (event) => {
+        let finalText = "";
+        let interimText = "";
+        for (let i = 0; i < event.results.length; i++) {
+          const piece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText += `${piece} `;
+          else interimText += piece;
+        }
+        const spoken = `${finalText}${interimText}`.trim();
+        if (spoken) setText(`${prefix}${spoken}`.trim());
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error !== "aborted") {
+          showMicError(ERROR_MESSAGES[event.error] || "Voice input isn't available right now.");
+        }
+      };
+
+      recognition.onend = () => {
+        clearListenTimers();
+        setListening(false);
+        recognitionRef.current = null;
+      };
+
+      recognitionRef.current = recognition;
+      try {
+        recognition.start();
+        clearTimeout(maxTimerRef.current);
+        maxTimerRef.current = setTimeout(stopListening, MAX_LISTEN_MS);
+      } catch {
+        // Already-started/invalid-state — reset so the next click gets a clean instance.
+        recognitionRef.current = null;
+        setListening(false);
+      }
+    } finally {
+      startingRef.current = false;
+    }
   };
 
   const toggleListening = () => {
-    // Prefer recording + backend transcription on every browser where it is
-    // available. This gives Android, iPhone, Mac and Windows the same
-    // transcription path instead of relying on browser-specific Web Speech.
-    if (canRecordAudio) {
-      if (listening) stopRecording();
-      else startRecording();
-    } else if (SpeechRecognitionCtor) {
-      // Last-resort fallback for browsers that cannot record audio.
-      if (listening) stopListening();
-      else startListening();
-    }
+    if (!SpeechRecognitionCtor) return;
+    if (listening) stopListening();
+    else startListening();
   };
 
   const submit = () => {
@@ -254,30 +184,24 @@ export function NLInputBar({ onSend, disabled, activityNames = [], adapter }) {
         <textarea
           rows={2}
           value={text}
-          disabled={disabled || transcribing}
+          disabled={disabled}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={listening ? "Listening..." : transcribing ? "Transcribing your voice note..." : "e.g. 16 rounds, woke at 4:25..."}
+          placeholder={listening ? "Listening..." : "e.g. 16 rounds, woke at 4:25..."}
           className="flex-1 min-w-0 resize-none px-4 py-2.5 h-20 rounded-2xl border border-saffron-200 bg-white text-sm
             focus:outline-none focus:ring-2 focus:ring-saffron-300 disabled:opacity-60"
         />
         <div className="flex flex-col gap-2 shrink-0">
-          {(SpeechRecognitionCtor || canRecordAudio) && (
+          {SpeechRecognitionCtor && (
             <button
               type="button"
               onClick={toggleListening}
-              disabled={disabled || transcribing}
+              disabled={disabled}
               aria-label={listening ? "Stop listening" : "Speak"}
               className={`h-10 w-10 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed
                 ${listening ? "bg-saffron-700 text-white animate-sadhna-glow" : "bg-cream-200 text-saffron-700 hover:bg-saffron-100"}`}
             >
-              {listening ? (
-                <Square size={15} />
-              ) : transcribing ? (
-                <span className="w-3 h-3 rounded-full border-2 border-saffron-700 border-t-transparent animate-spin" />
-              ) : (
-                <Mic size={17} />
-              )}
+              {listening ? <Square size={15} /> : <Mic size={17} />}
             </button>
           )}
           <button
