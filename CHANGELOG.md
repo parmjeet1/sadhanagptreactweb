@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-03, 09:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The bird's-eye icon, the mic icon (opens the Sadhna bot) and the marks icon are now all the same size (the size the marks circle used to be: 68px on phones, 76px on large screens), sit in one straight vertical line (bird on top, mic in the middle, marks at the bottom) and can be moved: press, hold and drag them anywhere on the screen. A simple tap still works as before, and dropping an icon after a drag does not open it. Icons stay fully on screen and above the bottom menu, and each icon remembers where it was left (on that device). The marks card now opens to the side/below when the icon is near a screen edge so it is never cut off.
+- **Files touched**: `src/components/shared/DraggableFloating.jsx` (new), `src/components/counsellor/BirdsEyeFab.jsx` (new), `src/components/student/SadhnaAssistantLauncher.jsx`, `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+
+---
+
 ## 🐛 [Fix] - 2026-10-03, 08:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

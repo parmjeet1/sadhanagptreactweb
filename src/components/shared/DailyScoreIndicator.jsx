@@ -1,11 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import DraggableFloating from './DraggableFloating';
 
 const DailyScoreIndicator = ({ scoreData, isLoading }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  // The card normally opens above the icon, aligned to its right edge. Because
+  // the icon can be dragged anywhere, flip it to the left edge / below the icon
+  // when it would otherwise run off the screen.
+  const [placement, setPlacement] = useState({ alignLeft: false, below: false });
+
+  const computePlacement = () => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const next = { alignLeft: rect.right < 240, below: rect.top < 230 };
+    setPlacement((prev) => (prev.alignLeft === next.alignLeft && prev.below === next.below ? prev : next));
+  };
 
   const percentage = scoreData?.percentage || 0;
   const earned = scoreData?.earnedMarks || 0;
@@ -53,7 +65,12 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
   };
 
   return (
-    <div ref={containerRef} className="fixed bottom-[100px] right-6 lg:right-10 z-40 group cursor-pointer">
+    <DraggableFloating
+      storageKey="marks"
+      containerRef={containerRef}
+      className="fixed bottom-[100px] right-6 lg:right-10 z-40 group cursor-pointer"
+    >
+      <div onMouseEnter={computePlacement} className="relative">
       {/* Click / Hover Card */}
       <AnimatePresence>
         {(isOpen) && (
@@ -62,7 +79,7 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-full right-0 mb-3 w-56 z-50 pointer-events-auto"
+            className={`absolute ${placement.below ? 'top-full mt-3' : 'bottom-full mb-3'} ${placement.alignLeft ? 'left-0' : 'right-0'} w-56 z-50 pointer-events-auto`}
           >
             <div className="bg-[#0f172a] text-white rounded-2xl p-4 shadow-2xl border border-gray-700/80 backdrop-blur-xl">
               <div className="flex items-center justify-between mb-3 border-b border-gray-800 pb-2">
@@ -95,14 +112,14 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
               </button>
             </div>
             {/* Arrow */}
-            <div className="w-3 h-3 bg-[#0f172a] rotate-45 absolute -bottom-1.5 right-7 border-r border-b border-gray-700"></div>
+            <div className={`w-3 h-3 bg-[#0f172a] rotate-45 absolute ${placement.alignLeft ? 'left-7' : 'right-7'} ${placement.below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} border-gray-700`}></div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Hover Preview Tooltip (Shown when NOT clicked open) */}
       {!isOpen && (
-        <div className="absolute bottom-full right-0 mb-3 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
+        <div className={`absolute ${placement.below ? 'top-full mt-3' : 'bottom-full mb-3'} ${placement.alignLeft ? 'left-0' : 'right-0'} w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none`}>
           <div className="bg-[#0f172a] text-white text-xs rounded-xl p-3 shadow-xl border border-gray-700">
             <p className="font-bold text-center mb-2 text-sm text-gray-200">Today's Sadhana Score</p>
             <div className="flex justify-between items-center py-1 border-b border-gray-700">
@@ -115,13 +132,13 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
             </div>
           </div>
           {/* Tooltip arrow */}
-          <div className="w-3 h-3 bg-[#0f172a] rotate-45 absolute -bottom-1.5 right-7 border-r border-b border-gray-700"></div>
+          <div className={`w-3 h-3 bg-[#0f172a] rotate-45 absolute ${placement.alignLeft ? 'left-7' : 'right-7'} ${placement.below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} border-gray-700`}></div>
         </div>
       )}
 
       {/* Circular Indicator Button */}
       <div
-        onClick={() => setIsOpen(prev => !prev)}
+        onClick={() => { computePlacement(); setIsOpen(prev => !prev); }}
         className={`w-[68px] h-[68px] lg:w-[76px] lg:h-[76px] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center bg-white dark:bg-[#1E293B] border border-gray-300 dark:border-[#334155] relative overflow-hidden active:scale-95 transition-transform`}
       >
         {isLoading ? (
@@ -165,7 +182,8 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </DraggableFloating>
   );
 };
 

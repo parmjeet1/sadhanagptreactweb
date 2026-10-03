@@ -4,10 +4,12 @@ import { Mic } from 'lucide-react';
 import SadhnaAssistant from '../../sadhna-assistant/SadhnaAssistant';
 import { RealSadhnaGptAdapter } from '../../sadhna-assistant/adapters/RealSadhnaGptAdapter';
 import { emitSadhnaActivityUpdated } from '../../utils/sadhnaEvents';
+import DraggableFloating from '../shared/DraggableFloating';
 
 /**
- * Floating launcher for the SadhnaAssistant chat widget — a single, big,
- * hard-to-miss button that opens the assistant in a slide-up panel. It sits
+ * Floating launcher for the SadhnaAssistant chat widget — a single,
+ * hard-to-miss button (68px, 76px on large screens, draggable anywhere on screen) that opens the
+ * assistant in a slide-up panel. It sits
  * above the bottom navigation bar AND above DailyScoreIndicator's marks
  * bubble (fixed at bottom-[100px] right-6 — see components/shared/
  * DailyScoreIndicator.jsx) on every student page, since it's rendered from
@@ -43,7 +45,7 @@ const SadhnaAssistantLauncher = () => {
 
   return (
     <>
-      <div className="fixed z-40 bottom-[176px] right-5">
+      <DraggableFloating storageKey="sadhna-mic" className="fixed z-40 bottom-[188px] right-6 lg:right-10">
         {/* Blinking ring behind the button — keeps it prominent without a person needing to notice a static icon. */}
         <span className="absolute inset-0 rounded-full bg-[#dd7f22] animate-ping opacity-60" />
         <motion.button
@@ -51,11 +53,11 @@ const SadhnaAssistantLauncher = () => {
           onClick={() => setIsOpen(true)}
           whileTap={{ scale: 0.92 }}
           aria-label="Open Sadhna Assistant — speak or type your sadhna"
-          className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-[#dd7f22] to-[#e6993f] text-white shadow-lg shadow-orange-500/40 flex items-center justify-center active:scale-95 transition-transform animate-sadhna-glow-loop"
+          className="relative w-[68px] h-[68px] lg:w-[76px] lg:h-[76px] rounded-full bg-gradient-to-tr from-[#dd7f22] to-[#e6993f] text-white shadow-lg shadow-orange-500/40 flex items-center justify-center active:scale-95 transition-transform animate-sadhna-glow-loop"
         >
-          <Mic className="w-7 h-7" strokeWidth={2.25} />
+          <Mic className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={2.25} />
         </motion.button>
-      </div>
+      </DraggableFloating>
 
       <AnimatePresence>
         {isOpen && (
