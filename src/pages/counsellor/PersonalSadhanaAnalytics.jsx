@@ -5,6 +5,7 @@ import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest } from '../../services/api';
 import AiDateFilterModal from '../../components/AiAnalysis/AiDateFilterModal';
+import StudentExportModal from '../../components/student/StudentExportModal';
 import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
 
 // Helper to convert time string (05:00 AM) to numeric minutes for graphing
@@ -347,6 +348,7 @@ const PersonalSadhanaAnalytics = () => {
   const [activitiesData, setActivitiesData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const tabs = ['Weekly', '30 Days', 'Custom'];
   
@@ -467,13 +469,25 @@ const PersonalSadhanaAnalytics = () => {
           
           <div className="flex flex-col items-center">
             <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight mt-1">My Sadhana</h1>
-            <button
-              onClick={() => setIsAiModalOpen(true)}
-              className="mt-1 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
-              <span>AI ANALYSIS</span>
-            </button>
+            <div className="mt-1 flex items-center gap-2">
+              <button
+                onClick={() => setIsAiModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-[10px] font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+                <span>AI ANALYSIS</span>
+              </button>
+
+              <button
+                onClick={() => setIsExportModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full text-[10px] font-black text-white shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+              >
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                </svg>
+                <span>EXPORT</span>
+              </button>
+            </div>
           </div>
           
           <button 
@@ -619,6 +633,12 @@ const PersonalSadhanaAnalytics = () => {
           userId: userDetails?.user_id,
           counsellorName: userDetails?.name || 'Counsellor'
         }}
+      />
+
+      <StudentExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        userDetails={userDetails}
       />
 
       <CounsellorBottomNavigation />
