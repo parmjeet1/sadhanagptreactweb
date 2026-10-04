@@ -32,6 +32,8 @@ const CustomActivities = () => {
     const [isCreateActivityOpen, setIsCreateActivityOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    // True while an assign request is in flight: stops repeated taps from sending the same request again.
+    const [isAssigning, setIsAssigning] = useState(false);
 
     const SELECTION_LIMIT = 50;
 
@@ -150,9 +152,11 @@ const CustomActivities = () => {
     };
 
     const handleBulkAssign = () => {
+        if (isAssigning) return;
         if (!selectedGroup) {
             return showError("Please select a Group first.");
         }
+        setIsAssigning(true);
         const payload = {
             user_id: userDetails.user_id,
             master_activity_ids: selectedStudents,
@@ -160,6 +164,7 @@ const CustomActivities = () => {
             label_id: selectedLabel || "0"
         };
         postRequest('/assign-group-activities', payload, (res) => {
+            setIsAssigning(false);
             const data = res.data;
             if (data?.status === 1) {
                 showSuccess(data.message || 'Activities assigned successfully');
@@ -449,11 +454,16 @@ const CustomActivities = () => {
             {/* Responsive Action Dock */}
             <AnimatePresence>
                 {selectedStudents.length > 0 && (
+                    // The centring lives on this plain wrapper. It used to be on the animated
+                    // box itself (left-1/2 -translate-x-1/2), but the animation replaces the
+                    // CSS transform, which pushed the dock half off the right edge of a phone
+                    // screen and hid the Assign button.
+                    <div className="fixed bottom-24 sm:bottom-8 left-0 right-0 z-[60] flex justify-center px-3 pointer-events-none">
                     <motion.div
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 bg-white/95 dark:bg-[#112240]/95 backdrop-blur-md border border-slate-200 dark:border-teal-500/30 rounded-2xl px-4 sm:px-6 py-3.5 shadow-2xl flex items-center gap-3 sm:gap-6 w-[90%] max-w-md justify-between text-slate-800 dark:text-white transition-colors select-none"
+                        className="pointer-events-auto bg-white/95 dark:bg-[#112240]/95 backdrop-blur-md border border-slate-200 dark:border-teal-500/30 rounded-2xl px-4 sm:px-6 py-3.5 shadow-2xl flex items-center gap-3 sm:gap-6 w-full max-w-md justify-between text-slate-800 dark:text-white transition-colors select-none"
                     >
                         <div className="flex items-center gap-2">
                             <div>
@@ -463,12 +473,14 @@ const CustomActivities = () => {
                         </div>
                         <button
                             onClick={handleBulkAssign}
-                            className="bg-teal-500 hover:bg-teal-600 dark:bg-[#1de9b6] dark:hover:bg-[#1de9b6]/90 text-white dark:text-[#042C53] font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-teal-500/10 dark:shadow-none shrink-0"
+                            disabled={isAssigning}
+                            className="bg-teal-500 hover:bg-teal-600 dark:bg-[#1de9b6] dark:hover:bg-[#1de9b6]/90 text-white dark:text-[#042C53] font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-teal-500/10 dark:shadow-none shrink-0 disabled:opacity-60 disabled:cursor-wait"
                         >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>
-                            Assign Activities
+                            {isAssigning ? 'Assigning...' : 'Assign Activities'}
                         </button>
                     </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 
