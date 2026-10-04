@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-04, 11:15 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The bird's-eye, mic and marks icons could overlap or sit out of line after a reload, because the spot each one was dragged to was saved in the phone's browser and then applied to a newer layout. Dragged positions are no longer saved: after a reload (or reopening the app) the three icons start again aligned in one vertical line. While moving between pages inside the app, an icon keeps the spot it was dragged to. Old saved positions are cleaned out automatically.
+- **Files touched**: `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+
+---
+
 ## ✨ [Feature] - 2026-10-04, 10:55 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

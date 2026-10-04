@@ -12,33 +12,29 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
  *   triggers it.
  * - The icon is kept fully on screen (EDGE px margin) and above the bottom
  *   navigation bar (`bottomInset` px), also after a screen resize/rotation.
- * - The dropped position is remembered per `storageKey` in localStorage, so it
- *   is the same on every page that shows this icon and after a reload. If
- *   storage is unavailable the icon simply starts at its default spot.
+ * - The dropped position is remembered per `storageKey` only in memory, so it stays
+ *   the same while moving between pages, but it is NOT saved: after a reload (or
+ *   closing the app) every icon starts again at its default, aligned spot.
  */
 
-const STORAGE_PREFIX = 'floating-fab:';
 const DRAG_THRESHOLD = 6; // px of movement before a press becomes a drag
 const EDGE = 8; // px kept free at the screen edges
 
-const readSaved = (key) => {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
-    if (!raw) return { x: 0, y: 0 };
-    const parsed = JSON.parse(raw);
-    return { x: Number(parsed.x) || 0, y: Number(parsed.y) || 0 };
-  } catch {
-    return { x: 0, y: 0 };
-  }
-};
+// In-memory only (lost on reload). Keyed by `storageKey` so an icon keeps its spot
+// when you move between pages of the app.
+const sessionOffsets = new Map();
+const readSaved = (key) => sessionOffsets.get(key) || { x: 0, y: 0 };
+const writeSaved = (key, offset) => sessionOffsets.set(key, offset);
 
-const writeSaved = (key, offset) => {
-  try {
-    window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(offset));
-  } catch {
-    // Storage blocked (private mode etc.) — position just isn't remembered.
-  }
-};
+// Positions used to be saved in localStorage ("floating-fab:*"). Those saved values no
+// longer match the current layout and made icons overlap after a reload, so remove them.
+try {
+  Object.keys(window.localStorage)
+    .filter((k) => k.startsWith('floating-fab:'))
+    .forEach((k) => window.localStorage.removeItem(k));
+} catch {
+  // Storage blocked — nothing to clean up.
+}
 
 const DraggableFloating = ({
   storageKey,
