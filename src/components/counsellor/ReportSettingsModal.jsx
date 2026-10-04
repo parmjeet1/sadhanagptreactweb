@@ -335,7 +335,7 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
           </div>
 
           <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
-            <h2 className="text-[24px] font-extrabold text-[#0f172a]">Report Settings</h2>
+            <h2 className="text-[24px] font-extrabold text-[#0f172a]">Export Data</h2>
 
             {/* Export Students Panel */}
             <div className="bg-gradient-to-b from-blue-50/60 to-slate-50/60 border border-blue-100 rounded-3xl p-5 space-y-4 shadow-sm">
