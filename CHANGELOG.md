@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✏️ [Change] - 2026-10-04, 12:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: New app icon for everyone (students and counsellors): a white meditating figure with a soft glow on a saffron background, replacing the old face logo. It is used for the home-screen/installed app icon, the browser tab icon and the notification icon. Same pictures, same file names, nothing else changed.
+- **Files touched**: `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-192.png`, `public/icon-maskable-512.png`, `public/apple-touch-icon.png`, `public/favicon.png`, `public/favicon.svg`, `CHANGELOG.md`
+
+---
+
 ## ✏️ [Change] - 2026-10-04, 11:55 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
