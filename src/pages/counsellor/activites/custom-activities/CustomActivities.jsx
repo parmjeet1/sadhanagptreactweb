@@ -34,6 +34,14 @@ const CustomActivities = () => {
     const [successMessage, setSuccessMessage] = useState('');
     // True while an assign request is in flight: stops repeated taps from sending the same request again.
     const [isAssigning, setIsAssigning] = useState(false);
+    // Built-in activities (original_status === 1) that were just removed from this
+    // group/sub-group. The server still lists built-ins as "added", so we remember
+    // the removal here and show them in red with a "+" to add them back.
+    // (Kept in this screen only: it is forgotten when the page is reloaded.)
+    const [removedBuiltIns, setRemovedBuiltIns] = useState([]);
+    // Each entry is tagged with the group|sub-group it was removed from, so switching
+    // group/sub-group simply stops showing the others.
+    const removalScope = `${selectedGroup}|${selectedLabel || ''}`;
 
     const SELECTION_LIMIT = 50;
 
@@ -178,7 +186,7 @@ const CustomActivities = () => {
         });
     };
 
-    const handleRemoveGroupCustomActivity = (activityId, name) => {
+    const handleRemoveGroupCustomActivity = (activityId, name, activity) => {
         if (!selectedGroup) {
             return showError("Please select a Group first.");
         }
@@ -192,6 +200,11 @@ const CustomActivities = () => {
                 const data = res.data;
                 if (data?.status === 1) {
                     showSuccess(data.message?.[0] || 'Removed custom activity successfully');
+                    // Built-ins do not move to "Available" (the server always counts them as added),
+                    // so keep them on screen in red with a "+" to add them back.
+                    if (activity?.original_status === 1) {
+                        setRemovedBuiltIns(prev => (prev.some(a => a.id === activityId && a.scope === removalScope) ? prev : [...prev, { ...activity, scope: removalScope }]));
+                    }
                     fetchAssignedActivities();
                     fetchAvailableActivities(1, false);
                     setPage(1);
@@ -200,6 +213,31 @@ const CustomActivities = () => {
                 }
             });
         }
+    };
+
+    // "+" on a red (removed) built-in: assign it to the group/sub-group again.
+    const handleReaddBuiltIn = (activityId) => {
+        if (isAssigning) return;
+        if (!selectedGroup) return showError("Please select a Group first.");
+        setIsAssigning(true);
+        const payload = {
+            user_id: userDetails.user_id,
+            master_activity_ids: [activityId],
+            center_id: selectedGroup,
+            label_id: selectedLabel || "0"
+        };
+        postRequest('/assign-group-activities', payload, (res) => {
+            setIsAssigning(false);
+            const data = res.data;
+            if (data?.status === 1) {
+                showSuccess(data.message?.[0] || 'Activity added back');
+                setRemovedBuiltIns(prev => prev.filter(a => !(a.id === activityId && a.scope === removalScope)));
+                fetchAssignedActivities();
+                fetchAvailableActivities(1, false);
+            } else {
+                showError(data?.message?.[0] || data?.message || 'Failed to add activity back');
+            }
+        });
     };
 
     const handleCreateActivity = async (activityData) => {
@@ -329,6 +367,25 @@ const CustomActivities = () => {
                             ) : (
                                 <div className="flex flex-wrap gap-2">
                                     {assignedActivities.map(student => {
+                                        const isRemovedBuiltIn = removedBuiltIns.some(a => a.id === student.id && a.scope === removalScope);
+                                        if (isRemovedBuiltIn) {
+                                            return (
+                                                <div
+                                                    key={student.id}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-red-400/40 bg-red-500/5 text-red-500 transition-all max-w-full"
+                                                >
+                                                    <span className="text-[12px] font-semibold lowercase truncate">{student.name}</span>
+                                                    <button
+                                                        onClick={() => handleReaddBuiltIn(student.id)}
+                                                        disabled={isAssigning}
+                                                        className="shrink-0 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors disabled:opacity-50"
+                                                        title="Add this activity back to this group"
+                                                    >
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M12 4v16m8-8H4" /></svg>
+                                                    </button>
+                                                </div>
+                                            );
+                                        }
                                         return (
                                             <div
                                                 key={student.id}
@@ -336,7 +393,7 @@ const CustomActivities = () => {
                                             >
                                                 <span className="text-[12px] font-semibold lowercase truncate">{student.name}</span>
                                                 <button
-                                                    onClick={() => handleRemoveGroupCustomActivity(student.id, student.name)}
+                                                    onClick={() => handleRemoveGroupCustomActivity(student.id, student.name, student)}
                                                     className="hover:text-red-500 transition-colors shrink-0"
                                                     title="Remove activity from this group"
                                                 >

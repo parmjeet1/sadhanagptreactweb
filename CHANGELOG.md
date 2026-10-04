@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-04, 10:55 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the counsellor "Custom Activities" screen, when a built-in activity (like chanting) is removed from "Already added" (after the confirmation), it now stays on screen in RED with a "+" next to it. Tapping the "+" adds the activity back to that group or sub-group for the students. Custom activities behave as before (they move to Available). The red state is remembered only on this screen: it is forgotten if the page is reloaded.
+- **Files touched**: `src/pages/counsellor/activites/custom-activities/CustomActivities.jsx`, `CHANGELOG.md`
+
+---
+
 ## 🐛 [Fix] - 2026-10-04, 10:40 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
