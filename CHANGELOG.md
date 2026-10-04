@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✏️ [Change] - 2026-10-04, 12:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In the bottom menu, the first tab icon (the "My Sadhana" tab on the counsellor side, the "Home" tab on the student side) is now a person sitting in a meditation posture. Only that icon changed; labels, colours and where it goes are the same.
+- **Files touched**: `src/components/counsellor/CounsellorBottomNavigation.jsx`, `src/components/student/BottomNavigation.jsx`, `CHANGELOG.md`
+
+---
+
 ## ↩️ [Revert] - 2026-10-04, 12:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
