@@ -752,7 +752,6 @@ const CounsellorDashboard = () => {
       <NewActivityModal
         isOpen={isNewActivityOpen}
         onClose={() => setIsNewActivityOpen(false)}
-        onActivityAdded={() => fetchActivities()}
         onSave={async (activityData) => {
           try {
             const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');

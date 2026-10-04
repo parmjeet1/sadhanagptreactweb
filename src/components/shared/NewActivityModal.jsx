@@ -1,124 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getRequest, postRequest } from '../../services/api';
 
-const ActivityPickList = ({ onActivityAdded }) => {
-  // Pick-list: activities that can be added with one tap (built-in + available custom ones).
-  const [pickList, setPickList] = useState([]);
-  const [pickLoading, setPickLoading] = useState(true);
-  const [pickError, setPickError] = useState('');
-  const [pickSearch, setPickSearch] = useState('');
-  const [addingId, setAddingId] = useState(null);
-  const [pickNotice, setPickNotice] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    getRequest('/addable-activities', {}, (res) => {
-      if (cancelled) return;
-      const rows = res?.data?.data;
-      if (res?.data?.status === 1 && Array.isArray(rows)) {
-        setPickList(rows);
-      } else {
-        setPickList([]);
-        setPickError('Could not load the list. You can still create your own below.');
-      }
-      setPickLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  const describeActivity = (a) => {
-    const t = a.activity_type;
-    if (t === 'yes_no' || t === 'boolean') return 'Yes / No';
-    if (t === 'time') return a.target ? `Time · by ${a.target}` : 'Time';
-    if (t === 'min') return a.target ? `Duration · ${a.target} min` : 'Duration';
-    return a.target ? `Count · ${a.target} ${a.unit || ''}`.trim() : 'Count';
-  };
-
-  const handlePick = (activity) => {
-    if (addingId) return; // one at a time, so repeated taps cannot double-add
-    setAddingId(activity.master_activity_id);
-    setPickNotice('');
-    postRequest('/add-selected-activities', { master_activity_ids: [activity.master_activity_id] }, (res) => {
-      const ok = res?.data?.status === 1;
-      if (ok) {
-        setPickList((prev) => prev.filter((p) => p.master_activity_id !== activity.master_activity_id));
-        setPickNotice(`"${activity.name}" added to your list.`);
-        if (onActivityAdded) onActivityAdded(activity);
-      } else {
-        const msg = res?.data?.message;
-        setPickNotice((Array.isArray(msg) ? msg[0] : msg) || 'Could not add this activity. Please try again.');
-      }
-      setAddingId(null);
-    });
-  };
-
-  const visiblePicks = pickList.filter((a) => {
-    const q = pickSearch.trim().toLowerCase();
-    return !q || `${a.name} ${a.description || ''}`.toLowerCase().includes(q);
-  });
-
-  return (
-              <div className="space-y-3">
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Choose from the list</label>
-                {pickLoading ? (
-                  <div className="flex justify-center py-6">
-                    <div className="w-6 h-6 border-2 border-gray-200 border-t-[#1a73e8] rounded-full animate-spin"></div>
-                  </div>
-                ) : (
-                  <>
-                    {pickError && <p className="text-[13px] text-amber-600 font-medium">{pickError}</p>}
-                    {pickList.length > 0 && (
-                      <input
-                        type="text"
-                        value={pickSearch}
-                        onChange={(e) => setPickSearch(e.target.value)}
-                        placeholder="Search activities"
-                        className="w-full bg-[#f8fafc] text-[#0f172a] text-[14px] rounded-2xl py-3 px-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400"
-                      />
-                    )}
-                    {pickNotice && <p className="text-[13px] text-green-600 font-semibold" role="status">{pickNotice}</p>}
-                    {pickList.length === 0 && !pickError ? (
-                      <p className="text-[13px] text-gray-400 font-medium">No more activities to pick. You can create your own below.</p>
-                    ) : (
-                      <div className="max-h-[240px] overflow-y-auto rounded-2xl border border-gray-100 divide-y divide-gray-100">
-                        {visiblePicks.length === 0 && pickList.length > 0 && (
-                          <p className="p-4 text-[13px] text-gray-400 font-medium">No activity matches your search.</p>
-                        )}
-                        {visiblePicks.map((a) => (
-                          <div key={a.master_activity_id} className="flex items-center gap-3 p-3">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[14px] font-bold text-[#0f172a] truncate">{a.name}</p>
-                              <p className="text-[11px] text-gray-400 font-medium truncate">
-                                {describeActivity(a)}{a.is_built_in ? ' · Built-in' : ''}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handlePick(a)}
-                              disabled={!!addingId}
-                              className="shrink-0 px-4 py-2 rounded-full bg-[#1a73e8] text-white text-[13px] font-bold active:scale-95 transition-all disabled:opacity-50"
-                            >
-                              {addingId === a.master_activity_id ? 'Adding...' : 'Add'}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-  );
-};
-
-const NewActivityModal = ({ isOpen, onClose, onSave, onActivityAdded }) => {
+const NewActivityModal = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [trackingType, setTrackingType] = useState('Duration'); // Default select
   const [target, setTarget] = useState('');
   const [period, setPeriod] = useState('AM');
   const [status, setStatus] = useState('0');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
 
   const trackingTypes = [
     {
@@ -212,14 +101,6 @@ const NewActivityModal = ({ isOpen, onClose, onSave, onActivityAdded }) => {
 
             <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
               <h2 className="text-[24px] font-extrabold text-[#0f172a]">New Activity</h2>
-
-              <ActivityPickList onActivityAdded={onActivityAdded} />
-
-              <div className="flex items-center gap-3 text-[12px] font-bold text-gray-400 uppercase tracking-wider">
-                <div className="h-px flex-1 bg-gray-100"></div>
-                or create your own
-                <div className="h-px flex-1 bg-gray-100"></div>
-              </div>
 
               {/* Name Input */}
               <div className="space-y-2">

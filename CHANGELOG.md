@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ↩️ [Revert] - 2026-10-04, 7:42 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the developer's request, the "Choose from the list" pick-list in the New Activity screen was removed again (a new revert change; history was not rewritten). The New Activity screen is back to only "create your own".
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: reverted too, so `/addable-activities` and `/add-selected-activities` no longer exist.
+
 ## ✨ [New] - 2026-10-04, 4:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
