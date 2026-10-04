@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ↩️ [Revert] - 2026-10-04, 12:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undid the "New meditation app icon" change. The app icon, browser tab icon and notification icon are back to the original smiling-face logo.
+- **Files touched**: `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-192.png`, `public/icon-maskable-512.png`, `public/apple-touch-icon.png`, `public/favicon.png`, `public/favicon.svg`, `CHANGELOG.md`
+
+---
+
 ## ✏️ [Change] - 2026-10-04, 12:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
