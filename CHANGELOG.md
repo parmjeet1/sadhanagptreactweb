@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✏️ [Change] - 2026-10-04, 12:55 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: When the round "Marks" icon is tapped, the card with Earned and Possible marks now opens above the bird's-eye and chatbot icons, instead of covering them. If the icons have been dragged somewhere else, or there is no room above, the card still finds a free spot.
+- **Files touched**: `src/components/shared/DailyScoreIndicator.jsx`, `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+
+---
+
 ## ✏️ [Change] - 2026-10-04, 12:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

@@ -150,6 +150,7 @@ const DraggableFloating = ({
   return (
     <div
       ref={ref}
+      data-floating-fab="true"
       className={`${className} select-none`}
       style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`, touchAction: 'none' }}
       onPointerDown={onPointerDown}

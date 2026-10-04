@@ -10,13 +10,25 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
   // The card normally opens above the icon, aligned to its right edge. Because
   // the icon can be dragged anywhere, flip it to the left edge / below the icon
   // when it would otherwise run off the screen.
-  const [placement, setPlacement] = useState({ alignLeft: false, below: false });
+  const [placement, setPlacement] = useState({ alignLeft: false, below: false, lift: 0 });
 
+  // `lift` pushes the card up past any other floating icons (bird's-eye,
+  // chatbot) stacked above the marks icon, so the card opens above the whole
+  // stack instead of covering them.
   const computePlacement = () => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const next = { alignLeft: rect.right < 240, below: rect.top < 230 };
-    setPlacement((prev) => (prev.alignLeft === next.alignLeft && prev.below === next.below ? prev : next));
+    let topEdge = rect.top;
+    document.querySelectorAll('[data-floating-fab]').forEach((el) => {
+      if (el.contains(containerRef.current)) return;
+      const r = el.getBoundingClientRect();
+      const overlapsColumn = r.left < rect.right && r.right > rect.left;
+      if (overlapsColumn && r.top < rect.top) topEdge = Math.min(topEdge, r.top);
+    });
+    const below = topEdge < 230;
+    const lift = below ? 0 : Math.round(rect.top - topEdge);
+    const next = { alignLeft: rect.right < 240, below, lift };
+    setPlacement((prev) => (prev.alignLeft === next.alignLeft && prev.below === next.below && prev.lift === next.lift ? prev : next));
   };
 
   const percentage = scoreData?.percentage || 0;
@@ -80,6 +92,7 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
             className={`absolute ${placement.below ? 'top-full mt-3' : 'bottom-full mb-3'} ${placement.alignLeft ? 'left-0' : 'right-0'} w-56 z-50 pointer-events-auto`}
+            style={!placement.below && placement.lift ? { marginBottom: 12 + placement.lift } : undefined}
           >
             <div className="bg-[#0f172a] text-white rounded-2xl p-4 shadow-2xl border border-gray-700/80 backdrop-blur-xl">
               <div className="flex items-center justify-between mb-3 border-b border-gray-800 pb-2">
@@ -111,8 +124,10 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
                 Applied Marking Scheme
               </button>
             </div>
-            {/* Arrow */}
-            <div className={`w-3 h-3 bg-[#0f172a] rotate-45 absolute ${placement.alignLeft ? 'left-7' : 'right-7'} ${placement.below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} border-gray-700`}></div>
+            {/* Arrow (hidden when the card sits above the other icons) */}
+            {!(placement.lift > 0 && !placement.below) && (
+              <div className={`w-3 h-3 bg-[#0f172a] rotate-45 absolute ${placement.alignLeft ? 'left-7' : 'right-7'} ${placement.below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} border-gray-700`}></div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
