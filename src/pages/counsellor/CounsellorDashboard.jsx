@@ -75,26 +75,8 @@ const CounsellorDashboard = () => {
   const [rankSplashTitle, setRankSplashTitle] = useState('#1 Rank!');
   const [rankSplashSubtitle, setRankSplashSubtitle] = useState("You've topped the leaderboard");
 
-  useEffect(() => {
-    if (!userDetails?.user_id) return;
-
-    // Check if counsellor is currently rank #1 — show splash.
-    // PERFORMANCE: heaviest query the dashboard fires, only feeds a decorative
-    // splash — deferred so it doesn't compete with the data the screen needs.
-    const timer = setTimeout(() => {
-      getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (res) => {
-        const data = res?.data?.data;
-        if (data?.isTopRanker) {
-          const topUser = data.ranking?.find(r => String(r.user_id) === String(userDetails.user_id));
-          setRankSplashScore(topUser?.total_marks ?? null);
-          setRankSplashTitle('#1 Rank!');
-          setRankSplashSubtitle("You've topped the leaderboard!");
-          setShowRankSplash(true);
-        }
-      });
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [userDetails?.user_id]);
+  // The rank / "all logged" splash is shown only from the daily-report check below:
+  // once per day, after the sadhana for today has been filled.
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -167,7 +149,6 @@ const CounsellorDashboard = () => {
         }
         if (res?.data?.daily_reports && Array.isArray(res.data.daily_reports)) {
           const reports = res.data.daily_reports;
-          let updatedList = [];
           setActivities(prev => {
             const list = (prev || []).map(act => {
               const report = reports.find(r => String(r.activity_id) === String(act.id));
@@ -199,20 +180,22 @@ const CounsellorDashboard = () => {
 
               return { ...act, progress: newProgress, status: newStatus };
             });
-            updatedList = list;
             return list;
           });
 
           // Check if ALL activities are logged for this date
-          if (reports.length > 0 && updatedList.length > 0) {
-            const allLogged = updatedList.every(act => {
+          if (reports.length > 0 && resolveActivities.length > 0) {
+            const allLogged = resolveActivities.every(act => {
               const rep = reports.find(r => String(r.activity_id) === String(act.id));
               return rep && rep.count !== null && rep.count !== undefined && rep.count !== '' && rep.count !== 0 && rep.count !== '0';
             });
 
             if (allLogged) {
               const sessionKey = `splash_shown_${userDetails.user_id}_${formattedDate}`;
-              if (!sessionStorage.getItem(sessionKey)) {
+              const isToday = formattedDate === new Date().toLocaleDateString('en-CA');
+              let alreadyShown = false;
+              try { alreadyShown = !!localStorage.getItem(sessionKey); } catch { /* storage blocked */ }
+              if (isToday && !alreadyShown) {
                 const totalMarks = reports.reduce((acc, r) => acc + (Number(r.marks) || 0), 0);
                 getRequest('/weekly-ranking', { user_id: userDetails.user_id, page_no: 1, limit: 10, center_filter: true }, (rRes) => {
                   const rData = rRes?.data?.data;
@@ -230,6 +213,8 @@ const CounsellorDashboard = () => {
                     setRankSplashTitle('All Logged!');
                     setRankSplashSubtitle("You've completed all daily sadhana activities!");
                   }
+                  // Remember right away, so it never shows again today (even after reload / new tab).
+                  try { localStorage.setItem(sessionKey, 'true'); } catch { /* storage blocked */ }
                   setShowRankSplash(true);
                 });
               }
@@ -599,7 +584,7 @@ const CounsellorDashboard = () => {
           const yyyy = activeDateObj.getFullYear();
           const mm = String(activeDateObj.getMonth() + 1).padStart(2, '0');
           const dd = String(activeDateObj.getDate()).padStart(2, '0');
-          sessionStorage.setItem(`splash_shown_${userDetails?.user_id}_${yyyy}-${mm}-${dd}`, 'true');
+          try { localStorage.setItem(`splash_shown_${userDetails?.user_id}_${yyyy}-${mm}-${dd}`, 'true'); } catch { /* storage blocked */ }
         }}
       />
 

@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-04, 1:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The full-screen "#1 Rank!" celebration no longer pops up every time the dashboard opens. It now appears only once a day, and only after the person has filled in all of today's sadhana activities. After it has been shown, it does not come back on reload, in a new tab or when moving between pages (until the next day). Also fixed a hidden problem where the "all activities filled" check could silently never run. Applies to both the counsellor and the student dashboards.
+- **Files touched**: `src/pages/counsellor/CounsellorDashboard.jsx`, `src/pages/student/StudentDashboard.jsx`, `CHANGELOG.md`
+
+---
+
 ## 🐛 [Fix] - 2026-10-04, 1:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
