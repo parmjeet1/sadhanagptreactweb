@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✏️ [Change] - 2026-10-04, 11:55 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Export Data" tile on the counsellor Analytics screen now shows a download icon instead of the gear (settings) icon.
+- **Files touched**: `src/pages/counsellor/CounsellorAnalytics.jsx`, `CHANGELOG.md`
+
+---
+
 ## ✏️ [Change] - 2026-10-04, 11:40 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
