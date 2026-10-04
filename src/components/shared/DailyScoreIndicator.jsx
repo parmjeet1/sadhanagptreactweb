@@ -80,7 +80,7 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
     <DraggableFloating
       storageKey="marks"
       containerRef={containerRef}
-      className="fixed bottom-[100px] right-6 lg:right-10 z-40 group cursor-pointer"
+      className={`fixed bottom-[100px] right-6 lg:right-10 ${isOpen ? 'z-[55]' : 'z-40'} hover:z-[55] group cursor-pointer`}
     >
       <div onMouseEnter={computePlacement} className="relative">
       {/* Click / Hover Card */}

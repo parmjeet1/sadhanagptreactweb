@@ -849,11 +849,8 @@ const StudentDashboard = () => {
       />
 
       {/* Floating Elements */}
-      <div className="fixed bottom-[100px] right-6 lg:right-10 z-40 pointer-events-none flex justify-end">
-        <div className="pointer-events-auto">
-          <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
-        </div>
-      </div>
+      {/* No extra fixed wrapper here: it created its own layer that kept the marks card behind the chatbot icon. */}
+      <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
 
       <BottomNavigation />
 

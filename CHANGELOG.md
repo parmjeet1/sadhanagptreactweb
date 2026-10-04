@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-04, 1:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Today's Sadhana Score" pop-up (on hover) and the Marks card (on tap) now come in front of the bird's-eye and chatbot icons instead of going behind them. This is for both the counsellor and the student dashboards. The Marks icon stays in the same place.
+- **Files touched**: `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `src/pages/student/StudentDashboard.jsx`, `CHANGELOG.md`
+
+---
+
 ## ✏️ [Change] - 2026-10-04, 12:55 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
