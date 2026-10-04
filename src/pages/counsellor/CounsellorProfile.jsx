@@ -5,6 +5,7 @@ import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBo
 import AddMentorModal from '../../components/shared/AddMentorModal';
 import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal';
 import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
+import ContributeButton from '../../components/shared/ContributeButton';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { compressImage } from '../../utils/imageCompressor';
 import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
@@ -657,6 +658,11 @@ const CounsellorProfile = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   {isSubmittingFeedback ? 'Posting...' : 'Post Feedback'}
                 </button>
+              </div>
+
+              {/* Support / Contribution Button */}
+              <div className="mt-4">
+                <ContributeButton variant="full" />
               </div>
             </section>
 

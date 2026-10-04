@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ContributeButton from "../shared/ContributeButton";
 
 const CONFETTI_COLORS = ["#FFD700", "#a78bfa", "#60a5fa", "#f0abfc", "#34d399", "#fb923c"];
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
@@ -182,6 +183,11 @@ const FirstRankSplash = ({ isVisible, studentName, score, rankText = "#1 Rank!",
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </motion.button>
+
+            {/* Support / Contribution Button */}
+            <div className="mt-3">
+              <ContributeButton variant="full" />
+            </div>
           </motion.div>
         </motion.div>
       )}
