@@ -782,6 +782,7 @@ const StudentDashboard = () => {
       <NewActivityModal
         isOpen={isNewActivityOpen}
         onClose={() => setIsNewActivityOpen(false)}
+        onActivityAdded={() => fetchActivities()}
         onSave={(activityData) => {
           try {
             let unit = 'count';

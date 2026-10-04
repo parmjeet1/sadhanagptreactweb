@@ -4,6 +4,15 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-04, 4:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "New Activity" pop-up (opened from "Add Activity" on the student and counsellor dashboards) now starts with a "Choose from the list" section: all built-in activities and all available custom activities that the person does not have yet, with a search box and an "Add" button on each row. Tapping Add puts the activity into the person's own list straight away and refreshes the dashboard. Below it, after "or create your own", the old form is unchanged.
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: needs the matching backend commit ("Add custom activity pick-list for students and counsellors": new `GET /addable-activities` and `POST /add-selected-activities`).
+
+---
+
 ## 🐛 [Fix] - 2026-10-04, 1:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
