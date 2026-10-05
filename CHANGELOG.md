@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-05, 8:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again (it was undone with the 1:10 PM revert) on top of the current screens, without the amber dot and without any extra message: (1) the round Marks circle could show a wrong number (for example 31% or 0% when the real total was 46%) because every save asks the server for the score again and the circle kept whichever answer arrived LAST, so a slow older answer could overwrite a newer one; now only the newest request may change it, and a failed request simply keeps the last good score (nothing new is shown). (2) Sliders could jump back to 0 or an old value for the same reason, because the day's entries are also fetched again after every save; now only the newest refresh may rewrite the sliders. Student and counsellor dashboards. Only these fixes are applied again, not the own-scheme screens or the editor warning.
+- **Files touched**: `src/utils/scoreRequest.js` (new), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has the same 25 problems in these files as before (none new). Phone-size browser checks with a fake server that answers slowly or out of order: sliders - Reading dragged to ~60 with a slow refresh, then Day Rest dragged to ~30; old build: Day Rest jumps back to 0 when the slow refresh arrives (student and counsellor), new build: stays at 30. Marks circle - a slow older answer after a newer one: old build 31%, new build stays 46%; a failed request keeps 46% with no dot and no message. Not run against the real backend yet.
+- **Backend**: the matching change (the server retries and answers an error instead of fake zeros) is in `sadhanagptpunjabibagh`, same day. The screen also works with the old backend.
+
 ## ↩️ [Revert] - 2026-10-05, 7:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

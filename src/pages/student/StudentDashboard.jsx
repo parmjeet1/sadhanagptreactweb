@@ -11,6 +11,7 @@ import FirstRankSplash from '../../components/student/FirstRankSplash';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
+import { createLatestGuard, readScoreResponse } from '../../utils/scoreRequest';
 import ThemeToggle from '../../components/shared/ThemeToggle';
 import InstallButton from '../../components/shared/InstallButton';
 import { SADHNA_ACTIVITY_UPDATED } from '../../utils/sadhnaEvents';
@@ -82,6 +83,8 @@ const StudentDashboard = () => {
   const [dateColors, setDateColors] = useState({});
   const [dailyScore, setDailyScore] = useState(null);
   const [isScoreLoading, setIsScoreLoading] = useState(true);
+  const scoreGuard = useRef(createLatestGuard());
+  const reportGuard = useRef(createLatestGuard());
 
   // First Rank Splash / All Activities Completed Splash
   const [showRankSplash, setShowRankSplash] = useState(false);
@@ -155,6 +158,9 @@ const StudentDashboard = () => {
 
       const payload = { user_id: userDetails.user_id, activity_date: formattedDate };
 
+      // Only the newest refresh may rewrite the activity cards: a slower, older answer used to arrive
+      // last and push sliders back to their old values (often 0).
+      const reportRequestId = reportGuard.current.next();
       postRequest('/report-as-per-date', payload, (response) => {
         if (!response?.data) {
           if (!isBackground) setIsLoading(false);
@@ -167,6 +173,10 @@ const StudentDashboard = () => {
             ...prev,
             [formattedDate]: colorForDate
           }));
+        }
+        if (!reportGuard.current.isLatest(reportRequestId)) {
+          if (!isBackground) setIsLoading(false);
+          return;
         }
         if (res?.data?.daily_reports && Array.isArray(res.data.daily_reports)) {
           const reports = res.data.daily_reports;
@@ -338,10 +348,13 @@ const StudentDashboard = () => {
     const dd = String(activeDateObj.getDate()).padStart(2, '0');
     const formattedDate = `${yyyy}-${mm}-${dd}`;
 
+    // Only the newest request may change the circle (older answers can arrive late), and a failed
+    // request keeps the last good score instead of showing a wrong one.
+    const requestId = scoreGuard.current.next();
     getRequest('/daily-score', { user_id: userDetails.user_id, activity_date: formattedDate }, (response) => {
-      if (response?.data?.status === 1) {
-        setDailyScore(response.data.data);
-      }
+      if (!scoreGuard.current.isLatest(requestId)) return;
+      const score = readScoreResponse(response);
+      if (score) setDailyScore(score);
       setIsScoreLoading(false);
     });
   };
