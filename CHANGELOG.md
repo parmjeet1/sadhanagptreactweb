@@ -12,6 +12,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 - **Tested**: build passes; lint unchanged (no new problems). Phone-size browser test with a fake server that remembers saved values: Reading dragged to ~60 with a slow refresh, then Day Rest dragged to ~30 with a fast refresh. Old build: when the slow refresh arrives Day Rest jumps back to 0 (student and counsellor dashboards). New build: Day Rest stays at 30 on both. The marks-circle checks from the earlier entry still pass. Not run against the real backend yet.
 - **Backend**: nothing needed.
 
+## ✨ [New] - 2026-10-05, 6:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The marking scheme editor now shows a yellow "Some values have no rule" note when the rules of a number-type activity (rounds or minutes) leave whole numbers uncovered, for example rules for "5 or more" and "0" leave 1-4 uncovered, so a student entering 3 minutes earns nothing. It lists the gaps per activity (such as "Reading Duration: 1-4") and disappears as soon as the rules cover everything. It is only a heads-up: saving is never blocked. Time and yes/no activities are not checked.
+- **Files touched**: `src/utils/ruleGaps.js` (new), `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has no new problems; 11 checks of the gap finder (the real Reading rules give "1-4", the default Chanting rules give "1-3", full coverage gives nothing, empty values ignored, time activities skipped, a huge value cannot hang it); phone-size browser check with fake data: the note appears for Reading, not for fully covered Chanting, and goes away after editing "<= 0" to "<= 4". Not run against the real backend yet.
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-05, 5:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

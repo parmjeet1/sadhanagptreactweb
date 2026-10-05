@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getSchemes, getSchemeActivities, saveScheme, getActivities, deleteMarkingRuleAPI, deleteActivityRulesAPI } from '../../../api/markingSchemes';
 import ConfirmModal from '../../../components/shared/ConfirmModal';
+import { findRuleGaps } from '../../../utils/ruleGaps';
 
 const getBadgeStyles = (type) => {
   if (type === 'Daily') return 'bg-[rgba(29,233,182,0.12)] text-[#1de9b6]';
@@ -427,6 +428,10 @@ const SchemeDetail = () => {
 
   const showAll = activeActivityId === 'all' || activeActivityId === '';
   const activeActivity = showAll ? null : activities.find(a => String(a.id) === String(activeActivityId));
+  // Values (e.g. "1-4 minutes") that none of an activity's rules covers; shown as a heads-up, never blocks saving.
+  const gapWarnings = (showAll ? activities : (activeActivity ? [activeActivity] : []))
+    .map(act => ({ id: act.id, title: act.title || act.name, gaps: findRuleGaps(act.rows, act.unit) }))
+    .filter(w => w.gaps.length > 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A192F] font-sans pb-28 transition-colors duration-300 flex flex-col relative">
@@ -505,6 +510,18 @@ const SchemeDetail = () => {
             </div>
           </div>
         </div>
+
+        {gapWarnings.length > 0 && (
+          <div className="mb-5 rounded-[12px] border border-amber-300 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/40 p-3.5 text-[13px] text-amber-900 dark:text-amber-200">
+            <p className="font-bold mb-1">Some values have no rule</p>
+            <p className="mb-1">An entry that matches no rule earns no marks. You can still save, but students will see 0 for these values:</p>
+            <ul className="list-disc pl-5">
+              {gapWarnings.map(w => (
+                <li key={w.id}><span className="font-semibold">{w.title}</span>: {w.gaps.join(', ')}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {showAll ? (
           activities.length > 0 ? (
