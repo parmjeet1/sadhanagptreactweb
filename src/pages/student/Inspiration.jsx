@@ -266,11 +266,12 @@ const Inspiration = () => {
                   {rankings.length > 0 ? (
                     <div className="space-y-4">
                       {rankings.map((user, idx) => {
-                        const rank = idx + 1;
+                        const rank = user.rank ?? idx + 1; // rank from the server (same percentage = same rank)
+                        const hasMarks = Number(user.total_marks) > 0;
                         let rankColor = "text-gray-500 bg-gray-100";
-                        if (rank === 1) rankColor = "text-yellow-600 bg-yellow-100";
-                        if (rank === 2) rankColor = "text-slate-500 bg-slate-100";
-                        if (rank === 3) rankColor = "text-amber-700 bg-amber-100";
+                        if (hasMarks && rank === 1) rankColor = "text-yellow-600 bg-yellow-100";
+                        if (hasMarks && rank === 2) rankColor = "text-slate-500 bg-slate-100";
+                        if (hasMarks && rank === 3) rankColor = "text-amber-700 bg-amber-100";
 
                         const isLast = idx === rankings.length - 1;
                         return (
@@ -293,7 +294,7 @@ const Inspiration = () => {
                                 )}
                                 <div>
                                   <h4 className="font-bold text-[#1e293b] text-[15px]">{user.name}</h4>
-                                  <p className="text-[12px] font-medium text-gray-400">{user.total_marks || 0} Marks</p>
+                                  <p className="text-[12px] font-medium text-gray-400">{user.percentage ?? 0}% · {user.total_marks || 0} Marks</p>
                                 </div>
                               </div>
                             </div>

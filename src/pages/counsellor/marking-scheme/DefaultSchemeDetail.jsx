@@ -152,7 +152,7 @@ const DefaultSchemeDetail = () => {
   const navigate = useNavigate();
   const [originalScheme, setOriginalScheme] = useState({});
   const [availableActivities, setAvailableActivities] = useState([]);
-  const [selectedActivity, setSelectedActivity] = useState('');
+  const [selectedActivity, setSelectedActivity] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchRules = () => {
@@ -173,10 +173,6 @@ const DefaultSchemeDetail = () => {
         }));
         
         setAvailableActivities(activitiesList);
-
-        if (activitiesList.length > 0 && !selectedActivity) {
-          setSelectedActivity(activitiesList[0].id);
-        }
       } else {
         setOriginalScheme({});
         setAvailableActivities([]);
@@ -236,15 +232,12 @@ const DefaultSchemeDetail = () => {
                   onChange={(e) => setSelectedActivity(e.target.value)}
                   className="pl-9 pr-8 py-2 w-full sm:w-[220px] appearance-none bg-white dark:bg-[#132B5A] border border-gray-200 dark:border-[rgba(255,255,255,0.1)] rounded-xl text-[13px] font-bold text-[#0F172A] dark:text-white outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-shadow shadow-sm cursor-pointer"
                 >
-                  {availableActivities.length === 0 ? (
-                     <option value="">No Activities Added</option>
-                  ) : (
-                    availableActivities.map(act => (
-                      <option key={act.id} value={act.id}>
-                        {act.name}
-                      </option>
-                    ))
-                  )}
+                  <option value="all">All Activities</option>
+                  {availableActivities.map(act => (
+                    <option key={act.id} value={act.id}>
+                      {act.name}
+                    </option>
+                  ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -278,8 +271,19 @@ const DefaultSchemeDetail = () => {
         </div>
 
         {/* Marking Scheme Grid */}
-        <div className="flex justify-center">
-          {selectedActivity ? (
+        <div className="flex flex-col gap-5">
+          {selectedActivity === 'all' ? (
+            totalActivities > 0 ? (
+              Object.entries(originalScheme).map(([key, data]) => (
+                <SchemeTable key={key} data={data} />
+              ))
+            ) : (
+              <div className="w-full text-center py-12 text-slate-500 dark:text-[#6b7a99] bg-white dark:bg-[#132B5A] border border-dashed border-gray-300 dark:border-[rgba(255,255,255,0.1)] rounded-[16px]">
+                <h3 className="text-[15px] font-bold text-slate-700 dark:text-white mb-1">No activities yet</h3>
+                <p className="text-[13px]">There are no rules configured in the default marking scheme yet.</p>
+              </div>
+            )
+          ) : selectedActivity ? (
             originalScheme[`activity_${selectedActivity}`] ? (
               <SchemeTable
                 key={selectedActivity}

@@ -4,6 +4,53 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-05, 1:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The student ranking lists (the Rankings tab in the notifications panel and the Inspiration page) now show each person's percentage next to their marks (for example "72% · 45 Marks") and use the rank sent by the server, so people with the same percentage and marks show the same rank. Gold/silver/bronze colours are only given to ranks with marks above 0. Works for Daily, Previous Day and Weekly, Group and Global.
+- **Files touched**: `src/components/shared/NotificationsPanel.jsx`, `src/pages/student/Inspiration.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows only the errors that were already there. Not run in the browser against the new backend yet.
+- **Backend**: needs the matching backend change (rank by percentage; new fields `rank`, `percentage`, `max_marks`). No database change.
+
+## 🐛 [Fix] - 2026-10-05, 12:30 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: When saving a marking scheme fails, the message now says the real reason (the server's own message, or the status code, or "no answer from the server" for a time-out/network problem) instead of the vague "Failed to save scheme to database." The message is now red with a cross (it was green with a tick) and stays on screen for 8 seconds. Saving itself works as before. If the server gives no answer at all (time-out / network drop / 502-504), the screen shows a green "Waiting response from Server. Entry probably Saved" instead, because the save has usually gone through.
+- **Files touched**: `src/api/markingSchemes.js`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows only the error that was already there.
+- **Backend**: no change. No database change.
+
+## ✨ [New] - 2026-10-05, 12:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: "View Rules" (default scheme and every custom scheme) now opens with **All Activities** selected and shows every activity's rules one below another in a single scrolling page. Picking one activity in the dropdown shows only that activity's rules; choosing "All Activities" again brings the full list back. In a custom scheme the rules are still editable in both views, and picking an activity that has no rules yet still adds it as before.
+- **Files touched**: `src/pages/counsellor/marking-scheme/DefaultSchemeDetail.jsx`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; phone-size browser check with sample data (All shows all cards stacked, picking one shows one, back to All shows all). Lint shows only the errors that were already there.
+- **Backend**: no change needed. No database change.
+
+## ✨ [New] - 2026-10-05, 10:48 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Choose from the list" pick-list is back in the New Activity screen (students and counsellors). One tap adds an activity from the standard list to the person's own list. This is the same screen as the earlier version that was reverted; the fixes are in the backend (see below), so nothing changed in how the screen works.
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: needs the matching backend change (`/addable-activities`, `/add-selected-activities`). No database change.
+
+## ↩️ [Revert] - 2026-10-04, 7:42 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the developer's request, the "Choose from the list" pick-list in the New Activity screen was removed again (a new revert change; history was not rewritten). The New Activity screen is back to only "create your own".
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: reverted too, so `/addable-activities` and `/add-selected-activities` no longer exist.
+
+## ✨ [New] - 2026-10-04, 4:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "New Activity" pop-up (opened from "Add Activity" on the student and counsellor dashboards) now starts with a "Choose from the list" section: all built-in activities and all available custom activities that the person does not have yet, with a search box and an "Add" button on each row. Tapping Add puts the activity into the person's own list straight away and refreshes the dashboard. Below it, after "or create your own", the old form is unchanged.
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: needs the matching backend commit ("Add custom activity pick-list for students and counsellors": new `GET /addable-activities` and `POST /add-selected-activities`).
+
+---
+
 ## 🐛 [Fix] - 2026-10-04, 1:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

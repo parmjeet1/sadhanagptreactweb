@@ -215,7 +215,7 @@ const SchemeDetail = () => {
   const [scheme, setScheme] = useState(null);
   const [activities, setActivities] = useState([]);
   const [allActivities, setAllActivities] = useState([]);
-  const [activeActivityId, setActiveActivityId] = useState('');
+  const [activeActivityId, setActiveActivityId] = useState('all');
   
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -271,14 +271,16 @@ const SchemeDetail = () => {
     fetchData();
   }, [schemeId]);
 
-  const showToast = (msg) => {
+  const [toastIsError, setToastIsError] = useState(false);
+  const showToast = (msg, isError = false) => {
+    setToastIsError(isError);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+    setTimeout(() => setToastMessage(''), isError ? 8000 : 3000);
   };
 
   const handleSelectActivity = (actId) => {
     setActiveActivityId(actId);
-    if (actId && !activities.some(a => String(a.id) === String(actId))) {
+    if (actId && actId !== 'all' && !activities.some(a => String(a.id) === String(actId))) {
        const actInfo = allActivities.find(a => String(a.id) === String(actId));
        const unit = actInfo?.unit || '';
        const meta = getUnitMeta(unit);
@@ -328,7 +330,11 @@ const SchemeDetail = () => {
     } catch (err) {
       console.error(err);
       setIsSaving(false);
-      showToast('Failed to save scheme: ' + err.message);
+      if (err.noAnswer) {
+        showToast('Waiting response from Server. Entry probably Saved');
+      } else {
+        showToast('Failed to save scheme: ' + err.message, true);
+      }
     }
   };
 
@@ -418,7 +424,8 @@ const SchemeDetail = () => {
     return <div className="min-h-screen bg-[#0A192F] flex items-center justify-center text-[#6b7a99]">Loading builder...</div>;
   }
 
-  const activeActivity = activities.find(a => String(a.id) === String(activeActivityId));
+  const showAll = activeActivityId === 'all' || activeActivityId === '';
+  const activeActivity = showAll ? null : activities.find(a => String(a.id) === String(activeActivityId));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A192F] font-sans pb-28 transition-colors duration-300 flex flex-col relative">
@@ -480,7 +487,7 @@ const SchemeDetail = () => {
               onChange={(e) => handleSelectActivity(e.target.value)}
               className="w-full bg-white dark:bg-[#112240] border border-gray-300 dark:border-[rgba(255,255,255,0.1)] rounded-[12px] p-3.5 pr-10 text-[14px] font-bold text-[#0F172A] dark:text-white outline-none focus:ring-2 focus:ring-teal-500 appearance-none shadow-sm cursor-pointer"
             >
-              <option value="">-- Choose an Activity --</option>
+              <option value="all">All Activities</option>
               {allActivities.map(act => {
                 const hasConfig = activities.some(a => String(a.id) === String(act.id));
                 return (
@@ -498,7 +505,28 @@ const SchemeDetail = () => {
           </div>
         </div>
 
-        {activeActivity ? (
+        {showAll ? (
+          activities.length > 0 ? (
+            <div className="flex flex-col gap-5">
+              {activities.map(act => (
+                <div key={act.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <SchemeTable
+                    data={act}
+                    onUpdateRow={handleUpdateRow}
+                    onDeleteRow={handleDeleteRow}
+                    onAddRow={handleAddRow}
+                    onDeleteActivity={handleDeleteActivity}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-16 mt-4 text-center bg-white dark:bg-[#112240] rounded-[16px] border border-dashed border-gray-300 dark:border-[rgba(255,255,255,0.1)]">
+              <h3 className="text-[16px] font-bold text-slate-700 dark:text-white mb-2">No rules yet</h3>
+              <p className="text-[13px] text-slate-500 dark:text-[#6b7a99]">Choose an activity from the dropdown above to add its rules.</p>
+            </div>
+          )
+        ) : activeActivity ? (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <SchemeTable
               data={activeActivity}
@@ -510,7 +538,6 @@ const SchemeDetail = () => {
           </div>
         ) : (
           <div className="py-16 mt-4 text-center bg-white dark:bg-[#112240] rounded-[16px] border border-dashed border-gray-300 dark:border-[rgba(255,255,255,0.1)]">
-            <svg className="mx-auto h-12 w-12 text-slate-300 dark:text-[rgba(255,255,255,0.1)] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
             <h3 className="text-[16px] font-bold text-slate-700 dark:text-white mb-2">Select an Activity</h3>
             <p className="text-[13px] text-slate-500 dark:text-[#6b7a99]">Choose an activity from the dropdown above to view or modify its rules.</p>
           </div>
@@ -520,9 +547,13 @@ const SchemeDetail = () => {
 
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="flex items-center gap-2 bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53] px-5 py-3 rounded-full shadow-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-            <span className="text-[13px] font-bold">{toastMessage}</span>
+          <div className={`flex items-start gap-2 px-5 py-3 rounded-2xl shadow-lg max-w-[90vw] ${toastIsError ? 'bg-red-600 text-white' : 'bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53]'}`}>
+            {toastIsError ? (
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            )}
+            <span className="text-[13px] font-bold break-words">{toastMessage}</span>
           </div>
         </div>
       )}
