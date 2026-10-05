@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DraggableFloating from './DraggableFloating';
 import MyMarkingSchemeModal from './MyMarkingSchemeModal';
 
-const DailyScoreIndicator = ({ scoreData, isLoading }) => {
+const DailyScoreIndicator = ({ scoreData, isLoading, hasError = false }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showMyScheme, setShowMyScheme] = useState(false);
@@ -122,6 +122,12 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
                 </div>
               </div>
 
+              {hasError && (
+                <p className="mb-2 text-[10px] font-semibold text-amber-300">
+                  Couldn't refresh the score. {scoreData ? 'Showing the last known value.' : 'It will update after your next save.'}
+                </p>
+              )}
+
               {/* Action Buttons (small text so they fit the card on phones) */}
               <div className="space-y-1.5">
                 <button
@@ -208,13 +214,16 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
             {/* Percentage Text */}
             <div className="relative z-10 flex flex-col items-center justify-center">
               <span className={`text-[16px] lg:text-[18px] font-black leading-none ${colorClass}`}>
-                {percentage}<span className="text-[10px]">%</span>
+                {hasError && !scoreData ? '--' : <>{percentage}<span className="text-[10px]">%</span></>}
               </span>
               <span className="text-[8px] lg:text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 leading-none mt-0.5">
                 Marks
               </span>
             </div>
           </>
+        )}
+        {hasError && !isLoading && (
+          <span className="absolute top-1.5 right-2 z-20 w-2.5 h-2.5 rounded-full bg-amber-400 border border-white" title="Couldn't refresh the score" />
         )}
       </div>
       </div>

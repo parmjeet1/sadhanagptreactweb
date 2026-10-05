@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-05, 5:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The round Marks circle could show a wrong number until the page was reloaded (for example 55 or 0% when the real total was 80). Every save asks the server for the score again and the circle used to keep whichever answer arrived LAST, so a slow older answer could overwrite a newer one; and a failed request was shown as 0%. Now only the newest request may change the circle, and a failed request keeps the last good score, shows a small amber dot on the circle and a short "Couldn't refresh the score" note in the open card (a dash if there was no score yet).
+- **Files touched**: `src/utils/scoreRequest.js` (new), `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has the same 26 problems in these files as before (none new). Phone-size browser check with fake server answers: a slow old answer arriving after a newer one - old code showed 31%, new code keeps 46%; a failed request keeps 46% and shows the amber dot and the note; the next good answer clears them. Not run against the real backend yet.
+- **Backend**: the matching change (the server answers an error instead of fake zeros when the score fails) is in `sadhanagptpunjabibagh`, same day. The screen also works with the old backend.
+
 ## ✨ [New] - 2026-10-05, 2:40 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
