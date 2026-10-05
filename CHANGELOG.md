@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-05, 6:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Sliders could jump back to 0 (or an old value) on their own after you changed an activity. After every save the dashboard asks the server for the day's entries again and used to apply whichever answer arrived LAST; when an older, slower answer arrived after a newer one it overwrote the cards with the old values (a not-yet-saved activity counts as 0). Now only the newest refresh may rewrite the cards (student and counsellor dashboards). The same kind of guard was already added for the marks circle.
+- **Files touched**: `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint unchanged (no new problems). Phone-size browser test with a fake server that remembers saved values: Reading dragged to ~60 with a slow refresh, then Day Rest dragged to ~30 with a fast refresh. Old build: when the slow refresh arrives Day Rest jumps back to 0 (student and counsellor dashboards). New build: Day Rest stays at 30 on both. The marks-circle checks from the earlier entry still pass. Not run against the real backend yet.
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-05, 5:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

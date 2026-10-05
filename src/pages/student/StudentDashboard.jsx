@@ -85,6 +85,7 @@ const StudentDashboard = () => {
   const [isScoreLoading, setIsScoreLoading] = useState(true);
   const [scoreError, setScoreError] = useState(false);
   const scoreGuard = useRef(createLatestGuard());
+  const reportGuard = useRef(createLatestGuard());
 
   // First Rank Splash / All Activities Completed Splash
   const [showRankSplash, setShowRankSplash] = useState(false);
@@ -158,6 +159,9 @@ const StudentDashboard = () => {
 
       const payload = { user_id: userDetails.user_id, activity_date: formattedDate };
 
+      // Only the newest refresh may rewrite the activity cards: a slower, older answer used to arrive
+      // last and push sliders back to their old values (often 0).
+      const reportRequestId = reportGuard.current.next();
       postRequest('/report-as-per-date', payload, (response) => {
         if (!response?.data) {
           if (!isBackground) setIsLoading(false);
@@ -170,6 +174,10 @@ const StudentDashboard = () => {
             ...prev,
             [formattedDate]: colorForDate
           }));
+        }
+        if (!reportGuard.current.isLatest(reportRequestId)) {
+          if (!isBackground) setIsLoading(false);
+          return;
         }
         if (res?.data?.daily_reports && Array.isArray(res.data.daily_reports)) {
           const reports = res.data.daily_reports;
