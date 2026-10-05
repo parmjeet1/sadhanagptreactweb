@@ -241,12 +241,12 @@ const MarkingScheme = () => {
     }
   };
 
-  const handleCreateScheme = async (name, assignments = [], makeForSelf = false) => {
+  const handleCreateScheme = async (name, assignments = []) => {
     try {
-      const res = await createScheme(name, assignments, makeForSelf);
+      const res = await createScheme(name, assignments);
       setShowNameModal(false);
 
-      setToastMessage(`Scheme '${name}' created successfully!${res?.scheme?.usedForSelf ? ' It is now used for your own marks.' : ''}`);
+      setToastMessage(`Scheme '${name}' created successfully!`);
       fetchSchemes();
 
       setTimeout(() => {

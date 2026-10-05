@@ -4,37 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
-## 🐛 [Fix] - 2026-10-05, 6:35 PM IST
+## ↩️ [Revert] - 2026-10-05, 7:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
-- **What changed**: Sliders could jump back to 0 (or an old value) on their own after you changed an activity. After every save the dashboard asks the server for the day's entries again and used to apply whichever answer arrived LAST; when an older, slower answer arrived after a newer one it overwrote the cards with the old values (a not-yet-saved activity counts as 0). Now only the newest refresh may rewrite the cards (student and counsellor dashboards). The same kind of guard was already added for the marks circle.
-- **Files touched**: `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
-- **Tested**: build passes; lint unchanged (no new problems). Phone-size browser test with a fake server that remembers saved values: Reading dragged to ~60 with a slow refresh, then Day Rest dragged to ~30 with a fast refresh. Old build: when the slow refresh arrives Day Rest jumps back to 0 (student and counsellor dashboards). New build: Day Rest stays at 30 on both. The marks-circle checks from the earlier entry still pass. Not run against the real backend yet.
-- **Backend**: nothing needed.
-
-## ✨ [New] - 2026-10-05, 6:00 PM IST
-
-- **Developer**: Manvatar Prabhu Ji
-- **What changed**: The marking scheme editor now shows a yellow "Some values have no rule" note when the rules of a number-type activity (rounds or minutes) leave whole numbers uncovered, for example rules for "5 or more" and "0" leave 1-4 uncovered, so a student entering 3 minutes earns nothing. It lists the gaps per activity (such as "Reading Duration: 1-4") and disappears as soon as the rules cover everything. It is only a heads-up: saving is never blocked. Time and yes/no activities are not checked.
-- **Files touched**: `src/utils/ruleGaps.js` (new), `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
-- **Tested**: build passes; lint has no new problems; 11 checks of the gap finder (the real Reading rules give "1-4", the default Chanting rules give "1-3", full coverage gives nothing, empty values ignored, time activities skipped, a huge value cannot hang it); phone-size browser check with fake data: the note appears for Reading, not for fully covered Chanting, and goes away after editing "<= 0" to "<= 4". Not run against the real backend yet.
-- **Backend**: nothing needed.
-
-## 🐛 [Fix] - 2026-10-05, 5:50 PM IST
-
-- **Developer**: Manvatar Prabhu Ji
-- **What changed**: The round Marks circle could show a wrong number until the page was reloaded (for example 55 or 0% when the real total was 80). Every save asks the server for the score again and the circle used to keep whichever answer arrived LAST, so a slow older answer could overwrite a newer one; and a failed request was shown as 0%. Now only the newest request may change the circle, and a failed request keeps the last good score, shows a small amber dot on the circle and a short "Couldn't refresh the score" note in the open card (a dash if there was no score yet).
-- **Files touched**: `src/utils/scoreRequest.js` (new), `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
-- **Tested**: build passes; lint has the same 26 problems in these files as before (none new). Phone-size browser check with fake server answers: a slow old answer arriving after a newer one - old code showed 31%, new code keeps 46%; a failed request keeps 46% and shows the amber dot and the note; the next good answer clears them. Not run against the real backend yet.
-- **Backend**: the matching change (the server answers an error instead of fake zeros when the score fails) is in `sadhanagptpunjabibagh`, same day. The screen also works with the old backend.
-
-## ✨ [New] - 2026-10-05, 2:40 PM IST
-
-- **Developer**: Manvatar Prabhu Ji
-- **What changed**: Students and counsellors can now make and use their OWN marking scheme. Tapping the round Marks icon now shows two small buttons (text made smaller): "Applied Marking Scheme" and a new "Make My Own Marking Scheme". The new button opens a small "My Marking Scheme" window (a bottom sheet on phones, at most 75% of the screen height, scrolls inside): it shows which scheme is in use now (and a note when the counsellor's group scheme overrides the personal one), lists the person's own schemes with "Use for me / Stop using", "Edit rules" and delete, and has a "New scheme" box with a "Make for Self" tick (on by default) that opens the rule editor right after creating. When a counsellor creates a scheme in Custom Marking Scheme, the name window also has a "Make for Self" tick; ticking it lets the scheme be created without picking any group. Students edit their scheme in the same rule editor (new page `/student/marking-scheme/:id`); students' screens use the new `/my-...` backend routes, counsellors keep the existing ones.
-- **Files touched**: `src/components/shared/MyMarkingSchemeModal.jsx` (new), `src/components/shared/DailyScoreIndicator.jsx`, `src/api/markingSchemes.js`, `src/pages/counsellor/marking-scheme/SchemeNameModal.jsx`, `src/pages/counsellor/marking-scheme/MarkingScheme.jsx`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `src/routes/AppRoutes.jsx`, `CHANGELOG.md`
-- **Tested**: build passes; lint has one error less than before in these files (the rest were already there). Phone-size browser check (360 x 640) with sample data for a student and a counsellor: both buttons show on the Marks icon, the window fits (about 440 px high), "Use for me" and "Create" with "Make for Self" send the right requests and open the editor; counsellor "Make for Self" lets Create work without choosing a group. Not run against the real backend yet.
-- **Backend**: needs the matching backend change (routes `/my-...`, `/use-my-marking-scheme`, `use_for_self`) AND the database change DB-002 (one new column), see the backend `DBnew.md`. Until DB-002 is run, "Use for me" answers "not switched on yet".
+- **What changed**: Undone on request: all 4 commits made after 1:10 PM IST on 2026-10-05, with a new "revert" commit (history is kept, nothing rewritten). That removes: the own marking scheme screens (the "Make My Own Marking Scheme" button and window, "Make for Self" in Create scheme, the student scheme editor page) (`8d5cc50`), the marks-circle fix that ignores old replies and keeps the last good score (`690e17b`), the slider fix (`8d09c0c`) and the scheme editor "no rule" warning (`2073285`). The screens are back exactly as they were at 12:26 PM IST (`f50bca7`); checked by comparing the files.
+- **Files touched**: `src/api/markingSchemes.js`, `src/components/shared/DailyScoreIndicator.jsx`, `src/components/shared/MyMarkingSchemeModal.jsx` (removed), `src/pages/counsellor/CounsellorDashboard.jsx`, `src/pages/counsellor/marking-scheme/MarkingScheme.jsx`, `SchemeDetail.jsx`, `SchemeNameModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/routes/AppRoutes.jsx`, `src/utils/ruleGaps.js` and `src/utils/scoreRequest.js` (removed), `CHANGELOG.md`
+- **Tested**: file-by-file comparison with the 12:26 PM state (identical apart from this entry); build passes. Not run against a server.
+- **Backend**: reverted the same way in `sadhanagptpunjabibagh` (back to the 1:02 PM state).
+- **Note**: the old marks-circle and slider problems come back with this revert (a late older answer can make the circle or a slider show a wrong value until the page is reloaded).
 
 ## ✨ [New] - 2026-10-05, 1:20 PM IST
 
