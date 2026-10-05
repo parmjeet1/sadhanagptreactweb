@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-05, 12:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: "View Rules" (default scheme and every custom scheme) now opens with **All Activities** selected and shows every activity's rules one below another in a single scrolling page. Picking one activity in the dropdown shows only that activity's rules; choosing "All Activities" again brings the full list back. In a custom scheme the rules are still editable in both views, and picking an activity that has no rules yet still adds it as before.
+- **Files touched**: `src/pages/counsellor/marking-scheme/DefaultSchemeDetail.jsx`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; phone-size browser check with sample data (All shows all cards stacked, picking one shows one, back to All shows all). Lint shows only the errors that were already there.
+- **Backend**: no change needed. No database change.
+
 ## ✨ [New] - 2026-10-05, 10:48 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
