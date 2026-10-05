@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-05, 1:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The student ranking lists (the Rankings tab in the notifications panel and the Inspiration page) now show each person's percentage next to their marks (for example "72% · 45 Marks") and use the rank sent by the server, so people with the same percentage and marks show the same rank. Gold/silver/bronze colours are only given to ranks with marks above 0. Works for Daily, Previous Day and Weekly, Group and Global.
+- **Files touched**: `src/components/shared/NotificationsPanel.jsx`, `src/pages/student/Inspiration.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows only the errors that were already there. Not run in the browser against the new backend yet.
+- **Backend**: needs the matching backend change (rank by percentage; new fields `rank`, `percentage`, `max_marks`). No database change.
+
 ## 🐛 [Fix] - 2026-10-05, 12:30 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

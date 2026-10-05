@@ -342,11 +342,12 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                   ) : (
                     <div className="bg-white rounded-[24px] p-4 shadow-sm border border-gray-100 space-y-3">
                       {rankings.map((user, idx) => {
-                        const rank = idx + 1;
+                        const rank = user.rank ?? idx + 1; // rank from the server (same percentage = same rank)
+                        const hasMarks = Number(user.total_marks) > 0;
                         let rankColor = "text-gray-500 bg-gray-100";
-                        if (rank === 1) rankColor = "text-yellow-600 bg-yellow-100 border border-yellow-300";
-                        if (rank === 2) rankColor = "text-slate-600 bg-slate-100 border border-slate-300";
-                        if (rank === 3) rankColor = "text-amber-700 bg-amber-100 border border-amber-300";
+                        if (hasMarks && rank === 1) rankColor = "text-yellow-600 bg-yellow-100 border border-yellow-300";
+                        if (hasMarks && rank === 2) rankColor = "text-slate-600 bg-slate-100 border border-slate-300";
+                        if (hasMarks && rank === 3) rankColor = "text-amber-700 bg-amber-100 border border-amber-300";
 
                         const avatarUrl = user.profile ? (user.profile.startsWith('http') ? user.profile : `${import.meta.env.VITE_IMAGE_URL}${user.profile}`) : null;
 
@@ -368,7 +369,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                               )}
                               <div>
                                 <h4 className="font-bold text-[#1e293b] text-[14px] leading-tight">{user.name}</h4>
-                                <p className="text-[11px] font-medium text-gray-400">{user.total_marks || 0} Marks</p>
+                                <p className="text-[11px] font-medium text-gray-400">{user.percentage ?? 0}% · {user.total_marks || 0} Marks</p>
                               </div>
                             </div>
                           </div>
