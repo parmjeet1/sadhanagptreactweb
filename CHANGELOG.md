@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-05, 10:48 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Choose from the list" pick-list is back in the New Activity screen (students and counsellors). One tap adds an activity from the standard list to the person's own list. This is the same screen as the earlier version that was reverted; the fixes are in the backend (see below), so nothing changed in how the screen works.
+- **Files touched**: `src/components/shared/NewActivityModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Backend**: needs the matching backend change (`/addable-activities`, `/add-selected-activities`). No database change.
+
 ## ↩️ [Revert] - 2026-10-04, 7:42 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
