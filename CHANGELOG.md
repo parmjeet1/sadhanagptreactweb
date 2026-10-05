@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [New] - 2026-10-05, 2:40 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Students and counsellors can now make and use their OWN marking scheme. Tapping the round Marks icon now shows two small buttons (text made smaller): "Applied Marking Scheme" and a new "Make My Own Marking Scheme". The new button opens a small "My Marking Scheme" window (a bottom sheet on phones, at most 75% of the screen height, scrolls inside): it shows which scheme is in use now (and a note when the counsellor's group scheme overrides the personal one), lists the person's own schemes with "Use for me / Stop using", "Edit rules" and delete, and has a "New scheme" box with a "Make for Self" tick (on by default) that opens the rule editor right after creating. When a counsellor creates a scheme in Custom Marking Scheme, the name window also has a "Make for Self" tick; ticking it lets the scheme be created without picking any group. Students edit their scheme in the same rule editor (new page `/student/marking-scheme/:id`); students' screens use the new `/my-...` backend routes, counsellors keep the existing ones.
+- **Files touched**: `src/components/shared/MyMarkingSchemeModal.jsx` (new), `src/components/shared/DailyScoreIndicator.jsx`, `src/api/markingSchemes.js`, `src/pages/counsellor/marking-scheme/SchemeNameModal.jsx`, `src/pages/counsellor/marking-scheme/MarkingScheme.jsx`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `src/routes/AppRoutes.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has one error less than before in these files (the rest were already there). Phone-size browser check (360 x 640) with sample data for a student and a counsellor: both buttons show on the Marks icon, the window fits (about 440 px high), "Use for me" and "Create" with "Make for Self" send the right requests and open the editor; counsellor "Make for Self" lets Create work without choosing a group. Not run against the real backend yet.
+- **Backend**: needs the matching backend change (routes `/my-...`, `/use-my-marking-scheme`, `use_for_self`) AND the database change DB-002 (one new column), see the backend `DBnew.md`. Until DB-002 is run, "Use for me" answers "not switched on yet".
+
 ## ✨ [New] - 2026-10-05, 1:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

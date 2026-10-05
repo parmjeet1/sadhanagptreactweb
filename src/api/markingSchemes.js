@@ -1,6 +1,13 @@
 // src/api/markingSchemes.js
 import { postRequest, getRequest } from '../services/api';
 
+// Counsellors manage their schemes through the counsellor routes. Everyone else (students) uses the
+// "/my-..." routes, where the server takes the owner from the login and only touches the person's own schemes.
+const isCounsellorUser = () => {
+  try { return JSON.parse(localStorage.getItem('user_details') || '{}').user_type === 'counsellor'; } catch { return false; }
+};
+const routeFor = (counsellorPath, minePath) => (isCounsellorUser() ? counsellorPath : minePath);
+
 export const getCenters = async () => {
   const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
   const userId = userDetails.user_id;
@@ -161,7 +168,7 @@ export const getSchemes = async (includeProvisional = false) => {
   }
 
   return new Promise((resolve, reject) => {
-    postRequest('/scheme-list', { counsellor_id: counsellorId }, (response) => {
+    postRequest(routeFor('/scheme-list', '/my-scheme-list'), { counsellor_id: counsellorId }, (response) => {
       if (response?.data?.code === 200 && response.data.data) {
         let schemes = response.data.data.schemes || [];
         
@@ -170,7 +177,7 @@ export const getSchemes = async (includeProvisional = false) => {
           schemes = schemes.filter(s => !s.isProvisional);
         }
         
-        resolve({ schemes });
+        resolve({ schemes, personalSchemeId: response.data.data.personalSchemeId ?? null });
       } else {
         resolve({ schemes: [] }); // Fallback to empty array on failure to prevent app crashes
       }
@@ -258,7 +265,7 @@ export const getActivities = async (schemeId) => {
 
   return new Promise((resolve) => {
     console.log("Calling /scheme-activities-list for scheme:", schemeId);
-    postRequest('/scheme-activities-list', { scheme_id: schemeId, counsellor_id: counsellorId }, (response) => {
+    postRequest(routeFor('/scheme-activities-list', '/my-scheme-activities'), { scheme_id: schemeId, counsellor_id: counsellorId }, (response) => {
       console.log("Response from /scheme-activities-list:", response?.data);
       if (response?.data?.code === 200 && response.data.data) {
         console.log(response?.data,'data')
@@ -272,7 +279,7 @@ export const getActivities = async (schemeId) => {
 
 export const getSchemeActivities = async (schemeId) => {
   return new Promise((resolve) => {
-    postRequest('/marking-rules', { scheme_id: schemeId }, (response) => {
+    postRequest(routeFor('/marking-rules', '/my-marking-rules'), { scheme_id: schemeId }, (response) => {
       if (response?.data?.code === 200 && response.data.data && response.data.data.length > 0) {
         const rules = response.data.data;
         
@@ -404,7 +411,7 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
   };
 
   return new Promise((resolve, reject) => {
-    postRequest('/save-marking-scheme', payload, (response) => {
+    postRequest(routeFor('/save-marking-scheme', '/my-save-scheme'), payload, (response) => {
       if (response && response.data && response.data.code === 200) {
         const finalSchemeId = response.data.data?.schemeId || targetCenterId;
         const existingIdx = customSchemes.findIndex(s => s.id === targetCenterId);
@@ -433,7 +440,7 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
   });
 };
 
-export const createScheme = async (name, assignments = []) => {
+export const createScheme = async (name, assignments = [], useForSelf = false) => {
   const userDetails = JSON.parse(localStorage.getItem('user_details') || '{}');
   const counsellorId = userDetails.user_id;
   if (!counsellorId) throw new Error("User not authenticated.");
@@ -441,11 +448,12 @@ export const createScheme = async (name, assignments = []) => {
   const payload = {
     name,
     counsellor_id: counsellorId,
-    assignments // Array of { type: 'group'|'subgroup', id }
+    assignments, // Array of { type: 'group'|'subgroup', id }
+    use_for_self: Boolean(useForSelf) // "Make for Self": use this scheme for my own marks
   };
 
   return new Promise((resolve, reject) => {
-    postRequest('/create-marking-scheme', payload, (response) => {
+    postRequest(routeFor('/create-marking-scheme', '/my-create-scheme'), payload, (response) => {
       if (response && response.data && response.data.code === 200) {
         const savedScheme = response.data.data;
         const customSchemes = JSON.parse(localStorage.getItem(LOCAL_SCHEMES_KEY) || '[]');
@@ -466,7 +474,7 @@ export const deleteScheme = async (schemeId) => {
 
   return new Promise((resolve, reject) => {
     postRequest(
-      '/delete-marking-scheme',
+      routeFor('/delete-marking-scheme', '/my-delete-scheme'),
       { scheme_id: schemeId, counsellor_id: counsellorId },
       (response) => {
         if (response?.data?.code === 200) {
@@ -535,7 +543,7 @@ export const deleteMarkingRuleAPI = async (ruleId) => {
 
   return new Promise((resolve, reject) => {
     postRequest(
-      '/delete-marking-rule',
+      routeFor('/delete-marking-rule', '/my-delete-rule'),
       { rule_id: ruleId, counsellor_id: counsellorId },
       (response) => {
         if (response?.data?.code === 200) {
@@ -555,7 +563,7 @@ export const deleteActivityRulesAPI = async (schemeId, masterActivityId) => {
 
   return new Promise((resolve, reject) => {
     postRequest(
-      '/delete-activity-rules',
+      routeFor('/delete-activity-rules', '/my-delete-activity-rules'),
       { scheme_id: schemeId, master_activity_id: masterActivityId, counsellor_id: counsellorId },
       (response) => {
         if (response?.data?.code === 200) {
@@ -565,5 +573,18 @@ export const deleteActivityRulesAPI = async (schemeId, masterActivityId) => {
         }
       }
     );
+  });
+};
+
+// Use one of my own schemes for my own marks (null = stop). A counsellor's group / sub-group scheme still wins.
+export const chooseMyScheme = async (schemeId) => {
+  return new Promise((resolve, reject) => {
+    postRequest('/use-my-marking-scheme', { scheme_id: schemeId ?? null }, (response) => {
+      if (response?.data?.code === 200) {
+        resolve({ message: response.data.message?.[0], ...response.data.data });
+      } else {
+        reject(new Error(response?.data?.message?.[0] || 'Could not save your choice.'));
+      }
+    });
   });
 };

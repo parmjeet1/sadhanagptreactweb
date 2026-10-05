@@ -58,6 +58,7 @@ const AppRoutes = () => {
 
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/applied-marking-scheme" element={<StudentAppliedMarkingScheme />} />
+          <Route path="/student/marking-scheme/:id" element={<SchemeDetail />} />
           <Route path="/counsellor/dashboard" element={<CounsellorDashboard />} />
           <Route path="/student/profile" element={<Profile />} />
 

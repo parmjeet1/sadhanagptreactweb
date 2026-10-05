@@ -211,6 +211,7 @@ const SchemeDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const schemeId = Number(id) || id;
+  const isCounsellorUser = (() => { try { return JSON.parse(localStorage.getItem('user_details') || '{}').user_type === 'counsellor'; } catch { return false; } })();
 
   const [scheme, setScheme] = useState(null);
   const [activities, setActivities] = useState([]);
@@ -434,7 +435,7 @@ const SchemeDetail = () => {
         <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
             <button
-              onClick={() => navigate('/counsellor/marking-scheme')}
+              onClick={() => (isCounsellorUser ? navigate('/counsellor/marking-scheme') : navigate(-1))}
               className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-full flex items-center justify-center text-slate-500 dark:text-[#6b7a99] hover:bg-slate-100 dark:hover:bg-[rgba(255,255,255,0.06)] active:scale-90 transition-all"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

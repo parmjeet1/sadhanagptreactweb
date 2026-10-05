@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import DraggableFloating from './DraggableFloating';
+import MyMarkingSchemeModal from './MyMarkingSchemeModal';
 
 const DailyScoreIndicator = ({ scoreData, isLoading }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [showMyScheme, setShowMyScheme] = useState(false);
   const containerRef = useRef(null);
   // The card normally opens above the icon, aligned to its right edge. Because
   // the icon can be dragged anywhere, flip it to the left edge / below the icon
@@ -76,7 +78,14 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
     navigate('/student/applied-marking-scheme');
   };
 
+  const handleOpenMyScheme = (e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    setShowMyScheme(true);
+  };
+
   return (
+    <>
     <DraggableFloating
       storageKey="marks"
       containerRef={containerRef}
@@ -102,7 +111,7 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
                 </span>
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-3">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-medium">Earned Marks</span>
                   <span className="font-bold text-white text-sm">{earned}</span>
@@ -113,16 +122,27 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
                 </div>
               </div>
 
-              {/* Action Button: View Applied Marking Scheme */}
-              <button
-                onClick={handleOpenMarkingScheme}
-                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-[12px] flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Applied Marking Scheme
-              </button>
+              {/* Action Buttons (small text so they fit the card on phones) */}
+              <div className="space-y-1.5">
+                <button
+                  onClick={handleOpenMarkingScheme}
+                  className="w-full py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-[10px] leading-tight flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all"
+                >
+                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Applied Marking Scheme
+                </button>
+                <button
+                  onClick={handleOpenMyScheme}
+                  className="w-full py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-[10px] leading-tight flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                >
+                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Make My Own Marking Scheme
+                </button>
+              </div>
             </div>
             {/* Arrow (hidden when the card sits above the other icons) */}
             {!(placement.lift > 0 && !placement.below) && (
@@ -199,6 +219,8 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
       </div>
       </div>
     </DraggableFloating>
+    {showMyScheme && <MyMarkingSchemeModal onClose={() => setShowMyScheme(false)} />}
+    </>
   );
 };
 

@@ -7,6 +7,7 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
   const [loading, setLoading] = useState(true);
   const [selectedAssignments, setSelectedAssignments] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [makeForSelf, setMakeForSelf] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -133,10 +134,10 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
   };
 
   const handleCreate = async () => {
-    if (name.trim() && !isSubmitting && selectedAssignments.length > 0) {
+    if (name.trim() && !isSubmitting && (selectedAssignments.length > 0 || (makeForSelf && !editingSchemeId))) {
       setIsSubmitting(true);
       try {
-        await onCreate(name.trim(), selectedAssignments);
+        await onCreate(name.trim(), selectedAssignments, makeForSelf);
       } catch (err) {
         console.error("Error saving scheme:", err);
         setIsSubmitting(false);
@@ -175,7 +176,21 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
               />
             </div>
 
-            <label className="block text-[11px] font-bold text-slate-500 dark:text-[#6b7a99] uppercase tracking-wider mb-1.5 shrink-0">Assign To <span className="text-red-500">*</span></label>
+            {!editingSchemeId && (
+              <label className="flex items-start gap-2 cursor-pointer mb-4 shrink-0 bg-teal-50 dark:bg-[rgba(29,233,182,0.08)] border border-teal-100 dark:border-[rgba(29,233,182,0.2)] rounded-[10px] p-2.5">
+                <input
+                  type="checkbox"
+                  checked={makeForSelf}
+                  onChange={(e) => setMakeForSelf(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
+                />
+                <span className="text-[12px] text-slate-700 dark:text-slate-200 leading-snug">
+                  <span className="font-bold">Make for Self</span> – use this scheme for my own marks. A scheme given to my group by my counsellor overrides it.
+                </span>
+              </label>
+            )}
+
+            <label className="block text-[11px] font-bold text-slate-500 dark:text-[#6b7a99] uppercase tracking-wider mb-1.5 shrink-0">Assign To {!makeForSelf && <span className="text-red-500">*</span>}</label>
             <div className="flex-1 overflow-y-auto pr-2 pb-4 space-y-3 custom-scrollbar">
                {availableOptions.length === 0 ? (
                  <p className="text-[12px] text-slate-500 italic text-center py-4">No groups available.</p>
@@ -235,7 +250,7 @@ const SchemeNameModal = ({ onClose, onCreate, initialName = '', editingSchemeId 
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!name.trim() || selectedAssignments.length === 0 || isSubmitting}
+                disabled={!name.trim() || (selectedAssignments.length === 0 && !(makeForSelf && !editingSchemeId)) || isSubmitting}
                 className="flex-1 py-2 rounded-[10px] bg-[#1d4ed8] dark:bg-[#1de9b6] text-white dark:text-[#042C53] text-[13px] font-bold hover:bg-[#1e40af] dark:hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
               >
                 {isSubmitting ? (
