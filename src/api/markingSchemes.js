@@ -424,7 +424,10 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
           else reason = `no answer from the server (${response?.code || response?.message || 'network error or time-out'})`;
         }
         console.error('save-marking-scheme failed:', { status: response?.status, data: response?.data, code: response?.code, message: response?.message });
-        reject(new Error(reason));
+        const error = new Error(reason);
+        // No answer at all, or a gateway time-out: the server may well have finished saving.
+        error.noAnswer = !serverMessage && (!response?.status || [502, 503, 504].includes(response.status));
+        reject(error);
       }
     });
   });

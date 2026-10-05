@@ -330,7 +330,11 @@ const SchemeDetail = () => {
     } catch (err) {
       console.error(err);
       setIsSaving(false);
-      showToast('Failed to save scheme: ' + err.message, true);
+      if (err.noAnswer) {
+        showToast('Waiting response from Server. Entry probably Saved');
+      } else {
+        showToast('Failed to save scheme: ' + err.message, true);
+      }
     }
   };
 
