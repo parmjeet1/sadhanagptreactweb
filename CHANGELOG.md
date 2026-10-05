@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-05, 12:30 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: When saving a marking scheme fails, the message now says the real reason (the server's own message, or the status code, or "no answer from the server" for a time-out/network problem) instead of the vague "Failed to save scheme to database." The message is now red with a cross (it was green with a tick) and stays on screen for 8 seconds. Saving itself works as before.
+- **Files touched**: `src/api/markingSchemes.js`, `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows only the error that was already there.
+- **Backend**: no change. No database change.
+
 ## ✨ [New] - 2026-10-05, 12:05 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

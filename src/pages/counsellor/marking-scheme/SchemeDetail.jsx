@@ -271,9 +271,11 @@ const SchemeDetail = () => {
     fetchData();
   }, [schemeId]);
 
-  const showToast = (msg) => {
+  const [toastIsError, setToastIsError] = useState(false);
+  const showToast = (msg, isError = false) => {
+    setToastIsError(isError);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+    setTimeout(() => setToastMessage(''), isError ? 8000 : 3000);
   };
 
   const handleSelectActivity = (actId) => {
@@ -328,7 +330,7 @@ const SchemeDetail = () => {
     } catch (err) {
       console.error(err);
       setIsSaving(false);
-      showToast('Failed to save scheme: ' + err.message);
+      showToast('Failed to save scheme: ' + err.message, true);
     }
   };
 
@@ -541,9 +543,13 @@ const SchemeDetail = () => {
 
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="flex items-center gap-2 bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53] px-5 py-3 rounded-full shadow-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-            <span className="text-[13px] font-bold">{toastMessage}</span>
+          <div className={`flex items-start gap-2 px-5 py-3 rounded-2xl shadow-lg max-w-[90vw] ${toastIsError ? 'bg-red-600 text-white' : 'bg-teal-500 dark:bg-[#1de9b6] text-white dark:text-[#042C53]'}`}>
+            {toastIsError ? (
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            )}
+            <span className="text-[13px] font-bold break-words">{toastMessage}</span>
           </div>
         </div>
       )}

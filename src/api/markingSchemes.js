@@ -415,7 +415,16 @@ export const saveScheme = async (name, activities, schemeId = null, isProvisiona
         
         resolve({ scheme: savedScheme });
       } else {
-        reject(new Error(response?.data?.message?.[0] || "Failed to save scheme to database."));
+        // Say WHY it failed: the server's own message if there is one, otherwise the HTTP status
+        // (or "no answer from the server": network error, time-out, blocked request).
+        const serverMessage = Array.isArray(response?.data?.message) ? response.data.message[0] : response?.data?.message;
+        let reason = serverMessage;
+        if (!reason) {
+          if (response?.status) reason = `the server answered with status ${response.status} and no message`;
+          else reason = `no answer from the server (${response?.code || response?.message || 'network error or time-out'})`;
+        }
+        console.error('save-marking-scheme failed:', { status: response?.status, data: response?.data, code: response?.code, message: response?.message });
+        reject(new Error(reason));
       }
     });
   });
