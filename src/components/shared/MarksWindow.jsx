@@ -82,7 +82,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
 
   const [view, setView] = useState('score'); // 'score' | 'schemes'
   const [expanded, setExpanded] = useState(false);
-  const [tab, setTab] = useState('default'); // 'default' | 'custom'
+  const [tab, setTab] = useState('default'); // 'counsellor' | 'default' | 'custom'
   const [breakdown, setBreakdown] = useState({ status: 'idle', data: null });
   const [mine, setMine] = useState({ status: 'idle', data: null });
   const [defaults, setDefaults] = useState({ status: 'idle', groups: [] });
@@ -132,7 +132,9 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
   const openSchemes = () => {
     setView('schemes');
     setNotice(null);
-    if (mine.status === 'idle') loadMine();
+    if (mine.status === 'idle') {
+      loadMine().then((r) => { if (r.ok && r.data?.counsellor_scheme) setTab('counsellor'); });
+    }
     if (defaults.status === 'idle') loadDefaults();
   };
 
@@ -141,6 +143,9 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
   const usingOwn = !!my?.using_own;
   const source = my?.applied_source || 'default';
   const counsellorScheme = source === 'group' || source === 'subgroup';
+  const cs = my?.counsellor_scheme || null;
+  const csGroups = useMemo(() => groupRules(cs?.rules || []), [cs]);
+  const threeTabs = !!cs;
   const ownGroups = useMemo(() => groupRules(my?.rules || []), [my]);
   const addable = useMemo(
     () => defaults.groups.filter((g) => !draft.some((d) => d.key === g.key)),
@@ -208,7 +213,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
       role="tab"
       aria-selected={tab === id}
       onClick={() => { setTab(id); setNotice(null); }}
-      className={`flex-1 py-2.5 px-2 rounded-xl text-sm font-bold transition ${tab === id ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300'}`}
+      className={`flex-1 min-w-0 py-2.5 px-2 rounded-xl text-sm font-bold transition ${tab === id ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300'}`}
     >
       {label}
     </button>
@@ -316,8 +321,9 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
           {view === 'schemes' && (
             <>
               <div role="tablist" aria-label="Marking scheme" className="flex gap-2">
-                {tabButton('default', 'Default Scheme')}
-                {tabButton('custom', customLabel)}
+                {threeTabs && tabButton('counsellor', "Counsellor's")}
+                {tabButton('default', threeTabs ? 'Default' : 'Default Scheme')}
+                {tabButton('custom', threeTabs ? (hasOwn ? 'My Custom' : 'Custom') : customLabel)}
               </div>
 
               {mine.status === 'ok' && (
@@ -330,6 +336,25 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
                 </div>
               )}
               <Notice notice={notice} />
+
+              {tab === 'counsellor' && cs && (
+                <>
+                  <div className="rounded-2xl border border-teal-500/30 bg-teal-500/10 p-3 text-sm text-[#0F172A] dark:text-white" data-testid="counsellor-note">
+                    <p className="font-bold">Set by your counsellor{cs.counsellor?.name ? `: ${cs.counsellor.name}` : ''}</p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                      This scheme can't be changed here. To change it, please contact your counsellor
+                      {cs.counsellor?.email ? (
+                        <>
+                          {' '}at{' '}
+                          <a href={`mailto:${cs.counsellor.email}`} className="font-bold text-teal-600 dark:text-teal-400 break-all underline">{cs.counsellor.email}</a>
+                        </>
+                      ) : null}.
+                    </p>
+                  </div>
+                  <SchemeRulesView groups={csGroups} emptyText="Your counsellor's scheme has no rules yet." />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Activities not listed here use the Default Scheme.</p>
+                </>
+              )}
 
               {tab === 'default' && (
                 <>
@@ -383,6 +408,10 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
         {/* Footer actions (scheme screen only) */}
         {view === 'schemes' && mine.status === 'ok' && (
           <div className="px-4 pt-3 pb-4 border-t border-gray-100 dark:border-white/10 space-y-2">
+            {tab === 'counsellor' && (
+              <p className="text-sm text-center font-bold text-emerald-600 dark:text-emerald-400">✓ This scheme is in use for you</p>
+            )}
+
             {tab === 'default' && (
               counsellorScheme ? (
                 <p className="text-xs text-center text-slate-500">Your counsellor's scheme takes priority over this one.</p>

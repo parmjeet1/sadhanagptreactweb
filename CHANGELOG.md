@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-06, 08:43 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: When a counsellor has made a scheme for a student, the Marks window now shows three tabs: Counsellor's (opens first), Default and Custom. The Counsellor's tab lists every rule, cannot be edited, and says to contact the counsellor (name and email, email is a tap-to-mail link). Students without a counsellor scheme see the window as before.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; 82 browser checks on phone and desktop sizes with a fake server (23 new, 59 earlier all still pass), including no counsellor details case.
+- **Backend**: needs backend commit `f0e117f` (adds `counsellor_scheme` to `/my-marking-scheme`).
+
 ## 🐛 [Fix] - 2026-10-06, 08:38 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
