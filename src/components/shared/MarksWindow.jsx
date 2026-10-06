@@ -91,15 +91,13 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  // Esc closes; the page behind does not scroll while the window is open.
+  // Esc closes. (The page is not locked with overflow:hidden: that removes the scrollbar, which makes the fixed
+  // floating circles jump sideways.)
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
     };
   }, [onClose]);
 

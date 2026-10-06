@@ -22,9 +22,7 @@ const StudentOwnSchemeModal = ({ studentId, studentName, onClose }) => {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = previous; };
+    return () => { document.removeEventListener('keydown', onKey); };
   }, [onClose]);
 
   const groups = useMemo(() => groupRules(state.data?.rules || []), [state.data]);

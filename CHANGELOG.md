@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 08:30 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Opening the Marks window no longer makes the Marks, chatbot and Birds-eye circles jump. The window used to freeze the page behind it, which hides the scroll bar and widens the screen, so the circles shifted. The page is no longer frozen.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `src/components/counsellor/StudentOwnSchemeModal.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser check with a scrolling page (scroll bar visible): the circles stay in the same spot through summary, window and close. Not tried on a real phone.
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-06, 08:27 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
