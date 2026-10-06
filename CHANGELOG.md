@@ -7,6 +7,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 ## ✨ [Feature] - 2026-10-06, 07:58 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
+- **What changed**: Tapping the Marks circle now opens one window: today's score with a small arrow showing marks per activity, and tapping the circle shows Default Scheme / Make Custom Scheme with an All Activities drop-down. Works as a bottom sheet on phones. The old separate applied-scheme page is no longer linked from the circle.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
 - **What changed**: Added the building blocks for the new marks window: calls to the server, rule helpers, and the rules list/editor used for default and custom schemes.
 - **Files touched**: `src/api/myScheme.js`, `src/utils/schemeRules.js`, `src/components/shared/SchemeRulesView.jsx`, `CHANGELOG.md`
 - **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.

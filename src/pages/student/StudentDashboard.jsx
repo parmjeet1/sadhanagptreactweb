@@ -834,7 +834,18 @@ const StudentDashboard = () => {
 
       {/* Floating Elements */}
       {/* No extra fixed wrapper here: it created its own layer that kept the marks card behind the chatbot icon. */}
-      <DailyScoreIndicator scoreData={dailyScore} isLoading={isScoreLoading} />
+      <DailyScoreIndicator
+        scoreData={dailyScore}
+        isLoading={isScoreLoading}
+        activityDate={(() => {
+          const d = dates?.find((x) => x.active)?.fullDate || new Date();
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        })()}
+        onSchemeChanged={() => {
+          // today's marks are recalculated by the server in the background: ask again shortly
+          setTimeout(() => fetchDailyScore(dates?.find((x) => x.active)?.fullDate || new Date(), true), 1500);
+        }}
+      />
 
       <BottomNavigation />
 

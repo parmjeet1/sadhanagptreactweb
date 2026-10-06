@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import DraggableFloating from './DraggableFloating';
+import MarksWindow from './MarksWindow';
 
-const DailyScoreIndicator = ({ scoreData, isLoading }) => {
-  const navigate = useNavigate();
+// Tap the circle: a window with today's score (arrow = marks of each activity); tap the circle in it for the
+// marking scheme (Default Scheme / Make Custom Scheme). `activityDate` is the day being shown (YYYY-MM-DD),
+// `onSchemeChanged` lets the page ask the server for the score again after the scheme was switched or edited.
+const DailyScoreIndicator = ({ scoreData, isLoading, activityDate, onSchemeChanged }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   // The card normally opens above the icon, aligned to its right edge. Because
@@ -54,28 +56,6 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  // Close card when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const handleOpenMarkingScheme = (e) => {
-    e.stopPropagation();
-    setIsOpen(false);
-    navigate('/student/applied-marking-scheme');
-  };
-
   return (
     <DraggableFloating
       storageKey="marks"
@@ -83,54 +63,15 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
       className={`fixed bottom-[100px] right-6 lg:right-10 ${isOpen ? 'z-[55]' : 'z-40'} hover:z-[55] group cursor-pointer`}
     >
       <div onMouseEnter={computePlacement} className="relative">
-      {/* Click / Hover Card */}
-      <AnimatePresence>
-        {(isOpen) && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className={`absolute ${placement.below ? 'top-full mt-3' : 'bottom-full mb-3'} ${placement.alignLeft ? 'left-0' : 'right-0'} w-56 z-50 pointer-events-auto`}
-            style={!placement.below && placement.lift ? { marginBottom: 12 + placement.lift } : undefined}
-          >
-            <div className="bg-[#0f172a] text-white rounded-2xl p-4 shadow-2xl border border-gray-700/80 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-3 border-b border-gray-800 pb-2">
-                <p className="font-bold text-xs uppercase tracking-wider text-gray-300">Sadhana Score</p>
-                <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full bg-slate-800 ${colorClass}`}>
-                  {percentage}%
-                </span>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Earned Marks</span>
-                  <span className="font-bold text-white text-sm">{earned}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Possible Marks</span>
-                  <span className="font-bold text-white text-sm">{max}</span>
-                </div>
-              </div>
-
-              {/* Action Button: View Applied Marking Scheme */}
-              <button
-                onClick={handleOpenMarkingScheme}
-                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-[12px] flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Applied Marking Scheme
-              </button>
-            </div>
-            {/* Arrow (hidden when the card sits above the other icons) */}
-            {!(placement.lift > 0 && !placement.below) && (
-              <div className={`w-3 h-3 bg-[#0f172a] rotate-45 absolute ${placement.alignLeft ? 'left-7' : 'right-7'} ${placement.below ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} border-gray-700`}></div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* The window (score, per-activity marks, marking scheme) */}
+      {isOpen && (
+        <MarksWindow
+          scoreData={scoreData}
+          activityDate={activityDate}
+          onClose={() => setIsOpen(false)}
+          onChanged={onSchemeChanged}
+        />
+      )}
 
       {/* Hover Preview Tooltip (Shown when NOT clicked open) */}
       {!isOpen && (
@@ -153,7 +94,7 @@ const DailyScoreIndicator = ({ scoreData, isLoading }) => {
 
       {/* Circular Indicator Button */}
       <div
-        onClick={() => { computePlacement(); setIsOpen(prev => !prev); }}
+        onClick={() => { computePlacement(); setIsOpen(true); }}
         className={`w-[68px] h-[68px] lg:w-[76px] lg:h-[76px] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center bg-white dark:bg-[#1E293B] border border-gray-300 dark:border-[#334155] relative overflow-hidden active:scale-95 transition-transform`}
       >
         {isLoading ? (
