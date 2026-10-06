@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-06, 08:21 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Marks circle now works in two steps: the first tap shows the small summary card as before (earned and possible marks); the second tap (or the button in the card) opens the full marks window.
+- **Files touched**: `src/components/shared/DailyScoreIndicator.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone and desktop passed (59 of 59) with a fake server.
+- **Backend**: nothing needed.
+
 ## ✨ [Feature] - 2026-10-06, 07:58 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
