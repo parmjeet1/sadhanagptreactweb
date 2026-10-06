@@ -11,7 +11,7 @@ import FirstRankSplash from '../../components/student/FirstRankSplash';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
 import DailyScoreIndicator from '../../components/shared/DailyScoreIndicator';
-import { createLatestGuard, readScoreResponse, SCORE_RETRY_DELAYS_MS, SCORE_RECHECK_MS } from '../../utils/scoreRequest';
+import { createLatestGuard, readScoreResponse } from '../../utils/scoreRequest';
 import BirdsEyeFab from '../../components/counsellor/BirdsEyeFab';
 import ThemeToggle from '../../components/shared/ThemeToggle';
 import InstallButton from '../../components/shared/InstallButton';
@@ -71,7 +71,6 @@ const CounsellorDashboard = () => {
   const [isScoreLoading, setIsScoreLoading] = useState(true);
   const scoreGuard = useRef(createLatestGuard());
   const reportGuard = useRef(createLatestGuard());
-  const scoreRecheckTimer = useRef(null);
 
   // First Rank Splash / All Activities Completed Splash
   const [showRankSplash, setShowRankSplash] = useState(false);
@@ -324,48 +323,15 @@ const CounsellorDashboard = () => {
     const formattedDate = `${yyyy}-${mm}-${dd}`;
 
     // Only the newest request may change the circle (older answers can arrive late), and a failed
-    // request keeps the last good score instead of showing a wrong one. A failed request is tried
-    // again a few times (a newer request cancels the retries).
+    // request keeps the last good score instead of showing a wrong one.
     const requestId = scoreGuard.current.next();
-    const attemptFetch = (attempt) => {
-      getRequest('/daily-score', { user_id: userDetails.user_id, activity_date: formattedDate }, (response) => {
-        if (!scoreGuard.current.isLatest(requestId)) return;
-        const score = readScoreResponse(response);
-        if (score) {
-          setDailyScore(score);
-          setIsScoreLoading(false);
-          return;
-        }
-        if (attempt < SCORE_RETRY_DELAYS_MS.length) {
-          setTimeout(() => {
-            if (scoreGuard.current.isLatest(requestId)) attemptFetch(attempt + 1);
-          }, SCORE_RETRY_DELAYS_MS[attempt]);
-          return;
-        }
-        setIsScoreLoading(false);
-      });
-    };
-    attemptFetch(0);
+    getRequest('/daily-score', { user_id: userDetails.user_id, activity_date: formattedDate }, (response) => {
+      if (!scoreGuard.current.isLatest(requestId)) return;
+      const score = readScoreResponse(response);
+      if (score) setDailyScore(score);
+      setIsScoreLoading(false);
+    });
   };
-
-  // Check the score again a little after every save, and whenever the person comes back to this tab,
-  // so the circle follows what the server holds even if an earlier answer was lost or stale.
-  const scheduleScoreRecheck = (dateObj) => {
-    clearTimeout(scoreRecheckTimer.current);
-    scoreRecheckTimer.current = setTimeout(() => fetchDailyScore(dateObj, true), SCORE_RECHECK_MS);
-  };
-
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === 'visible' && userDetails?.user_id) fetchDailyScore(undefined, true);
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-      clearTimeout(scoreRecheckTimer.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDetails?.user_id, dates]);
 
   useEffect(() => {
     if (userDetails?.user_id) {
@@ -452,7 +418,6 @@ const CounsellorDashboard = () => {
     const activeDateObj = dates.find(d => d.active)?.fullDate || new Date();
     fetchDailyReport(activeDateObj, null, true);
     fetchDailyScore(activeDateObj, true);
-    scheduleScoreRecheck(activeDateObj);
   };
 
   const handleDateSelect = (id) => {
