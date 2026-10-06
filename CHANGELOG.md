@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 4:51 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again on request (it was undone earlier today to match the main code zip): the Marks circle retries failed score requests, re-checks 3 seconds after each save, and refreshes when the tab comes back (`69c8256`). A new commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: same code and tests as the original commit; build and lint run after both are applied (see the last entry).
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-06, 4:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
