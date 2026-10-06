@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 08:38 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On iPad the Marks, chatbot and Birds-eye circles were squeezed together and overlapped. Circles that nobody has dragged now always stay exactly at their default stacked spots (set by the page layout); only a circle you dragged is kept inside the screen.
+- **Files touched**: `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone and desktop sizes: default circles stay put, dragging still works, a dragged circle stays where dropped. Not tried on a real iPad.
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-06, 08:30 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

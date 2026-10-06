@@ -86,7 +86,12 @@ const DraggableFloating = ({
   // Re-fit a remembered position on first paint and whenever the screen changes size.
   useLayoutEffect(() => {
     const refit = () => {
-      const fitted = clamp(wantedRef.current);
+      // An icon nobody has dragged stays exactly where the page's CSS puts it (the stacked default spots).
+      // Some tablets report a screen height that differs from the one fixed icons are placed against, and
+      // "fitting" the icons then squeezed them together. Only a dragged icon is kept inside the screen.
+      const wanted = wantedRef.current;
+      const untouched = wanted.x === 0 && wanted.y === 0;
+      const fitted = untouched ? { x: 0, y: 0 } : clamp(wanted);
       if (fitted.x !== offsetRef.current.x || fitted.y !== offsetRef.current.y) {
         offsetRef.current = fitted;
         setOffset(fitted);
