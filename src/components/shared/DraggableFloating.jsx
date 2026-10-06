@@ -47,6 +47,10 @@ const DraggableFloating = ({
   const ref = containerRef || ownRef;
   const [offset, setOffset] = useState(() => readSaved(storageKey));
   const offsetRef = useRef(offset);
+  // Where the person left the icon (or 0,0 = its default spot). The screen can shrink for a moment (phone
+  // address bar hiding/showing, keyboard opening); then the icon is only SHOWN inside the screen, and this
+  // remembered spot is left alone, so the icon goes back to it instead of staying wherever it was pushed.
+  const wantedRef = useRef(offset);
   const dragRef = useRef(null);
   const movedRef = useRef(false);
 
@@ -82,11 +86,10 @@ const DraggableFloating = ({
   // Re-fit a remembered position on first paint and whenever the screen changes size.
   useLayoutEffect(() => {
     const refit = () => {
-      const fitted = clamp(offsetRef.current);
+      const fitted = clamp(wantedRef.current);
       if (fitted.x !== offsetRef.current.x || fitted.y !== offsetRef.current.y) {
         offsetRef.current = fitted;
         setOffset(fitted);
-        writeSaved(storageKey, fitted);
       }
     };
     refit();
@@ -126,6 +129,7 @@ const DraggableFloating = ({
 
     const next = clamp({ x: drag.originX + dx, y: drag.originY + dy });
     offsetRef.current = next;
+    wantedRef.current = next;
     setOffset(next);
   };
 
@@ -139,7 +143,7 @@ const DraggableFloating = ({
       } catch {
         // Already released.
       }
-      writeSaved(storageKey, offsetRef.current);
+      writeSaved(storageKey, wantedRef.current);
       // The click event that follows pointerup must be ignored; clear the flag after it.
       setTimeout(() => {
         movedRef.current = false;

@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 08:27 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Marks, chatbot and Birds-eye circles no longer drift to new places by themselves. When the screen size changed for a moment (phone address bar hiding or showing, keyboard opening), an icon was pushed inside the screen and then stayed there. Now it is only shown inside the screen for that moment and goes back to where it was (or where you dropped it).
+- **Files touched**: `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser check on phone and desktop sizes: icons return to the same spots after the screen shrinks and grows. Not tried on a real phone.
+- **Backend**: nothing needed.
+
 ## ✨ [Feature] - 2026-10-06, 08:21 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
