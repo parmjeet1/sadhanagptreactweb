@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎨 [UI] - 2026-10-06, 09:06 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The counsellor scheme builder page (Marking Scheme > open a scheme) is now readable on phones. Each rule is a small card: Value and Condition on the first line, Marks (full, clearly readable, e.g. "+20") on the second line with the delete button beside it, each with a small label. Before, the three drop-downs and the delete button were squeezed into one line and showed cut-off text ("At Le", a tiny "+"). Also, a saved mark that is not a multiple of 5 (e.g. 12) now shows correctly instead of the wrong option. Desktop and tablet look unchanged.
+- **Files touched**: `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks at 412, 360, 320 px and desktop with a fake server (no sideways scroll, nothing cut off, yes/no and time rules fine). Not tried on a real phone.
+- **Backend**: nothing needed.
+
 ## 🎨 [UI] - 2026-10-06, 08:56 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
