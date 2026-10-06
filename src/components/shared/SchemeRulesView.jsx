@@ -13,6 +13,8 @@ const selectClass =
 const inputClass =
   'w-full min-w-0 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-[#0b1220] text-[#0F172A] dark:text-white text-base sm:text-sm px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500';
 
+const fieldLabel = 'block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1 truncate';
+
 export const ActivityFilter = ({ groups, value, onChange }) => (
   <label className="block">
     <span className="sr-only">Show activity</span>
@@ -112,44 +114,59 @@ export const SchemeRulesEditor = ({ groups, onChange, addable = [] }) => {
         <section key={g.key} className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#132B5A]/60 p-3">
           <GroupHeader group={g} />
           <div className="space-y-2">
-            {g.rows.map((r, i) => (
-              <div key={`${r.ruleId ?? 'n'}_${i}`} className="grid grid-cols-[1fr_1fr] sm:grid-cols-[1.1fr_1fr_5.5rem_auto] gap-2 items-center rounded-xl bg-slate-50 dark:bg-white/5 p-2">
-                <select
-                  aria-label="Condition"
-                  value={r.operator}
-                  onChange={(e) => updateRow(g.key, i, { operator: e.target.value })}
-                  className={inputClass}
-                >
-                  {OPERATORS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
-                </select>
-                <input
-                  aria-label="Value"
-                  value={r.value}
-                  onChange={(e) => updateRow(g.key, i, { value: e.target.value })}
-                  placeholder={String(g.type).toLowerCase() === 'time' ? 'HH:MM' : 'Value'}
-                  inputMode={String(g.type).toLowerCase() === 'time' ? 'text' : 'decimal'}
-                  className={inputClass}
-                />
-                <div className="flex items-center gap-1 col-span-1">
-                  <input
-                    aria-label="Marks"
-                    value={r.marks}
-                    onChange={(e) => updateRow(g.key, i, { marks: e.target.value.replace(/[^0-9]/g, '') })}
-                    inputMode="numeric"
-                    className={`${inputClass} text-right`}
-                  />
-                  <span className="text-xs text-slate-400 shrink-0">pts</span>
+            {g.rows.map((r, i) => {
+              const unit = String(g.unit || '').trim();
+              const valueLabel = unit && !['time', 'count', 'boolean', 'yes/no', 'numb'].includes(unit.toLowerCase()) ? `Value (${unit})` : 'Value';
+              return (
+                <div key={`${r.ruleId ?? 'n'}_${i}`} className="rounded-xl bg-slate-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 p-2.5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Condition {i + 1}</span>
+                    <button
+                      type="button"
+                      aria-label="Remove this condition"
+                      onClick={() => removeRow(g.key, i)}
+                      className="-mr-1 w-8 h-8 rounded-lg text-red-500 hover:bg-red-500/10 flex items-center justify-center"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 min-[380px]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2">
+                    <label className="min-w-0 col-span-2 min-[380px]:col-span-1">
+                      <span className={fieldLabel}>When</span>
+                      <select
+                        aria-label="Condition"
+                        value={r.operator}
+                        onChange={(e) => updateRow(g.key, i, { operator: e.target.value })}
+                        className={inputClass}
+                      >
+                        {OPERATORS.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
+                      </select>
+                    </label>
+                    <label className="min-w-0">
+                      <span className={fieldLabel}>{valueLabel}</span>
+                      <input
+                        aria-label="Value"
+                        value={r.value}
+                        onChange={(e) => updateRow(g.key, i, { value: e.target.value })}
+                        placeholder={String(g.type).toLowerCase() === 'time' ? 'HH:MM' : 'Value'}
+                        inputMode={String(g.type).toLowerCase() === 'time' ? 'text' : 'decimal'}
+                        className={inputClass}
+                      />
+                    </label>
+                    <label className="min-w-0">
+                      <span className={`${fieldLabel} !text-emerald-600 dark:!text-emerald-400`}>Marks</span>
+                      <input
+                        aria-label="Marks"
+                        value={r.marks}
+                        onChange={(e) => updateRow(g.key, i, { marks: e.target.value.replace(/[^0-9]/g, '') })}
+                        inputMode="numeric"
+                        className={`${inputClass} text-center font-bold border-emerald-500/50`}
+                      />
+                    </label>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  aria-label="Remove this condition"
-                  onClick={() => removeRow(g.key, i)}
-                  className="justify-self-end w-9 h-9 rounded-lg text-red-500 hover:bg-red-500/10 flex items-center justify-center"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-            ))}
+              );
+            })}
             <button
               type="button"
               onClick={() => addRow(g.key)}

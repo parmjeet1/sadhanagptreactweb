@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎨 [UI] - 2026-10-06, 08:56 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Tidier rule editor in the custom marking scheme window on phones. Each condition is now its own small card ("Condition 1", "Condition 2") with labelled fields: When, Value (with the unit, e.g. rounds) and a clearly visible Marks box; the remove button sits in the card header. On very narrow phones (under 380 px) "When" takes a full line so nothing is cut off.
+- **Files touched**: `src/components/shared/SchemeRulesView.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks at 320, 375 and 390 px, phone sideways, and dark mode on the counsellor dashboard (no sideways scroll, fits the screen); earlier 59 + 23 checks still pass. Not tried on a real phone.
+- **Backend**: nothing needed.
+
 ## ✨ [Feature] - 2026-10-06, 08:43 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
