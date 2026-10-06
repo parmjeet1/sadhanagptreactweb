@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 11:49 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Marks circle now checks the server again by itself, so it follows the marks the server holds even when an answer is lost or stale: (1) a failed score request is tried again after 1, 2 and 4 seconds before giving up (a newer request cancels the retries); (2) the score is checked once more 3 seconds after every save; (3) the score is refreshed when the person comes back to the tab. The newest answer still wins and a failed request still keeps the last good score, with nothing extra shown. Student and counsellor dashboards. Adds at most one extra score request per save, plus the retries only when a request fails.
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has the same 25 problems in these files as before (none new). Phone-size browser checks with a fake server, on both dashboards: the first two score requests fail, the circle still ends on the right value after the automatic retries (calls logged at 0.4 s FAIL, 1.4 s FAIL, 3.4 s ok); a save whose first score answer is stale (50% instead of 60%) is corrected by the re-check 3 s later (60%); when the server value changes elsewhere and the tab becomes visible again the circle follows (75%). The earlier checks still pass (a slow older answer cannot overwrite a newer one: sliders stay at 30, circle stays at 46%). Not run against the real backend yet.
+- **Backend**: nothing needed.
+
 ## 🐛 [Fix] - 2026-10-05, 8:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

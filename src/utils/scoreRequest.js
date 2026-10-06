@@ -21,3 +21,9 @@ export const readScoreResponse = (response) => {
   if ([earnedMarks, maxMarks, percentage].some((v) => v === undefined || v === null || Number.isNaN(Number(v)))) return null;
   return body.data;
 };
+
+// A failed score request is tried again after these waits (ms) before giving up, and the score is
+// checked once more this long (ms) after every save, so the circle follows what the server holds even
+// when the first answer was lost or came back stale.
+export const SCORE_RETRY_DELAYS_MS = [1000, 2000, 4000];
+export const SCORE_RECHECK_MS = 3000;
