@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Added the building blocks for the new marks window: calls to the server, rule helpers, and the rules list/editor used for default and custom schemes.
+- **Files touched**: `src/api/myScheme.js`, `src/utils/schemeRules.js`, `src/components/shared/SchemeRulesView.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
 ## ↩️ [Revert] - 2026-10-06, 6:06 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
