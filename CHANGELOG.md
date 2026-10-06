@@ -7,6 +7,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 ## ✨ [Feature] - 2026-10-06, 07:58 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the rankings list a counsellor now sees an 'Own scheme' tag next to students using their own scheme, and can open it read-only.
+- **Files touched**: `src/components/counsellor/StudentOwnSchemeModal.jsx`, `src/pages/counsellor/mentees_module/StudentRanksList.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
 - **What changed**: Tapping the Marks circle now opens one window: today's score with a small arrow showing marks per activity, and tapping the circle shows Default Scheme / Make Custom Scheme with an All Activities drop-down. Works as a bottom sheet on phones. The old separate applied-scheme page is no longer linked from the circle.
 - **Files touched**: `src/components/shared/MarksWindow.jsx`, `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
 - **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
