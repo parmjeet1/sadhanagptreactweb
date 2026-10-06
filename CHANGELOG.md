@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Fix] - 2026-10-06, 4:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again on request (it was undone earlier today to match the main code zip): only the newest answer may change the Marks circle and the sliders (`d4eca3d`). This is needed first, because the 3-second re-check builds on it. A new commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: same code and tests as the original commit; build and lint run after both are applied (see the last entry).
+- **Backend**: nothing needed.
+
 ## ↩️ [Revert] - 2026-10-06, 3:43 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
