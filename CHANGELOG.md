@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ↩️ [Revert] - 2026-10-06, 6:06 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, because the cause of the wrong Marks circle and jumping sliders was found on the server side: the "newest answer wins" fix for the Marks circle and sliders (`d4eca3d`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js` (removed), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build run after both frontend reverts (see below).
+- **Backend**: reverted the same way in `sadhanagptpunjabibagh`.
+
 ## ↩️ [Revert] - 2026-10-06, 6:05 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
