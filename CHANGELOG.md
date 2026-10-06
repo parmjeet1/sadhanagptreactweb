@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ↩️ [Revert] - 2026-10-06, 3:43 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, to bring the test branch back in line with the main code zip: the leftover test alert "hello from claude" on the login page (`9c3700d`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/pages/Login.jsx`, `CHANGELOG.md`
+- **Tested**: build run after all three frontend reverts (see the last entry).
+- **Backend**: nothing needed.
+
 ## ↩️ [Revert] - 2026-10-06, 3:42 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

@@ -17,11 +17,6 @@ const Login = () => {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
 
-  // TEMPORARY TEST: simple alert on the root route ("/"). Remove after testing.
-  useEffect(() => {
-    alert('hello from claude');
-  }, []);
-
   useEffect(() => {
     // Capture referral link (?ref=BASE64_ENCODED_USER_ID)
     const params = new URLSearchParams(window.location.search);
