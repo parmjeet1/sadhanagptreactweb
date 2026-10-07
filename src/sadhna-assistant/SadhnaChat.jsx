@@ -751,9 +751,23 @@ export function SadhnaChat({ adapter }) {
     if (result.intent === "update_activities") {
       const validUpdates = result.updates.filter((u) => activitiesByIdRef.current[u.activity_id]);
       if (validUpdates.length > 0) {
-        pushBlock({ kind: "nlConfirm", updates: validUpdates, date: effectiveDate, sourceText: text });
+        // The AI re-check is offered once: not again on an answer that already came from it.
+        pushBlock({
+          kind: "nlConfirm",
+          updates: validUpdates,
+          date: effectiveDate,
+          sourceText: forceAI ? undefined : text,
+          missing: Array.isArray(result.missing) ? result.missing : undefined,
+        });
         return;
       }
+    }
+
+    // The message is about an activity this student doesn't have: say so,
+    // and let them ask the AI to double-check (once).
+    if (result.intent === "missing_activity" && result.clarification) {
+      pushBlock({ kind: "nlMissing", message: result.clarification, sourceText: forceAI ? undefined : text });
+      return;
     }
 
     // Not a sadhana entry — the assistant answers conversationally.
@@ -1147,8 +1161,21 @@ function BlockRenderer({
           dateLabel={block.date && block.date !== todayISO() ? formatDateLabel(block.date) : undefined}
           onConfirm={onNlConfirm}
           onCorrect={onNlCorrect}
+          missing={block.missing}
           onAskAI={block.sourceText ? onNlAskAI : undefined}
         />
+      );
+
+    case "nlMissing":
+      if (block.resolved) return null;
+      return (
+        <div className="bg-white border border-saffron-100 rounded-2xl p-4 animate-sadhna-in">
+          <p className="text-sm text-saffron-900 mb-3">🙏 {block.message}</p>
+          <div className="flex flex-wrap gap-2">
+            {block.sourceText && <PrimaryButton onClick={onNlAskAI}>🤖 Ask AI to re-check</PrimaryButton>}
+            <SecondaryButton onClick={onNlCorrect}>OK</SecondaryButton>
+          </div>
+        </div>
       );
 
     default:

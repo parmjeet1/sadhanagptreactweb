@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Chatbot] - 2026-10-07, 05:55 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The chat now handles the server's new "you don't have that activity" answer. (1) If the whole message is about an activity the student doesn't have (e.g. "study 25 minute"), the chat shows the server's sentence ("I understood this as Study, but it isn't in your sadhana list...") with two buttons: "🤖 Ask AI to re-check" and "OK". (2) If the message mixes real and missing activities, the confirm card shows the real ones as usual, plus a note "⚠️ Not in your list, so not saved: Study". (3) The AI re-check is offered once: an answer that already came from the AI does not show the re-check button again.
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/components/NLConfirmCard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems. NOT tested on a phone or against the live server. Deploy together with the backend commit `32a109e`.
+- **Backend**: needs the matching backend commit (answer type `missing_activity` and the `missing` list).
+
 ## 🤖 [Chatbot] - 2026-10-07, 05:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
