@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎤 [Chatbot] - 2026-10-07, 04:40 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The microphone in the chat now stays on until the student taps it off, like the Google keyboard mic. Before, the browser closed it after the first pause. Now each time the browser ends a short listening session, the chat opens the next one straight away, and the words keep adding to the text box. It stops by itself only if (a) the student taps the mic/stop button, (b) there is a real problem (permission denied, no microphone, no network), (c) the browser keeps closing it instantly 5 times in a row, or (d) 5 minutes pass with no speech (so the mic is never left open by mistake). Sending a message keeps the mic on and starts it fresh, so words already sent do not come back into the box. The old 60-second limit is removed.
+- **Files touched**: `src/sadhna-assistant/components/NLInputBar.jsx`, `CHANGELOG.md`
+- **Tested**: build passes and lint shows no problems in this file. NOT tested on a real phone: there is no browser or microphone here, so please try it on Android Chrome. Note: some Android browsers play a small start sound each time a session reopens after a pause; that is the browser's, and cannot be removed from our code. Language is still fixed to English-India (`en-IN`) for now.
+- **Backend**: no change needed.
+
 ## 🤖 [Chatbot] - 2026-10-07, 04:15 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

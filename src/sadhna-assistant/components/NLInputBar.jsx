@@ -11,8 +11,10 @@ const SpeechRecognitionCtor =
 // backend, so it needs no server key and works the same everywhere. On a
 // browser that does not support it at all (e.g. some in-app webviews), the mic
 // button is simply hidden and the user types instead.
-const MAX_LISTEN_MS = 60000; // safety: the mic always closes after 60 seconds
+const IDLE_STOP_MS = 5 * 60 * 1000; // safety: closes by itself only after 5 minutes with no speech
 const FORCE_STOP_MS = 1500; // if the browser is slow to end after stop(), abort
+const RESTART_DELAY_MS = 150; // the browser ends each phrase; we reopen it right away
+const MAX_QUICK_FAILURES = 5; // give up if the browser keeps ending instantly
 
 const ERROR_MESSAGES = {
   "not-allowed": "Microphone access denied — allow it in your browser's site settings and try again.",
@@ -31,8 +33,9 @@ const ERROR_MESSAGES = {
  *
  * Offers a microphone button for dictating the update instead of typing it,
  * using the browser's built-in speech recognition. The words appear in the box
- * live while speaking. The mic closes by itself when the user stops talking,
- * when they tap the button again, or after MAX_LISTEN_MS at the latest.
+ * live while speaking. Like the Google keyboard mic, it STAYS ON between
+ * pauses (the browser's short sessions are reopened automatically) until the
+ * user taps the button again, or after IDLE_STOP_MS with no speech.
  */
 export function NLInputBar({ onSend, disabled, activityNames = [] }) {
   const [text, setText] = useState("");
@@ -40,17 +43,27 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
   const [micError, setMicError] = useState("");
   const recognitionRef = useRef(null);
   const startingRef = useRef(false);
+  const wantListeningRef = useRef(false); // what the user wants: mic on until they turn it off
+  const textRef = useRef("");
+  const quickFailuresRef = useRef(0);
   const errorTimeoutRef = useRef(null);
-  const maxTimerRef = useRef(null);
+  const idleTimerRef = useRef(null);
   const forceStopTimerRef = useRef(null);
+  const restartTimerRef = useRef(null);
+
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
 
   const clearListenTimers = () => {
-    clearTimeout(maxTimerRef.current);
+    clearTimeout(idleTimerRef.current);
     clearTimeout(forceStopTimerRef.current);
+    clearTimeout(restartTimerRef.current);
   };
 
   useEffect(() => {
     return () => {
+      wantListeningRef.current = false;
       clearListenTimers();
       recognitionRef.current?.abort();
       clearTimeout(errorTimeoutRef.current);
@@ -64,7 +77,11 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
     errorTimeoutRef.current = setTimeout(() => setMicError(""), 4000);
   };
 
+  /** Turns the mic fully off (user tapped it, idle timeout, or a real error). */
   const stopListening = () => {
+    wantListeningRef.current = false;
+    clearTimeout(restartTimerRef.current);
+    clearTimeout(idleTimerRef.current);
     const recognition = recognitionRef.current;
     if (!recognition) {
       setListening(false);
@@ -78,6 +95,83 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
       recognition.abort();
       setListening(false);
     }, FORCE_STOP_MS);
+  };
+
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(stopListening, IDLE_STOP_MS);
+  };
+
+  /** Opens one browser speech session. When the browser ends it (after a
+   * pause), onend opens the next one while the user still wants the mic on. */
+  const beginSession = () => {
+    // A fresh instance every time — reusing an ended one is a common source of instant-stop bugs.
+    const recognition = new SpeechRecognitionCtor();
+    recognition.continuous = false;
+    recognition.interimResults = true; // show words while speaking
+    recognition.maxAlternatives = 1;
+    recognition.lang = "en-IN";
+
+    const prefix = textRef.current.trim() ? `${textRef.current.trim()} ` : "";
+    const startedAt = Date.now();
+    let gotWords = false;
+
+    recognition.onstart = () => setListening(true);
+
+    recognition.onresult = (event) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const piece = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += `${piece} `;
+        else interimText += piece;
+      }
+      const spoken = `${finalText}${interimText}`.trim();
+      if (spoken) {
+        gotWords = true;
+        quickFailuresRef.current = 0;
+        resetIdleTimer();
+        setText(`${prefix}${spoken}`.trim());
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === "aborted" || event.error === "no-speech") return; // normal while waiting; we reopen below
+      // A real problem (permission, no mic, no network): stop for good and say why.
+      wantListeningRef.current = false;
+      showMicError(ERROR_MESSAGES[event.error] || "Voice input isn't available right now.");
+    };
+
+    recognition.onend = () => {
+      if (recognitionRef.current === recognition) recognitionRef.current = null;
+      clearTimeout(forceStopTimerRef.current);
+      if (!wantListeningRef.current) {
+        clearListenTimers();
+        setListening(false);
+        return;
+      }
+      // The user hasn't turned the mic off — keep it on, like the Google keyboard mic.
+      if (!gotWords && Date.now() - startedAt < 400) quickFailuresRef.current += 1;
+      if (quickFailuresRef.current >= MAX_QUICK_FAILURES) {
+        wantListeningRef.current = false;
+        clearListenTimers();
+        setListening(false);
+        showMicError("Voice input keeps closing — tap the mic to try again.");
+        return;
+      }
+      restartTimerRef.current = setTimeout(() => {
+        if (!wantListeningRef.current) return;
+        try {
+          beginSession();
+        } catch {
+          quickFailuresRef.current += 1;
+          recognition.onend?.();
+        }
+      }, RESTART_DELAY_MS);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
   };
 
   const startListening = async () => {
@@ -99,50 +193,14 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
         return;
       }
 
-      // Build a fresh recognition instance per attempt rather than reusing
-      // one across the component's lifetime — reusing a previously-aborted
-      // instance is a common source of the same instant-stop behavior.
-      const recognition = new SpeechRecognitionCtor();
-      recognition.continuous = false; // closes by itself after the user pauses
-      recognition.interimResults = true; // show words while speaking
-      recognition.maxAlternatives = 1;
-      recognition.lang = "en-IN";
-
-      const prefix = text.trim() ? `${text.trim()} ` : "";
-
-      recognition.onstart = () => setListening(true);
-
-      recognition.onresult = (event) => {
-        let finalText = "";
-        let interimText = "";
-        for (let i = 0; i < event.results.length; i++) {
-          const piece = event.results[i][0].transcript;
-          if (event.results[i].isFinal) finalText += `${piece} `;
-          else interimText += piece;
-        }
-        const spoken = `${finalText}${interimText}`.trim();
-        if (spoken) setText(`${prefix}${spoken}`.trim());
-      };
-
-      recognition.onerror = (event) => {
-        if (event.error !== "aborted") {
-          showMicError(ERROR_MESSAGES[event.error] || "Voice input isn't available right now.");
-        }
-      };
-
-      recognition.onend = () => {
-        clearListenTimers();
-        setListening(false);
-        recognitionRef.current = null;
-      };
-
-      recognitionRef.current = recognition;
+      wantListeningRef.current = true;
+      quickFailuresRef.current = 0;
       try {
-        recognition.start();
-        clearTimeout(maxTimerRef.current);
-        maxTimerRef.current = setTimeout(stopListening, MAX_LISTEN_MS);
+        beginSession();
+        resetIdleTimer();
       } catch {
         // Already-started/invalid-state — reset so the next click gets a clean instance.
+        wantListeningRef.current = false;
         recognitionRef.current = null;
         setListening(false);
       }
@@ -162,6 +220,10 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setText("");
+    textRef.current = "";
+    // Mic stays on after sending; restart its session so words already sent
+    // are not put back into the box.
+    if (wantListeningRef.current) recognitionRef.current?.abort();
   };
 
   const handleKeyDown = (e) => {
