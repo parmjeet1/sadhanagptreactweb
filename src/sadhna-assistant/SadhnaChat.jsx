@@ -13,7 +13,7 @@ import DateRangePickerCard from "./components/DateRangePickerCard";
 import Sticker from "./components/visuals/Sticker";
 import { PrimaryButton, SecondaryButton } from "./components/ChatButton";
 import { getMessage } from "./data/sadhnaMessages";
-import { resolveMessageContext } from "./utils/messageContext";
+import { resolveMessageContext, pickCombinedContext } from "./utils/messageContext";
 import {
   indexById,
   orderWithDependents,
@@ -775,23 +775,69 @@ export function SadhnaChat({ adapter }) {
     await runInterpretation(text);
   };
 
-  /** Applies confirmed NL updates for TODAY — the existing "today" flow
-   * (marks, completion tracking, etc.), completely unchanged. */
+  /** Applies confirmed NL updates for TODAY. Saves every entry quietly, then
+   * shows (1) the marks earned, (2) ONE combined encouraging message, and
+   * (3) what is still pending / the next buttons — in that order, instead
+   * of a motivation line after every single activity. */
   const applyNlUpdatesForToday = async (updates) => {
-    let completedNow = false;
+    setBusy(true);
+    const saved = [];
+    const failed = [];
     for (const u of updates) {
       const activity = activitiesByIdRef.current[u.activity_id];
       if (!activity) continue;
       // eslint-disable-next-line no-await-in-loop
-      const result = await submitActivity(activity, u.value, { silent: false });
-      if (result.allComplete) {
-        completedNow = true;
-        break;
+      const result = await adapter.updateActivity({ activity_id: activity.activity_id, value: u.value });
+      if (result && result.success === false) {
+        failed.push(activity.name);
+        continue;
       }
+      const newMap = new Map(todayMapRef.current);
+      newMap.set(activity.activity_id, u.value);
+      todayMapRef.current = newMap;
+      saved.push(u);
     }
-    if (!completedNow) {
-      await evaluateProgressAndShow();
+
+    if (saved.length === 0) {
+      setBusy(false);
+      pushBot("🙏 I couldn't save that just now — please try again in a moment.", "welcome");
+      return;
     }
+
+    const marksResponse = await adapter.getTodayMarks();
+    setBusy(false);
+    const status = getCompletionStatus(activeActivities(), todayMapRef.current);
+
+    pushBlock({
+      kind: "marksCard",
+      marksResponse,
+      celebrate: status.allComplete,
+      title: status.allComplete ? "🏆 TODAY'S SADHNA" : "✅ Saved — marks earned today",
+    });
+    if (failed.length > 0) {
+      pushBot(`⚠️ Saved the rest, but I couldn't save: ${failed.join(", ")}. Please try those again.`);
+    }
+
+    if (status.allComplete) {
+      flowRef.current = null;
+      queueRef.current = [];
+      pushBotMessage("completion", "allComplete");
+      pushActionButtons([
+        { label: "📈 Compare My Progress", value: "seeProgress" },
+        { label: "✓ Done", value: "finish" },
+      ]);
+      return;
+    }
+
+    const combined = pickCombinedContext(saved, activitiesByIdRef.current);
+    pushBotMessage(combined.context, combined.subcontext, combined.vars);
+    const remaining = status.total - status.completed;
+    pushBot(remaining === 1 ? "One activity is still waiting." : `${remaining} activities are still waiting.`);
+    pushActionButtons([
+      { label: "Complete Remaining", value: "completeRemaining" },
+      { label: "See 7-Day Progress", value: "seeProgress" },
+      { label: "Finish for Now", value: "finish" },
+    ]);
   };
 
   /** Applies confirmed NL updates for a DIFFERENT date (e.g. "kal") — same
@@ -800,14 +846,15 @@ export function SadhnaChat({ adapter }) {
    * todayMapRef/marks, same as that flow. */
   const applyNlUpdatesForDate = async (updates, dateISO) => {
     setBusy(true);
+    const saved = [];
+    const failed = [];
     for (const u of updates) {
       const activity = activitiesByIdRef.current[u.activity_id];
       if (!activity) continue;
       // eslint-disable-next-line no-await-in-loop
-      await adapter.updateActivityForDate({ activity_id: u.activity_id, value: u.value, date: dateISO });
-      // eslint-disable-next-line no-await-in-loop
-      const { context, subcontext, vars } = resolveMessageContext(activity, u.value);
-      pushBotMessage(context, subcontext, vars);
+      const result = await adapter.updateActivityForDate({ activity_id: u.activity_id, value: u.value, date: dateISO });
+      if (result && result.success === false) failed.push(activity.name);
+      else saved.push(u);
     }
     // If a "Fill Sadhna on a Particular Date" menu flow is active for this
     // same date, keep its own record of what's filled in sync — otherwise
@@ -815,10 +862,17 @@ export function SadhnaChat({ adapter }) {
     // through free text.
     const flow = dateFlowRef.current;
     if (flow && flow.mode === "particularDate" && flow.date === dateISO) {
-      for (const u of updates) flow.map.set(u.activity_id, u.value);
+      for (const u of saved) flow.map.set(u.activity_id, u.value);
     }
     setBusy(false);
-    pushBot(`✅ Sadhna for ${formatDateLabel(dateISO)} has been recorded.`, "flower_check");
+    if (saved.length > 0) {
+      pushBot(`✅ Sadhna for ${formatDateLabel(dateISO)} has been recorded.`, "flower_check");
+      const combined = pickCombinedContext(saved, activitiesByIdRef.current);
+      pushBotMessage(combined.context, combined.subcontext, combined.vars);
+    }
+    if (failed.length > 0) {
+      pushBot(`⚠️ I couldn't save: ${failed.join(", ")}. Please try again.`);
+    }
     pushActionButtons([{ label: "Back to Menu", value: "backToMenu" }]);
   };
 

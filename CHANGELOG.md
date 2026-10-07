@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Chatbot] - 2026-10-07, 04:15 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: After a student confirms a typed/spoken sadhna entry, the chat now (1) saves all the entries quietly, (2) shows the marks card ("✅ Saved - marks earned today") first, (3) then ONE combined encouraging message (a reached goal wins; otherwise a normal recorded message; several ordinary entries give "Here's how today looks so far"), and (4) then how many activities are still waiting with the usual buttons. Before, a separate motivation line came after every single activity and the marks came last. When every activity is filled, the marks card is followed by the usual "all complete" message. Also: if a save fails the student is now told ("I couldn't save: ..."), instead of always seeing "recorded"; for an entry on another day ("kal"), one combined message is shown. Marks are NOT shown for another day, because the server only has a "today's marks" call (a "marks for a date" call would need a new backend API).
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/utils/messageContext.js`, `CHANGELOG.md`
+- **Tested**: build passes; the message picker was run on 5 sample cases (goal reached, partial, mixed, custom activities, unknown activity) and chose the right kind each time. Lint shows no new problems (the one error `useMemo` unused was already there). NOT tested: on a phone or against the live server; the on-screen order should be checked once on the test site.
+- **Backend**: no change needed for today's entries. Optional: a "marks for a date" API to show marks after "kal" entries.
+
 ## 🐞 [Fix] - 2026-10-07, 01:05 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

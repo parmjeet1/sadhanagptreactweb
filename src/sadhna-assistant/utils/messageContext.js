@@ -77,3 +77,29 @@ export function resolveMessageContext(activity, value) {
       };
   }
 }
+
+const STRONG_SUBCONTEXTS = new Set(["goalComplete", "complete", "earlyCompletion", "attended", "onlineHome"]);
+const WEAK_SUBCONTEXTS = new Set(["partial", "notYet", "notToday"]);
+
+/**
+ * When several activities are saved from ONE chat message, we want a single
+ * encouraging message, not one per activity. Picks the best-fitting
+ * (context, subcontext, vars): a goal reached wins, then any ordinary
+ * recorded entry, then a partial/zero one.
+ */
+export function pickCombinedContext(updates, activitiesById) {
+  const resolved = [];
+  for (const u of updates) {
+    const activity = activitiesById[u.activity_id];
+    if (activity) resolved.push(resolveMessageContext(activity, u.value));
+  }
+  if (resolved.length === 0) return { context: "genericSuccess" };
+  if (resolved.length > 1 && resolved.every((r) => !STRONG_SUBCONTEXTS.has(r.subcontext) && !WEAK_SUBCONTEXTS.has(r.subcontext))) {
+    return { context: "progress", subcontext: "thresholdReached" };
+  }
+  return (
+    resolved.find((r) => STRONG_SUBCONTEXTS.has(r.subcontext)) ||
+    resolved.find((r) => !WEAK_SUBCONTEXTS.has(r.subcontext)) ||
+    resolved[0]
+  );
+}
