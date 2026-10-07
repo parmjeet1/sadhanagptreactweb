@@ -103,7 +103,7 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
       </div>
 
       <div className="pt-6 flex-1 flex flex-col relative">
-        <div className="grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 pb-3 mb-3 border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-2">
+        <div className="hidden sm:grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 pb-3 mb-3 border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-2">
           <div className="text-[11px] font-bold text-[#64748B] dark:text-gray-400 uppercase tracking-wider">Condition-Values</div>
           <div className="text-[11px] font-bold text-[#64748B] dark:text-gray-400 uppercase tracking-wider">Conditions</div>
           <div className="text-[11px] font-bold text-[#64748B] dark:text-gray-400 uppercase tracking-wider">Marks</div>
@@ -112,9 +112,10 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
         
         <div className="flex flex-col gap-2">
           {data.rows?.map((row, idx) => (
-            <div key={idx} className="grid grid-cols-[1.5fr_1.5fr_1fr_40px] gap-3 items-center min-h-[48px] bg-slate-50 dark:bg-[rgba(255,255,255,0.02)] rounded-[12px] p-2 hover:bg-slate-100 dark:hover:bg-[rgba(255,255,255,0.04)] transition-colors duration-200">
+            <div key={idx} className="grid grid-cols-2 sm:grid-cols-[1.5fr_1.5fr_1fr_40px] gap-x-3 gap-y-2 sm:gap-3 items-end sm:items-center min-h-[48px] bg-slate-50 dark:bg-[rgba(255,255,255,0.02)] rounded-[12px] p-2 hover:bg-slate-100 dark:hover:bg-[rgba(255,255,255,0.04)] transition-colors duration-200">
               
-              <div>
+              <div className="min-w-0">
+                <span className="sm:hidden block mb-1 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-gray-400">Value</span>
                 {meta.inputType === 'bool' ? (
                   <div className="flex gap-1 h-9">
                     {['true', 'false'].map(bv => (
@@ -152,7 +153,8 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
                 )}
               </div>
 
-              <div>
+              <div className="min-w-0">
+                {!meta.hideOperator && <span className="sm:hidden block mb-1 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-gray-400">Condition</span>}
                 {!meta.hideOperator && (
                   <select
                     value={row.operator || '='}
@@ -166,7 +168,8 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
                 )}
               </div>
 
-              <div>
+              <div className="min-w-0">
+                <span className="sm:hidden block mb-1 text-[10px] font-bold uppercase tracking-wider text-[#64748B] dark:text-gray-400">Marks</span>
                 <select
                   value={row.marks || 0}
                   onChange={(e) => onUpdateRow(data.id, idx, 'marks', Number(e.target.value))}
@@ -174,6 +177,8 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
                     row.marks > 0 ? 'text-[#059669] dark:text-[#00D4AA]' : row.marks === 0 ? 'text-[#64748B] dark:text-[#94A3B8]' : 'text-[#DC2626] dark:text-[#FF5C5C]'
                   }`}
                 >
+                  {/* A saved mark that is not a multiple of 5 would otherwise show as the wrong option */}
+                  {Number(row.marks) % 5 !== 0 && <option value={row.marks}>{row.marks > 0 ? '+' : ''}{row.marks}</option>}
                   {Array.from({ length: 11 }, (_, i) => i * 5).map(v => (
                     <option key={v} value={v}>+{v}</option>
                   ))}
@@ -183,7 +188,7 @@ const SchemeTable = ({ data, onUpdateRow, onDeleteRow, onAddRow, onDeleteActivit
                 </select>
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-end sm:justify-center">
                 <button 
                   onClick={() => onDeleteRow(data.id, idx)} 
                   className="w-8 h-8 rounded-full flex items-center justify-center text-rose-500 hover:bg-rose-500/10 transition-colors"

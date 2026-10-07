@@ -17,8 +17,6 @@ const Login = () => {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
 
- 
-
   useEffect(() => {
     // Capture referral link (?ref=BASE64_ENCODED_USER_ID)
     const params = new URLSearchParams(window.location.search);

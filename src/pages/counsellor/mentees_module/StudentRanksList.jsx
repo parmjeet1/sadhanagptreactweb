@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest } from '../../../services/api';
+import StudentOwnSchemeModal from '../../../components/counsellor/StudentOwnSchemeModal';
 
 const StudentRanksList = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const StudentRanksList = () => {
   const [weeklyPeriod, setWeeklyPeriod] = useState('');
 
   const [selectedGroup, setSelectedGroup] = useState('All');
+  const [schemeStudent, setSchemeStudent] = useState(null); // the student whose own scheme is being viewed
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -53,6 +55,7 @@ const StudentRanksList = () => {
           name: s.student_name,
           rank: s.rank,
           totalMarks: s.total_marks ?? 0,
+          usesOwnScheme: !!s.uses_own_scheme,
           label: `${s.total_marks ?? 0} Marks`,
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.student_name)}&background=random`,
         }));
@@ -124,7 +127,19 @@ const StudentRanksList = () => {
                 alt={student.name}
               />
               <div className="flex-1">
-                <h3 className="font-bold text-[16px] text-[#0f172a] group-hover:text-blue-600 transition-colors">{student.name}</h3>
+                <h3 className="font-bold text-[16px] text-[#0f172a] group-hover:text-blue-600 transition-colors">
+                  {student.name}
+                  {student.usesOwnScheme && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setSchemeStudent(student); }}
+                      className="ml-2 align-middle text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200"
+                      aria-label={`View ${student.name}'s own marking scheme`}
+                    >
+                      Own scheme
+                    </button>
+                  )}
+                </h3>
                 <p className={`text-[12px] font-extrabold ${type === 'bottom' ? 'text-red-500' : 'text-blue-500'}`}>
                   {student.label}
                 </p>
@@ -138,6 +153,13 @@ const StudentRanksList = () => {
           <div ref={observerTarget} className="h-10" />
         </div>
       </div>
+      {schemeStudent && (
+        <StudentOwnSchemeModal
+          studentId={schemeStudent.id}
+          studentName={schemeStudent.name}
+          onClose={() => setSchemeStudent(null)}
+        />
+      )}
       <CounsellorBottomNavigation />
     </div>
   );

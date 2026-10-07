@@ -4,6 +4,167 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎨 [UI] - 2026-10-06, 09:06 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The counsellor scheme builder page (Marking Scheme > open a scheme) is now readable on phones. Each rule is a small card: Value and Condition on the first line, Marks (full, clearly readable, e.g. "+20") on the second line with the delete button beside it, each with a small label. Before, the three drop-downs and the delete button were squeezed into one line and showed cut-off text ("At Le", a tiny "+"). Also, a saved mark that is not a multiple of 5 (e.g. 12) now shows correctly instead of the wrong option. Desktop and tablet look unchanged.
+- **Files touched**: `src/pages/counsellor/marking-scheme/SchemeDetail.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks at 412, 360, 320 px and desktop with a fake server (no sideways scroll, nothing cut off, yes/no and time rules fine). Not tried on a real phone.
+- **Backend**: nothing needed.
+
+## 🎨 [UI] - 2026-10-06, 08:56 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Tidier rule editor in the custom marking scheme window on phones. Each condition is now its own small card ("Condition 1", "Condition 2") with labelled fields: When, Value (with the unit, e.g. rounds) and a clearly visible Marks box; the remove button sits in the card header. On very narrow phones (under 380 px) "When" takes a full line so nothing is cut off.
+- **Files touched**: `src/components/shared/SchemeRulesView.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks at 320, 375 and 390 px, phone sideways, and dark mode on the counsellor dashboard (no sideways scroll, fits the screen); earlier 59 + 23 checks still pass. Not tried on a real phone.
+- **Backend**: nothing needed.
+
+## ✨ [Feature] - 2026-10-06, 08:43 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: When a counsellor has made a scheme for a student, the Marks window now shows three tabs: Counsellor's (opens first), Default and Custom. The Counsellor's tab lists every rule, cannot be edited, and says to contact the counsellor (name and email, email is a tap-to-mail link). Students without a counsellor scheme see the window as before.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; 82 browser checks on phone and desktop sizes with a fake server (23 new, 59 earlier all still pass), including no counsellor details case.
+- **Backend**: needs backend commit `f0e117f` (adds `counsellor_scheme` to `/my-marking-scheme`).
+
+## 🐛 [Fix] - 2026-10-06, 08:38 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On iPad the Marks, chatbot and Birds-eye circles were squeezed together and overlapped. Circles that nobody has dragged now always stay exactly at their default stacked spots (set by the page layout); only a circle you dragged is kept inside the screen.
+- **Files touched**: `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone and desktop sizes: default circles stay put, dragging still works, a dragged circle stays where dropped. Not tried on a real iPad.
+- **Backend**: nothing needed.
+
+## 🐛 [Fix] - 2026-10-06, 08:30 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Opening the Marks window no longer makes the Marks, chatbot and Birds-eye circles jump. The window used to freeze the page behind it, which hides the scroll bar and widens the screen, so the circles shifted. The page is no longer frozen.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `src/components/counsellor/StudentOwnSchemeModal.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser check with a scrolling page (scroll bar visible): the circles stay in the same spot through summary, window and close. Not tried on a real phone.
+- **Backend**: nothing needed.
+
+## 🐛 [Fix] - 2026-10-06, 08:27 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Marks, chatbot and Birds-eye circles no longer drift to new places by themselves. When the screen size changed for a moment (phone address bar hiding or showing, keyboard opening), an icon was pushed inside the screen and then stayed there. Now it is only shown inside the screen for that moment and goes back to where it was (or where you dropped it).
+- **Files touched**: `src/components/shared/DraggableFloating.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser check on phone and desktop sizes: icons return to the same spots after the screen shrinks and grows. Not tried on a real phone.
+- **Backend**: nothing needed.
+
+## ✨ [Feature] - 2026-10-06, 08:21 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Marks circle now works in two steps: the first tap shows the small summary card as before (earned and possible marks); the second tap (or the button in the card) opens the full marks window.
+- **Files touched**: `src/components/shared/DailyScoreIndicator.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone and desktop passed (59 of 59) with a fake server.
+- **Backend**: nothing needed.
+
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the rankings list a counsellor now sees an 'Own scheme' tag next to students using their own scheme, and can open it read-only.
+- **Files touched**: `src/components/counsellor/StudentOwnSchemeModal.jsx`, `src/pages/counsellor/mentees_module/StudentRanksList.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Tapping the Marks circle now opens one window: today's score with a small arrow showing marks per activity, and tapping the circle shows Default Scheme / Make Custom Scheme with an All Activities drop-down. Works as a bottom sheet on phones. The old separate applied-scheme page is no longer linked from the circle.
+- **Files touched**: `src/components/shared/MarksWindow.jsx`, `src/components/shared/DailyScoreIndicator.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
+## ✨ [Feature] - 2026-10-06, 07:58 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Added the building blocks for the new marks window: calls to the server, rule helpers, and the rules list/editor used for default and custom schemes.
+- **Files touched**: `src/api/myScheme.js`, `src/utils/schemeRules.js`, `src/components/shared/SchemeRulesView.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks on phone (390x844) and desktop (1280x800) passed with a fake server.
+- **Backend**: needs the backend commits for My Marking Scheme and the marks breakdown to be deployed.
+
+## ↩️ [Revert] - 2026-10-06, 6:06 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, because the cause of the wrong Marks circle and jumping sliders was found on the server side: the "newest answer wins" fix for the Marks circle and sliders (`d4eca3d`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js` (removed), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build run after both frontend reverts (see below).
+- **Backend**: reverted the same way in `sadhanagptpunjabibagh`.
+
+## ↩️ [Revert] - 2026-10-06, 6:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, because the cause of the wrong Marks circle and jumping sliders was found on the server side: the Marks circle retry, 3-second re-check and tab-focus refresh (`69c8256`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build run after both frontend reverts (see below).
+- **Backend**: reverted the same way in `sadhanagptpunjabibagh`.
+
+## 🐛 [Fix] - 2026-10-06, 4:51 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again on request (it was undone earlier today to match the main code zip): the Marks circle retries failed score requests, re-checks 3 seconds after each save, and refreshes when the tab comes back (`69c8256`). A new commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: same code and tests as the original commit; build and lint run after both are applied (see the last entry).
+- **Backend**: nothing needed.
+
+## 🐛 [Fix] - 2026-10-06, 4:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again on request (it was undone earlier today to match the main code zip): only the newest answer may change the Marks circle and the sliders (`d4eca3d`). This is needed first, because the 3-second re-check builds on it. A new commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: same code and tests as the original commit; build and lint run after both are applied (see the last entry).
+- **Backend**: nothing needed.
+
+## ↩️ [Revert] - 2026-10-06, 3:43 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, to bring the test branch back in line with the main code zip: the leftover test alert "hello from claude" on the login page (`9c3700d`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/pages/Login.jsx`, `CHANGELOG.md`
+- **Tested**: build run after all three frontend reverts (see the last entry).
+- **Backend**: nothing needed.
+
+## ↩️ [Revert] - 2026-10-06, 3:42 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, to bring the test branch back in line with the main code zip: the "newest answer wins" fix for the Marks circle and sliders (`d4eca3d`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js` (removed), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build run after all three frontend reverts (see the last entry).
+- **Backend**: nothing needed.
+
+## ↩️ [Revert] - 2026-10-06, 3:41 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request, to bring the test branch back in line with the main code zip: the Marks circle retry, 3-second re-check and tab-focus refresh (`69c8256`). A new "revert" commit was made (history is kept, nothing rewritten).
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build run after all three frontend reverts (see the last entry).
+- **Backend**: nothing needed.
+
+## 🐛 [Fix] - 2026-10-06, 11:49 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Marks circle now checks the server again by itself, so it follows the marks the server holds even when an answer is lost or stale: (1) a failed score request is tried again after 1, 2 and 4 seconds before giving up (a newer request cancels the retries); (2) the score is checked once more 3 seconds after every save; (3) the score is refreshed when the person comes back to the tab. The newest answer still wins and a failed request still keeps the last good score, with nothing extra shown. Student and counsellor dashboards. Adds at most one extra score request per save, plus the retries only when a request fails.
+- **Files touched**: `src/utils/scoreRequest.js`, `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has the same 25 problems in these files as before (none new). Phone-size browser checks with a fake server, on both dashboards: the first two score requests fail, the circle still ends on the right value after the automatic retries (calls logged at 0.4 s FAIL, 1.4 s FAIL, 3.4 s ok); a save whose first score answer is stale (50% instead of 60%) is corrected by the re-check 3 s later (60%); when the server value changes elsewhere and the tab becomes visible again the circle follows (75%). The earlier checks still pass (a slow older answer cannot overwrite a newer one: sliders stay at 30, circle stays at 46%). Not run against the real backend yet.
+- **Backend**: nothing needed.
+
+## 🐛 [Fix] - 2026-10-05, 8:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Applied again (it was undone with the 1:10 PM revert) on top of the current screens, without the amber dot and without any extra message: (1) the round Marks circle could show a wrong number (for example 31% or 0% when the real total was 46%) because every save asks the server for the score again and the circle kept whichever answer arrived LAST, so a slow older answer could overwrite a newer one; now only the newest request may change it, and a failed request simply keeps the last good score (nothing new is shown). (2) Sliders could jump back to 0 or an old value for the same reason, because the day's entries are also fetched again after every save; now only the newest refresh may rewrite the sliders. Student and counsellor dashboards. Only these fixes are applied again, not the own-scheme screens or the editor warning.
+- **Files touched**: `src/utils/scoreRequest.js` (new), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint has the same 25 problems in these files as before (none new). Phone-size browser checks with a fake server that answers slowly or out of order: sliders - Reading dragged to ~60 with a slow refresh, then Day Rest dragged to ~30; old build: Day Rest jumps back to 0 when the slow refresh arrives (student and counsellor), new build: stays at 30. Marks circle - a slow older answer after a newer one: old build 31%, new build stays 46%; a failed request keeps 46% with no dot and no message. Not run against the real backend yet.
+- **Backend**: the matching change (the server retries and answers an error instead of fake zeros) is in `sadhanagptpunjabibagh`, same day. The screen also works with the old backend.
+
+## ↩️ [Revert] - 2026-10-05, 7:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Undone on request: all 4 commits made after 1:10 PM IST on 2026-10-05, with a new "revert" commit (history is kept, nothing rewritten). That removes: the own marking scheme screens (the "Make My Own Marking Scheme" button and window, "Make for Self" in Create scheme, the student scheme editor page) (`8d5cc50`), the marks-circle fix that ignores old replies and keeps the last good score (`690e17b`), the slider fix (`8d09c0c`) and the scheme editor "no rule" warning (`2073285`). The screens are back exactly as they were at 12:26 PM IST (`f50bca7`); checked by comparing the files.
+- **Files touched**: `src/api/markingSchemes.js`, `src/components/shared/DailyScoreIndicator.jsx`, `src/components/shared/MyMarkingSchemeModal.jsx` (removed), `src/pages/counsellor/CounsellorDashboard.jsx`, `src/pages/counsellor/marking-scheme/MarkingScheme.jsx`, `SchemeDetail.jsx`, `SchemeNameModal.jsx`, `src/pages/student/StudentDashboard.jsx`, `src/routes/AppRoutes.jsx`, `src/utils/ruleGaps.js` and `src/utils/scoreRequest.js` (removed), `CHANGELOG.md`
+- **Tested**: file-by-file comparison with the 12:26 PM state (identical apart from this entry); build passes. Not run against a server.
+- **Backend**: reverted the same way in `sadhanagptpunjabibagh` (back to the 1:02 PM state).
+- **Note**: the old marks-circle and slider problems come back with this revert (a late older answer can make the circle or a slider show a wrong value until the page is reloaded).
+
 ## ✨ [New] - 2026-10-05, 1:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
