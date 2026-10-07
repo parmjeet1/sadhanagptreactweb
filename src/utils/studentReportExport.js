@@ -254,6 +254,7 @@ export async function exportBulkReportsToPDF(
   const pageCount = doc.internal.getNumberOfPages();
 
   for (let page = 1; page <= pageCount; page++) {
+    doc.setPage(page);
     doc.setFontSize(7);
     doc.setTextColor(110, 110, 110);
     doc.text(

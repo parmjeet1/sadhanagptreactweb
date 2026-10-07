@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐞 [Fix] - 2026-10-07, 01:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In the exported PDF report, "Page X of Y" now shows on its own page. Before, all the page numbers were stacked on top of each other on the last page and the other pages had none.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: test PDF with made-up students, 91 pages: every page shows its own correct number (0 wrong). Name links still all correct. Build passes. Not yet opened in a real PDF viewer.
+
 ## 🐞 [Fix] - 2026-10-07, 01:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
