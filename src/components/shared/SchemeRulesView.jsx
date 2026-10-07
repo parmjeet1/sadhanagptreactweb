@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { OPERATORS, describeCondition, maxOfGroup } from '../../utils/schemeRules';
+import { OPERATORS, describeCondition, maxOfGroup, cleanMarksInput, flipMarksSign } from '../../utils/schemeRules';
 
 /**
  * Shows the rules of a marking scheme: a drop-down ("All Activities" or one activity) and one card per
@@ -71,7 +71,7 @@ export const SchemeRulesView = ({ groups, emptyText = 'No rules to show.' }) => 
             {g.rows.map((r, i) => (
               <li key={`${r.ruleId ?? 'n'}_${i}`} className="flex items-center justify-between gap-3 py-2 text-sm">
                 <span className="text-[#334155] dark:text-gray-200 min-w-0 break-words">{describeCondition(r, g)}</span>
-                <span className={`shrink-0 font-bold ${r.marks > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                <span className={`shrink-0 font-bold ${r.marks > 0 ? 'text-emerald-600 dark:text-emerald-400' : r.marks < 0 ? 'text-red-500' : 'text-slate-400'}`}>
                   {r.marks} {r.marks === 1 ? 'pt' : 'pts'}
                 </span>
               </li>
@@ -153,16 +153,28 @@ export const SchemeRulesEditor = ({ groups, onChange, addable = [] }) => {
                         className={inputClass}
                       />
                     </label>
-                    <label className="min-w-0">
-                      <span className={`${fieldLabel} !text-emerald-600 dark:!text-emerald-400`}>Marks</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <label htmlFor={`m_${g.key}_${i}`} className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 truncate">Marks</label>
+                        <button
+                          type="button"
+                          aria-label="Plus or minus sign"
+                          title="Plus / minus"
+                          onClick={() => updateRow(g.key, i, { marks: flipMarksSign(r.marks) })}
+                          className="shrink-0 h-5 px-1.5 rounded-md bg-slate-200 dark:bg-white/10 text-[11px] font-black leading-none text-slate-600 dark:text-slate-200"
+                        >
+                          ±
+                        </button>
+                      </div>
                       <input
+                        id={`m_${g.key}_${i}`}
                         aria-label="Marks"
                         value={r.marks}
-                        onChange={(e) => updateRow(g.key, i, { marks: e.target.value.replace(/[^0-9]/g, '') })}
+                        onChange={(e) => updateRow(g.key, i, { marks: cleanMarksInput(e.target.value) })}
                         inputMode="numeric"
-                        className={`${inputClass} text-center font-bold border-emerald-500/50`}
+                        className={`${inputClass} text-center font-bold ${Number(r.marks) < 0 ? 'border-red-500/60 text-red-500' : 'border-emerald-500/50'}`}
                       />
-                    </label>
+                    </div>
                   </div>
                 </div>
               );

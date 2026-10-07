@@ -125,6 +125,12 @@ export class RealSadhnaGptAdapter extends SadhnaAdapter {
     return callGet("/assistant/marks/today");
   }
 
+  /** Marks for an earlier day (same shape as getTodayMarks). Needs the backend's
+   * /assistant/marks/by-date/:date route. */
+  getMarksForDate(date) {
+    return callGet(`/assistant/marks/by-date/${encodeURIComponent(date)}`);
+  }
+
   getLast7DaysMarks() {
     return callGet("/assistant/marks/last7days");
   }

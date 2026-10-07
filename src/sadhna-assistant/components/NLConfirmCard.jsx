@@ -22,11 +22,12 @@ const CATEGORY_ICON = {
  * `dateLabel` (optional) shows which day this will be saved to when it
  * isn't today — e.g. "Yesterday (23/09/26)" — so a local guess that got the
  * DAY right but a VALUE wrong is still obvious before saving.
+ * `missing` (optional) lists activities the student mentioned but does not have.
  * `onAskAI` (optional) re-runs the interpretation forcing the GPT-5 nano
  * path (skipping the fast local parser that produced this guess) when the
  * user isn't confident it's right, rather than just discarding it.
  */
-export function NLConfirmCard({ updates, activitiesById, dateLabel, onConfirm, onCorrect, onAskAI }) {
+export function NLConfirmCard({ updates, activitiesById, dateLabel, missing, onConfirm, onCorrect, onAskAI }) {
   return (
     <div className="bg-white border border-saffron-100 rounded-2xl p-4 animate-sadhna-in">
       <p className="text-sm font-medium text-saffron-900 mb-2">🙏 I understood:</p>
@@ -47,6 +48,11 @@ export function NLConfirmCard({ updates, activitiesById, dateLabel, onConfirm, o
           );
         })}
       </ul>
+      {Array.isArray(missing) && missing.length > 0 && (
+        <p className="text-[11px] text-saffron-700 bg-saffron-100 rounded-lg px-2 py-1 mb-3">
+          ⚠️ Not in your list, so not saved: {missing.join(", ")}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         <PrimaryButton onClick={onConfirm}>✓ Confirm &amp; Save</PrimaryButton>
         <SecondaryButton onClick={onCorrect}>✏️ Not this</SecondaryButton>

@@ -122,6 +122,7 @@ export async function exportBulkReportsToPDF(
 
   const dashboardPages = [];
   const studentPages = [];
+  const nameLinks = [];
 
   // Dashboard
   addPdfTitle(
@@ -202,8 +203,16 @@ export async function exportBulkReportsToPDF(
     },
     didDrawCell(data) {
       if (data.section === "body" && data.column.index === 1) {
-        const targetPage = 2 + data.row.index;
-        doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { pageNumber: targetPage });
+        // The student pages do not exist yet, so only remember where this
+        // name is drawn. The real links are added after all pages are built.
+        nameLinks.push({
+          studentIndex: data.row.index,
+          page: doc.internal.getCurrentPageInfo().pageNumber,
+          x: data.cell.x,
+          y: data.cell.y,
+          w: data.cell.width,
+          h: data.cell.height
+        });
       }
     }
   });
@@ -233,10 +242,19 @@ export async function exportBulkReportsToPDF(
     }
   });
 
+  // Link every dashboard student name to the first page of that student.
+  nameLinks.forEach((item) => {
+    const targetPage = studentPages[item.studentIndex];
+    if (!targetPage) return;
+    doc.setPage(item.page);
+    doc.link(item.x, item.y, item.w, item.h, { pageNumber: targetPage });
+  });
+
   // Add page numbers
   const pageCount = doc.internal.getNumberOfPages();
 
   for (let page = 1; page <= pageCount; page++) {
+    doc.setPage(page);
     doc.setFontSize(7);
     doc.setTextColor(110, 110, 110);
     doc.text(
@@ -677,7 +695,7 @@ function addStudentPdfSection(
 
   doc.setFontSize(8.5);
   doc.setTextColor(5, 99, 193);
-  doc.text("← Back to Dashboard", 235, 15);
+  doc.text("< Back to Dashboard", 235, 15);
   doc.link(230, 10, 55, 8, { pageNumber: 1 });
 
   doc.setFontSize(8);

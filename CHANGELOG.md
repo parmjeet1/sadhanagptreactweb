@@ -4,6 +4,74 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Chatbot] - 2026-10-07, 05:55 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The chat now handles the server's new "you don't have that activity" answer. (1) If the whole message is about an activity the student doesn't have (e.g. "study 25 minute"), the chat shows the server's sentence ("I understood this as Study, but it isn't in your sadhana list...") with two buttons: "🤖 Ask AI to re-check" and "OK". (2) If the message mixes real and missing activities, the confirm card shows the real ones as usual, plus a note "⚠️ Not in your list, so not saved: Study". (3) The AI re-check is offered once: an answer that already came from the AI does not show the re-check button again.
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/components/NLConfirmCard.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems. NOT tested on a phone or against the live server. Deploy together with the backend commit `32a109e`.
+- **Backend**: needs the matching backend commit (answer type `missing_activity` and the `missing` list).
+
+## 🤖 [Chatbot] - 2026-10-07, 05:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: After a student confirms an entry for another day (for example "kal ki chanting 16 mala"), the chat now shows the marks for that day too: "✅ Saved - marks for 06/10/26", with the day before for comparison, followed by the one combined encouragement message. This uses the new backend API `/assistant/marks/by-date/:date`. If the backend does not have it yet (or it fails), the entry is still saved and the marks card is simply skipped, so nothing breaks if the website is deployed before the backend. The marks card also gained optional labels so it can say the date instead of "Today".
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/components/MarksCard.jsx`, `src/sadhna-assistant/adapters/RealSadhnaGptAdapter.js`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems (3 old errors in these files were already there). NOT tested against the live server or on a phone. Deploy the backend commit first, then the website.
+- **Backend**: needs `GET /assistant/marks/by-date/:date` (added in backend commit `242e45a`).
+
+## 🎤 [Chatbot] - 2026-10-07, 04:40 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The microphone in the chat now stays on until the student taps it off, like the Google keyboard mic. Before, the browser closed it after the first pause. Now each time the browser ends a short listening session, the chat opens the next one straight away, and the words keep adding to the text box. It stops by itself only if (a) the student taps the mic/stop button, (b) there is a real problem (permission denied, no microphone, no network), (c) the browser keeps closing it instantly 5 times in a row, or (d) 5 minutes pass with no speech (so the mic is never left open by mistake). Sending a message keeps the mic on and starts it fresh, so words already sent do not come back into the box. The old 60-second limit is removed.
+- **Files touched**: `src/sadhna-assistant/components/NLInputBar.jsx`, `CHANGELOG.md`
+- **Tested**: build passes and lint shows no problems in this file. NOT tested on a real phone: there is no browser or microphone here, so please try it on Android Chrome. Note: some Android browsers play a small start sound each time a session reopens after a pause; that is the browser's, and cannot be removed from our code. Language is still fixed to English-India (`en-IN`) for now.
+- **Backend**: no change needed.
+
+## 🤖 [Chatbot] - 2026-10-07, 04:15 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: After a student confirms a typed/spoken sadhna entry, the chat now (1) saves all the entries quietly, (2) shows the marks card ("✅ Saved - marks earned today") first, (3) then ONE combined encouraging message (a reached goal wins; otherwise a normal recorded message; several ordinary entries give "Here's how today looks so far"), and (4) then how many activities are still waiting with the usual buttons. Before, a separate motivation line came after every single activity and the marks came last. When every activity is filled, the marks card is followed by the usual "all complete" message. Also: if a save fails the student is now told ("I couldn't save: ..."), instead of always seeing "recorded"; for an entry on another day ("kal"), one combined message is shown. Marks are NOT shown for another day, because the server only has a "today's marks" call (a "marks for a date" call would need a new backend API).
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/utils/messageContext.js`, `CHANGELOG.md`
+- **Tested**: build passes; the message picker was run on 5 sample cases (goal reached, partial, mixed, custom activities, unknown activity) and chose the right kind each time. Lint shows no new problems (the one error `useMemo` unused was already there). NOT tested: on a phone or against the live server; the on-screen order should be checked once on the test site.
+- **Backend**: no change needed for today's entries. Optional: a "marks for a date" API to show marks after "kal" entries.
+
+## 🐞 [Fix] - 2026-10-07, 01:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Back to Dashboard" link at the top of each student's page in the exported PDF showed garbled characters in front of it because the PDF font has no arrow symbol. It now reads "< Back to Dashboard". The link itself works as before. The Excel report is unchanged.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: test PDF with made-up students: all 40 student pages read cleanly ("Student 05 < Back to Dashboard"); name links still 0 wrong out of 40. Build passes. Not yet opened in a real PDF viewer.
+
+## 🐞 [Fix] - 2026-10-07, 01:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In the exported PDF report, "Page X of Y" now shows on its own page. Before, all the page numbers were stacked on top of each other on the last page and the other pages had none.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: test PDF with made-up students, 91 pages: every page shows its own correct number (0 wrong). Name links still all correct. Build passes. Not yet opened in a real PDF viewer.
+
+## 🐞 [Fix] - 2026-10-07, 01:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In the exported PDF report, clicking a student's name on the dashboard now opens that student's own page. Before, the link guessed the page as "one page per student", but a student with a long table or many charts uses several pages, and a long dashboard uses more than one page, so most names opened the wrong student's page. Now the links are added after all pages are built, using each student's real first page.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: made a test PDF with made-up students (3, 12, 40 and 60 students; some with 70 days of data, some with no data). Before the fix 40 of 40 links went to the wrong page; after the fix 0 wrong in all four sizes. Build passes. Not yet opened in a real PDF viewer such as Chrome or Acrobat.
+
+## 🎨 [UI] - 2026-10-07, 11:15 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The three round buttons (Marks, chatbot and Birds-eye) are now hidden while the Marks window or the counsellor's student-scheme window is open, and come back in the same place when it is closed. Before, when the phone keyboard opened while typing custom marks, the screen got shorter and the buttons were pushed up and seemed to have moved.
+- **Files touched**: `src/utils/hideFloatingIcons.js` (new), `src/index.css`, `src/components/shared/MarksWindow.jsx`, `src/components/counsellor/StudentOwnSchemeModal.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks confirm the buttons hide while the window is open and return to the same spots after closing, and earlier checks still pass. Not tried on a real phone or iPad, so the keyboard cause is our best explanation, not confirmed.
+
+## ✨ [Feature] - 2026-10-07, 11:08 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Custom marking scheme editor now accepts negative (penalty) marks such as -5. Type a minus sign, or tap the small ± button above the Marks box to flip plus/minus. Negative marks show in red in the list; a lone "-", a decimal or a number beyond 1000 gets a plain message instead of an error. The per-activity bars in the score window no longer break when marks are negative.
+- **Files touched**: `src/utils/schemeRules.js`, `src/components/shared/SchemeRulesView.jsx`, `src/components/shared/MarksWindow.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; 20 new browser checks on phone and desktop sizes plus the earlier 59 + 23 still pass; checked at 320 px. Not tried on a real phone.
+- **Backend**: pairs with the backend commit that keeps the percentage at 0% or more (works without it, but a negative day could show a negative percentage).
+
 ## 🎨 [UI] - 2026-10-06, 09:06 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
