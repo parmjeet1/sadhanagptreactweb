@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐞 [Fix] - 2026-10-07, 01:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In the exported PDF report, clicking a student's name on the dashboard now opens that student's own page. Before, the link guessed the page as "one page per student", but a student with a long table or many charts uses several pages, and a long dashboard uses more than one page, so most names opened the wrong student's page. Now the links are added after all pages are built, using each student's real first page.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: made a test PDF with made-up students (3, 12, 40 and 60 students; some with 70 days of data, some with no data). Before the fix 40 of 40 links went to the wrong page; after the fix 0 wrong in all four sizes. Build passes. Not yet opened in a real PDF viewer such as Chrome or Acrobat.
+
 ## 🎨 [UI] - 2026-10-07, 11:15 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
