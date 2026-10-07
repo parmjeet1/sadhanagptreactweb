@@ -432,15 +432,45 @@ const GroupMenteesList = () => {
     });
   };
 
+  // Loads EVERY uncategorised student for the "Add Members" window, page by
+  // page. (The server reads the page size from `rowSelected` and gives only 10
+  // rows when it is missing, so the old single call with `limit` showed just
+  // the first 10 students.)
   const openAddMemberModal = () => {
+    const PAGE_SIZE = 100;
+    const MAX_PAGES = 100; // safety stop: 10,000 students
     setIsAddMemberModalOpen(true);
     setIsFetchingUncategorized(true);
-    getRequest('/student-list', { user_id: userDetails.user_id, page_no: 1, limit: 100, categroy: 'un-categorized' }, (response) => {
-      if (response.data?.status === 1 || response.data?.code === 200) {
-        setUncategorizedStudents(response.data.data || []);
-      }
-      setIsFetchingUncategorized(false);
-    });
+    setUncategorizedStudents([]);
+    setSelectedUncategorized([]);
+
+    const seen = new Set();
+    const all = [];
+    const loadPage = (pageNo) => {
+      getRequest('/student-list', { user_id: userDetails.user_id, page_no: pageNo, rowSelected: PAGE_SIZE, categroy: 'un-categorized' }, (response) => {
+        const res = response.data;
+        const ok = res?.status === 1 || res?.code === 200;
+        if (ok) {
+          const rows = Array.isArray(res.data) ? res.data : [];
+          for (const row of rows) {
+            if (!seen.has(row.user_id)) {
+              seen.add(row.user_id);
+              all.push(row);
+            }
+          }
+          const totalPages = Number(res.total_page) || 1;
+          if (pageNo < totalPages && pageNo < MAX_PAGES && rows.length > 0) {
+            loadPage(pageNo + 1);
+            return;
+          }
+        } else if (all.length === 0) {
+          showError(res?.message || 'Could not load unassigned mentees');
+        }
+        setUncategorizedStudents(all);
+        setIsFetchingUncategorized(false);
+      });
+    };
+    loadPage(1);
   };
 
   const handleAssignNewMembers = () => {
@@ -1764,7 +1794,10 @@ const GroupMenteesList = () => {
         {isAddMemberModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setIsAddMemberModalOpen(false)}>
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-6 rounded-[32px] shadow-2xl transition-colors duration-300 max-h-[80vh] flex flex-col">
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-4">Add Members to Group</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-1">Add Members to Group</h3>
+              {!isFetchingUncategorized && uncategorizedStudents.length > 0 && (
+                <p className="text-[12px] text-gray-500 mb-3">{uncategorizedStudents.length} unassigned mentees &middot; {selectedUncategorized.length} selected</p>
+              )}
 
               <div className="flex-1 overflow-y-auto min-h-[200px] pr-2 custom-scrollbar">
                 {isFetchingUncategorized ? (

@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐞 [Fix] - 2026-10-07, 05:25 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Counsellor dashboard > Group > "Add Members to Group": the window now lists ALL uncategorised (unassigned) mentees. Before, it showed only the first 10, because the page asked the server for `limit: 100` but the server reads the page size from `rowSelected` and gives 10 when it is missing. The window now loads every page (100 at a time, up to 10,000 students as a safety stop, duplicates removed), clears any old selection when it opens, and shows "N unassigned mentees - M selected" under the title. If loading fails with nothing loaded, an error message is shown. No backend change needed.
+- **Files touched**: `src/pages/counsellor/group_mentees_module/GroupMenteesList.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems (17 old ones were already there). NOT tested against the live server or in a browser (no counsellor login or data here): please open a group with more than 10 unassigned mentees on the test site and check that they all appear and can be added.
+- **Backend**: no change needed (`/student-list` already returns `total_page`).
+
 ## 🤖 [Chatbot] - 2026-10-07, 05:55 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
