@@ -300,7 +300,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
                     <p className="text-sm text-center text-slate-500 py-3">No activities carry marks yet.</p>
                   )}
                   {breakdown.data && breakdown.data.activities.map((a) => {
-                    const pct = a.max > 0 ? Math.min(100, Math.round((a.earned / a.max) * 100)) : 0;
+                    const pct = a.max > 0 ? Math.max(0, Math.min(100, Math.round((a.earned / a.max) * 100))) : 0;
                     return (
                       <div key={a.activity_id} className="rounded-xl border border-gray-200 dark:border-white/10 px-3 py-2">
                         <div className="flex items-center justify-between gap-3 text-sm">

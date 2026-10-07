@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ✨ [Feature] - 2026-10-07, 11:08 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Custom marking scheme editor now accepts negative (penalty) marks such as -5. Type a minus sign, or tap the small ± button above the Marks box to flip plus/minus. Negative marks show in red in the list; a lone "-", a decimal or a number beyond 1000 gets a plain message instead of an error. The per-activity bars in the score window no longer break when marks are negative.
+- **Files touched**: `src/utils/schemeRules.js`, `src/components/shared/SchemeRulesView.jsx`, `src/components/shared/MarksWindow.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; 20 new browser checks on phone and desktop sizes plus the earlier 59 + 23 still pass; checked at 320 px. Not tried on a real phone.
+- **Backend**: pairs with the backend commit that keeps the percentage at 0% or more (works without it, but a negative day could show a negative percentage).
+
 ## 🎨 [UI] - 2026-10-06, 09:06 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

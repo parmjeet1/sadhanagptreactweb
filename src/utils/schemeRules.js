@@ -57,6 +57,24 @@ export const groupRules = (rules) => {
 
 export const maxOfGroup = (group) => (group.rows || []).reduce((m, r) => Math.max(m, Number(r.marks) || 0), 0);
 
+/** Keeps only digits and a minus that comes before them while typing marks ("-5", "12"). */
+export const cleanMarksInput = (text) => {
+  const t = String(text ?? '');
+  const minusAt = t.indexOf('-');
+  const digitAt = t.search(/[0-9]/);
+  const negative = minusAt >= 0 && (digitAt < 0 || minusAt < digitAt); // a minus before the first digit
+  const digits = t.replace(/[^0-9]/g, '');
+  return negative ? `-${digits}` : digits;
+};
+
+/** Flips the sign of typed marks ("5" <-> "-5"; empty stays empty). */
+export const flipMarksSign = (text) => {
+  const t = String(text ?? '').trim();
+  if (t === '-') return '';
+  if (!t || t === '0') return '-';
+  return t.startsWith('-') ? t.slice(1) : `-${t}`;
+};
+
 const NO_UNIT = ['', 'time', 'count', 'boolean', 'yes/no', 'numb'];
 
 /** "At least 16 rounds", "Up to 07:15", "Yes" ... */
@@ -83,8 +101,11 @@ export const findProblem = (groups) => {
       const value = String(r.value ?? '').trim();
       if (!value) return `Please enter a value for "${g.name}".`;
       if (!/^[A-Za-z0-9:. ]+$/.test(value)) return `"${value}" in "${g.name}" can only use letters, numbers, ":" and ".".`;
+      // Marks may be negative (a penalty, e.g. -5), like in the counsellor's scheme builder.
       const marks = Number(r.marks);
-      if (r.marks === '' || !Number.isFinite(marks) || marks < 0) return `Please enter marks (0 or more) for "${g.name}".`;
+      if (r.marks === '' || !/^-?\d+$/.test(String(r.marks).trim()) || !Number.isFinite(marks) || Math.abs(marks) > 1000) {
+        return `Please enter whole-number marks for "${g.name}" (for example 10, 0 or -5).`;
+      }
     }
   }
   return null;
