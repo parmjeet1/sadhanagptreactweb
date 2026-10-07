@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { hideFloatingIcons } from '../../utils/hideFloatingIcons';
 import { createPortal } from 'react-dom';
 import { fetchStudentOwnScheme } from '../../api/myScheme';
 import { groupRules } from '../../utils/schemeRules';
@@ -18,6 +19,9 @@ const StudentOwnSchemeModal = ({ studentId, studentName, onClose }) => {
     });
     return () => { cancelled = true; };
   }, [studentId]);
+
+  // The floating circles stay hidden while this window is open
+  useEffect(() => hideFloatingIcons(), []);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };

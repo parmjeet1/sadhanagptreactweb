@@ -230,3 +230,6 @@
 }
 
 @keyframes birdFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+
+/* Floating circles are hidden while a full window is open (see utils/hideFloatingIcons.js) */
+html[data-floating-hidden] [data-floating-fab] { visibility: hidden; }

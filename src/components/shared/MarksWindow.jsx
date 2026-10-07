@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { hideFloatingIcons } from '../../utils/hideFloatingIcons';
 import { createPortal } from 'react-dom';
 import {
   fetchMarksBreakdown,
@@ -93,6 +94,9 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
 
   // Esc closes. (The page is not locked with overflow:hidden: that removes the scrollbar, which makes the fixed
   // floating circles jump sideways.)
+  // The floating circles stay hidden while this window is open
+  useEffect(() => hideFloatingIcons(), []);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);

@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎨 [UI] - 2026-10-07, 11:15 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The three round buttons (Marks, chatbot and Birds-eye) are now hidden while the Marks window or the counsellor's student-scheme window is open, and come back in the same place when it is closed. Before, when the phone keyboard opened while typing custom marks, the screen got shorter and the buttons were pushed up and seemed to have moved.
+- **Files touched**: `src/utils/hideFloatingIcons.js` (new), `src/index.css`, `src/components/shared/MarksWindow.jsx`, `src/components/counsellor/StudentOwnSchemeModal.jsx`, `CHANGELOG.md`
+- **Tested**: build passes; browser checks confirm the buttons hide while the window is open and return to the same spots after closing, and earlier checks still pass. Not tried on a real phone or iPad, so the keyboard cause is our best explanation, not confirmed.
+
 ## ✨ [Feature] - 2026-10-07, 11:08 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
