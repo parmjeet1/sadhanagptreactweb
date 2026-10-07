@@ -981,7 +981,7 @@ export function SadhnaChat({ adapter }) {
             }}
             onQuickFillAllDone={() => updateBlock(block.id, { resolved: true })}
             onSparkleDone={() => updateBlock(block.id, { celebrate: false })}
-            onNlConfirm={() => handleNlConfirm(block.id, block.updates, block.date)}
+            onNlConfirm={(picked) => handleNlConfirm(block.id, picked || block.updates, block.date)}
             onNlCorrect={() => handleNlCorrect(block.id)}
             onNlAskAI={() => handleNlAskAI(block.id, block.sourceText)}
             onDateSubmenuSelect={(v) => handleDateSubmenuSelect(block.id, v)}

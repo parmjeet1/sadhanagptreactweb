@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Chatbot] - 2026-10-07, 06:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "I understood" card in the chatbot can now be corrected before saving, instead of all-or-nothing. (1) Every line has a tick box (on by default): untick a line that is wrong, such as an invented "Mangal Aarti - Yes", and "Confirm & Save" saves only the ticked lines (the button shows how many, e.g. "Confirm & Save (1)"). (2) Every line has a pencil: tap it to switch the line to another of the student's own activities (a list of their activities) and/or change the value with a suitable editor: number box for rounds and minutes, a time picker for times, Yes / Not Today buttons for yes-no activities, a dropdown for choice activities. If the new activity needs a different kind of value, the old value is cleared and must be entered. Safety checks stop the save (with a red note on the line) when a value is empty or not valid: negative numbers, rounds above 64, minutes above 720, a time that is not a real HH:MM, or the same activity ticked twice. The "Saving for <date>", "Not in your list" note, "Not this" and "Ask AI to re-check" all work as before.
+- **Files touched**: `src/sadhna-assistant/components/NLConfirmCard.jsx`, `src/sadhna-assistant/utils/nlEdit.js` (new, value checks), `src/sadhna-assistant/SadhnaChat.jsx` (saves the ticked/edited lines), `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems; the value checks passed 4 test groups (valid and invalid values per activity type, switching activity, duplicates) run outside the app; the card was drawn on the server side with a sample message and shows 3 tick boxes and 3 pencils. NOT tested: taps, typing and the time picker on a real phone (no browser here), so please try it on the test site: untick a line, edit a value, switch an activity, then Confirm & Save.
+- **Backend**: no change needed. (Next step planned on the server: lines the message does not support will arrive unticked.)
+
 ## 🐞 [Fix] - 2026-10-07, 05:25 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
