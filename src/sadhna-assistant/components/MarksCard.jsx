@@ -7,7 +7,7 @@ import SparkleBurst from "./visuals/SparkleBurst";
  * invents or computes a score itself. `celebrate` triggers the brief
  * sparkle burst used for the all-complete state.
  */
-export function MarksCard({ marksResponse, celebrate = false, onSparkleDone, title }) {
+export function MarksCard({ marksResponse, celebrate = false, onSparkleDone, title, currentLabel = "Today", previousLabel = "Yesterday" }) {
   const { marks, maxMarks, yesterdayMarks, completedCount, totalActiveCount } = marksResponse;
   const diff =
     typeof yesterdayMarks === "number" ? Math.round((marks - yesterdayMarks) * 10) / 10 : null;
@@ -34,7 +34,7 @@ export function MarksCard({ marksResponse, celebrate = false, onSparkleDone, tit
         </span>
         {diff !== null && (
           <span className={diff >= 0 ? "text-leaf-500 font-medium" : "text-saffron-600 font-medium"}>
-            Yesterday: {yesterdayMarks} · Today: {marks} {diff >= 0 ? `↑${diff}` : `↓${Math.abs(diff)}`}
+            {previousLabel}: {yesterdayMarks} · {currentLabel}: {marks} {diff >= 0 ? `↑${diff}` : `↓${Math.abs(diff)}`}
           </span>
         )}
       </div>

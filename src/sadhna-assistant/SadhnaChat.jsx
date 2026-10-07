@@ -864,9 +864,29 @@ export function SadhnaChat({ adapter }) {
     if (flow && flow.mode === "particularDate" && flow.date === dateISO) {
       for (const u of saved) flow.map.set(u.activity_id, u.value);
     }
+    // Marks earned for that day (needs the backend's marks-by-date API; if
+    // it isn't available the entry is still saved and we simply skip the card).
+    let marksResponse = null;
+    if (saved.length > 0 && typeof adapter.getMarksForDate === "function") {
+      try {
+        marksResponse = await adapter.getMarksForDate(dateISO);
+      } catch {
+        marksResponse = null;
+      }
+    }
     setBusy(false);
     if (saved.length > 0) {
       pushBot(`✅ Sadhna for ${formatDateLabel(dateISO)} has been recorded.`, "flower_check");
+      if (marksResponse) {
+        pushBlock({
+          kind: "marksCard",
+          marksResponse,
+          celebrate: false,
+          title: `✅ Saved — marks for ${formatDateLabel(dateISO)}`,
+          currentLabel: formatDateLabel(dateISO),
+          previousLabel: "Day before",
+        });
+      }
       const combined = pickCombinedContext(saved, activitiesByIdRef.current);
       pushBotMessage(combined.context, combined.subcontext, combined.vars);
     }
@@ -1083,6 +1103,8 @@ function BlockRenderer({
           marksResponse={block.marksResponse}
           celebrate={block.celebrate}
           title={block.title}
+          currentLabel={block.currentLabel}
+          previousLabel={block.previousLabel}
           onSparkleDone={onSparkleDone}
         />
       );

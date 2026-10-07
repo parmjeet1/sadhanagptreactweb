@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Chatbot] - 2026-10-07, 05:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: After a student confirms an entry for another day (for example "kal ki chanting 16 mala"), the chat now shows the marks for that day too: "✅ Saved - marks for 06/10/26", with the day before for comparison, followed by the one combined encouragement message. This uses the new backend API `/assistant/marks/by-date/:date`. If the backend does not have it yet (or it fails), the entry is still saved and the marks card is simply skipped, so nothing breaks if the website is deployed before the backend. The marks card also gained optional labels so it can say the date instead of "Today".
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`, `src/sadhna-assistant/components/MarksCard.jsx`, `src/sadhna-assistant/adapters/RealSadhnaGptAdapter.js`, `CHANGELOG.md`
+- **Tested**: build passes; lint shows no new problems (3 old errors in these files were already there). NOT tested against the live server or on a phone. Deploy the backend commit first, then the website.
+- **Backend**: needs `GET /assistant/marks/by-date/:date` (added in backend commit `242e45a`).
+
 ## 🎤 [Chatbot] - 2026-10-07, 04:40 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
