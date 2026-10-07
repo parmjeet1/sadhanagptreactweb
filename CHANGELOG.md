@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐞 [Fix] - 2026-10-07, 01:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Back to Dashboard" link at the top of each student's page in the exported PDF showed garbled characters in front of it because the PDF font has no arrow symbol. It now reads "< Back to Dashboard". The link itself works as before. The Excel report is unchanged.
+- **Files touched**: `src/utils/studentReportExport.js`, `CHANGELOG.md`
+- **Tested**: test PDF with made-up students: all 40 student pages read cleanly ("Student 05 < Back to Dashboard"); name links still 0 wrong out of 40. Build passes. Not yet opened in a real PDF viewer.
+
 ## 🐞 [Fix] - 2026-10-07, 01:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

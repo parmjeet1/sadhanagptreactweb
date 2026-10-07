@@ -695,7 +695,7 @@ function addStudentPdfSection(
 
   doc.setFontSize(8.5);
   doc.setTextColor(5, 99, 193);
-  doc.text("← Back to Dashboard", 235, 15);
+  doc.text("< Back to Dashboard", 235, 15);
   doc.link(230, 10, 55, 8, { pageNumber: 1 });
 
   doc.setFontSize(8);
