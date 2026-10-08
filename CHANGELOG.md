@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📨 [Counsellor Dashboard] - 2026-10-08, 12:25 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Invite" button in Quick Actions used to only copy the link. Now it opens the phone's share sheet (WhatsApp, Telegram, Messages, "Copy link", etc.) with the message "Hare Krishna! Please join my group on SadhanaGPT using this link:" and the counsellor's invite link. On computers/browsers with no share sheet it copies the link and shows "Link copied. Please share it with mentees to join the group." Closing the share sheet shows no error.
+- **Files touched**: `src/pages/counsellor/CounsellorAnalytics.jsx`, `CHANGELOG.md`
+- **Tested**: the website builds; lint problems unchanged (10 before, 10 after, none new). NOT tested on a real phone: please press Invite on the test site (mobile Chrome/Safari) and check WhatsApp appears; the share sheet only works on https.
+- **Backend**: no change needed.
+
 ## 🤖 [Chatbot] - 2026-10-07, 06:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
