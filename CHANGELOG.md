@@ -7,9 +7,9 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 ## 📱 [Counsellor Dashboard] - 2026-10-08, 01:40 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
-- **What changed**: On phones, the "Students Rank" and red "Students Need Follow-up" cards were side by side and the follow-up card was pushed off the right edge of the screen (the page scrolled sideways, about 507px wide on a 360px phone). Now the two cards sit one above the other on phones (full names show), and stay side by side on larger screens (tablet/computer, 640px and wider). Both cards are also allowed to shrink, so a long student name can no longer push the page wider.
+- **What changed**: On phones, the "Students Rank" and red "Students Need Follow-up" cards were side by side and the follow-up card was pushed off the right edge of the screen (the page scrolled sideways, about 507px wide on a 360px phone). Now, on phones, the two cards stay side by side in one row that the counsellor swipes left/right (each card is about 3/4 of the screen wide, so the second card peeks in from the right, and the row snaps to a card when you let go). On tablets and computers (640px and wider) they just sit side by side as before, no scrolling. The page itself no longer scrolls sideways.
 - **Files touched**: `src/pages/counsellor/CounsellorAnalytics.jsx`, `CHANGELOG.md`
-- **Tested**: I rebuilt just these two cards with the site's real styles and made screenshots at 320, 360 and 390 px wide: before = follow-up card cut off and page 507px wide; after = both cards fully visible, no sideways scroll. Website builds; lint problems unchanged (10 before, 10 after). NOT tested with real data on a real phone: please open the dashboard on your phone after deploy.
+- **Tested**: I rebuilt just these two cards with the site's real styles and made screenshots at 320, 360 and 390 px wide: before = follow-up card cut off and page 507px wide; after = Students Rank fully visible with the follow-up card peeking in, swipe reveals it, and the page itself does not scroll sideways; at 800px both sit side by side. Website builds; lint problems unchanged (10 before, 10 after). NOT tested with real data on a real phone: please open the dashboard on your phone after deploy.
 - **Backend**: no change needed.
 
 ## 👥 [Counsellor Profile] - 2026-10-08, 12:40 PM IST
