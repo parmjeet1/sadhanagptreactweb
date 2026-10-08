@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { buildInviteLink, copyInviteLink, shareInviteLink } from '../../utils/inviteLink';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -522,28 +523,13 @@ const CounsellorAnalytics = () => {
             <div className="grid grid-cols-5 gap-2">
               <div 
                 onClick={async () => {
-                  const encoded = btoa(userDetails.user_id);
-                  const link = `https://sadhanagpt.com?ref=${encoded}`;
-                  // Phone/browser share sheet (WhatsApp, Telegram, Copy link, etc.)
-                  if (navigator.share) {
-                    try {
-                      await navigator.share({
-                        title: 'Join my group on SadhanaGPT',
-                        text: 'Hare Krishna! Please join my group on SadhanaGPT using this link:',
-                        url: link,
-                      });
-                    } catch (err) {
-                      // The counsellor closed the share sheet: nothing to do
-                      if (err?.name !== 'AbortError') showToast("Could not open sharing. Please try again.", 'error');
-                    }
-                    return;
-                  }
-                  // Browsers without a share sheet (most desktops): copy the link
-                  try {
-                    await navigator.clipboard.writeText(link);
-                    showToast("Link copied. Please share it with mentees to join the group.", 'success');
-                  } catch {
-                    showToast("Could not copy the link. Please try again.", 'error');
+                  const link = buildInviteLink(userDetails.user_id);
+                  const result = await shareInviteLink(link);
+                  if (result === 'unsupported') {
+                    const ok = await copyInviteLink(link);
+                    showToast(ok ? "Link copied. Please share it with mentees to join the group." : "Could not copy the link. Please try again.", ok ? 'success' : 'error');
+                  } else if (result === 'failed') {
+                    showToast("Could not open sharing. Please try again.", 'error');
                   }
                 }}
                 className="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"

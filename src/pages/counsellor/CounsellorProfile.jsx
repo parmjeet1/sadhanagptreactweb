@@ -7,6 +7,7 @@ import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal
 import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { compressImage } from '../../utils/imageCompressor';
+import { buildInviteLink, copyInviteLink, shareInviteLink } from '../../utils/inviteLink';
 import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
 
 
@@ -33,6 +34,21 @@ const CounsellorProfile = () => {
     reminder_enabled: false,
     reminder_days: 3
   });
+
+  const inviteLink = userDetails?.user_id ? buildInviteLink(userDetails.user_id) : '';
+
+  const handleCopyInvite = async () => {
+    if (!inviteLink) return;
+    const ok = await copyInviteLink(inviteLink);
+    showToast(ok ? "Link copied. Please share it with mentees to join the group." : "Could not copy the link. Please try again.", ok ? 'success' : 'error');
+  };
+
+  const handleShareInvite = async () => {
+    if (!inviteLink) return;
+    const result = await shareInviteLink(inviteLink);
+    if (result === 'unsupported') handleCopyInvite();
+    else if (result === 'failed') showToast("Could not open sharing. Please try again.", 'error');
+  };
 
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -475,6 +491,35 @@ const CounsellorProfile = () => {
                       {userInfo.dob ? (new Date(userInfo.dob).toString() !== 'Invalid Date' ? new Date(userInfo.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : userInfo.dob) : 'Not set'}
                     </p>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Add Mentees (invite link) */}
+            <section className="px-8 pb-10">
+              <div className="mb-4 px-2">
+                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Add Mentees</h3>
+              </div>
+              <div className="bg-white rounded-[28px] border border-gray-100 shadow-sm p-5">
+                <p className="text-[14px] font-bold text-[#1e293b] mb-3">Please share this link with mentees to join your group.</p>
+                <div className="bg-[#fcf8ed] rounded-2xl px-4 py-3 mb-3">
+                  <p className="text-[13px] font-bold text-gray-600 break-all select-all">{inviteLink || 'Link not available'}</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCopyInvite}
+                    disabled={!inviteLink}
+                    className="flex-1 py-3 rounded-2xl border border-orange-200 text-[#f97316] font-black text-[14px] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    Copy link
+                  </button>
+                  <button
+                    onClick={handleShareInvite}
+                    disabled={!inviteLink}
+                    className="flex-1 py-3 rounded-2xl bg-[#f97316] text-white font-black text-[14px] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    Share
+                  </button>
                 </div>
               </div>
             </section>
