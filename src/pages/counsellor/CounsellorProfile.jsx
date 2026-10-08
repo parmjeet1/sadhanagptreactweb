@@ -8,6 +8,7 @@ import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
 import ContributeButton from '../../components/shared/ContributeButton';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { compressImage } from '../../utils/imageCompressor';
+import { buildInviteLink, copyInviteLink, shareInviteLink } from '../../utils/inviteLink';
 import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
 
 
@@ -34,6 +35,21 @@ const CounsellorProfile = () => {
     reminder_enabled: false,
     reminder_days: 3
   });
+
+  const inviteLink = userDetails?.user_id ? buildInviteLink(userDetails.user_id) : '';
+
+  const handleCopyInvite = async () => {
+    if (!inviteLink) return;
+    const ok = await copyInviteLink(inviteLink);
+    showToast(ok ? "Link copied. Please share it with mentees to join the group." : "Could not copy the link. Please try again.", ok ? 'success' : 'error');
+  };
+
+  const handleShareInvite = async () => {
+    if (!inviteLink) return;
+    const result = await shareInviteLink(inviteLink);
+    if (result === 'unsupported') handleCopyInvite();
+    else if (result === 'failed') showToast("Could not open sharing. Please try again.", 'error');
+  };
 
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -476,6 +492,37 @@ const CounsellorProfile = () => {
                       {userInfo.dob ? (new Date(userInfo.dob).toString() !== 'Invalid Date' ? new Date(userInfo.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : userInfo.dob) : 'Not set'}
                     </p>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Add Mentees (invite link) */}
+            <section className="px-8 pb-10">
+              <div className="mb-4 px-2">
+                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Add Mentees</h3>
+              </div>
+              <div className="bg-white rounded-[28px] border border-gray-100 shadow-sm p-5">
+                <p className="text-[14px] font-bold text-[#1e293b] mb-3">Please share this link with mentees to join your group.</p>
+                <div className="flex items-center gap-2 bg-[#fcf8ed] rounded-2xl pl-4 pr-2 py-2">
+                  <p className="flex-1 min-w-0 text-[13px] font-bold text-gray-600 break-all select-all">{inviteLink || 'Link not available'}</p>
+                  <button
+                    onClick={handleCopyInvite}
+                    disabled={!inviteLink}
+                    title="Copy link"
+                    aria-label="Copy link"
+                    className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[#f97316] hover:bg-white active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  </button>
+                  <button
+                    onClick={handleShareInvite}
+                    disabled={!inviteLink}
+                    title="Share link"
+                    aria-label="Share link"
+                    className="w-10 h-10 shrink-0 rounded-xl bg-[#f97316] flex items-center justify-center text-white active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                  </button>
                 </div>
               </div>
             </section>

@@ -4,6 +4,30 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📱 [Counsellor Dashboard] - 2026-10-08, 01:40 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On phones, the "Students Rank" and red "Students Need Follow-up" cards were side by side and the follow-up card was pushed off the right edge of the screen (the page scrolled sideways, about 507px wide on a 360px phone). Now, on phones, the two cards stay side by side in one row that the counsellor swipes left/right (each card is about 3/4 of the screen wide, so the second card peeks in from the right, and the row snaps to a card when you let go). On tablets and computers (640px and wider) they just sit side by side as before, no scrolling. The page itself no longer scrolls sideways.
+- **Files touched**: `src/pages/counsellor/CounsellorAnalytics.jsx`, `CHANGELOG.md`
+- **Tested**: I rebuilt just these two cards with the site's real styles and made screenshots at 320, 360 and 390 px wide: before = follow-up card cut off and page 507px wide; after = Students Rank fully visible with the follow-up card peeking in, swipe reveals it, and the page itself does not scroll sideways; at 800px both sit side by side. Website builds; lint problems unchanged (10 before, 10 after). NOT tested with real data on a real phone: please open the dashboard on your phone after deploy.
+- **Backend**: no change needed.
+
+## 👥 [Counsellor Profile] - 2026-10-08, 12:40 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: On the counsellor Profile page, a new "Add Mentees" section sits just above "My Mentors" (where mentors are added). It says "Please share this link with mentees to join your group.", shows the counsellor's invite link, and has two small icons right next to the link: copy and share (share opens WhatsApp etc. on phones; on computers Share copies the link). The link is the same one the dashboard Invite button uses. The link-building, copy and share code now lives in one small shared file (`src/utils/inviteLink.js`) used by both places; the dashboard Invite button behaves as before.
+- **Files touched**: `src/pages/counsellor/CounsellorProfile.jsx`, `src/pages/counsellor/CounsellorAnalytics.jsx`, `src/utils/inviteLink.js` (new), `CHANGELOG.md`
+- **Tested**: the website builds; lint problems unchanged (Profile 6, Dashboard 10, none new). NOT tested on a real phone/screen: please open Profile as a counsellor on the test site, check the section looks right, and try Copy link and Share.
+- **Backend**: no change needed.
+
+## 📨 [Counsellor Dashboard] - 2026-10-08, 12:25 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Invite" button in Quick Actions used to only copy the link. Now it opens the phone's share sheet (WhatsApp, Telegram, Messages, "Copy link", etc.) with the message "Hare Krishna! Please join my group on SadhanaGPT using this link:" and the counsellor's invite link. On computers/browsers with no share sheet it copies the link and shows "Link copied. Please share it with mentees to join the group." Closing the share sheet shows no error.
+- **Files touched**: `src/pages/counsellor/CounsellorAnalytics.jsx`, `CHANGELOG.md`
+- **Tested**: the website builds; lint problems unchanged (10 before, 10 after, none new). NOT tested on a real phone: please press Invite on the test site (mobile Chrome/Safari) and check WhatsApp appears; the share sheet only works on https.
+- **Backend**: no change needed.
+
 ## 🤖 [Chatbot] - 2026-10-07, 06:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

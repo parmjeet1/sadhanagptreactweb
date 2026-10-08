@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { buildInviteLink, copyInviteLink, shareInviteLink } from '../../utils/inviteLink';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -326,9 +327,9 @@ const CounsellorAnalytics = () => {
         </div>
 
         {/* Top 2 Columns: Students Rank & Students Need Follow-up */}
-        <div className="px-6 flex gap-4 mb-6">
+        <div className="px-6 scroll-px-6 flex gap-4 mb-6 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* Students Rank Card */}
-          <div className="flex-1 bg-white dark:bg-[#112240] border border-gray-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
+          <div className="shrink-0 w-[75%] sm:w-auto sm:shrink sm:flex-1 snap-start min-w-0 bg-white dark:bg-[#112240] border border-gray-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-500 flex items-center justify-center">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 003.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
@@ -367,7 +368,7 @@ const CounsellorAnalytics = () => {
           </div>
 
           {/* Students Need Follow-up Card */}
-          <div className="flex-1 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(255,0,0,0.05)]">
+          <div className="shrink-0 w-[75%] sm:w-auto sm:shrink sm:flex-1 snap-start min-w-0 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-3xl p-5 flex flex-col shadow-[0_4px_20px_-10px_rgba(255,0,0,0.05)]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-white dark:bg-[#112240] text-red-500 flex items-center justify-center shadow-sm">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -521,10 +522,15 @@ const CounsellorAnalytics = () => {
 
             <div className="grid grid-cols-5 gap-2">
               <div 
-                onClick={() => {
-                  const encoded = btoa(userDetails.user_id);
-                  const link = `https://sadhanagpt.com?ref=${encoded}`;
-                  navigator.clipboard.writeText(link).then(() => showToast("Referral link copied!", 'success'));
+                onClick={async () => {
+                  const link = buildInviteLink(userDetails.user_id);
+                  const result = await shareInviteLink(link);
+                  if (result === 'unsupported') {
+                    const ok = await copyInviteLink(link);
+                    showToast(ok ? "Link copied. Please share it with mentees to join the group." : "Could not copy the link. Please try again.", ok ? 'success' : 'error');
+                  } else if (result === 'failed') {
+                    showToast("Could not open sharing. Please try again.", 'error');
+                  }
                 }}
                 className="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 rounded-2xl p-2 cursor-pointer active:scale-95 transition-all aspect-[3/4]"
               >
