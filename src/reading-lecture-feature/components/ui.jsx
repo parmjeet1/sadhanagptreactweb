@@ -64,7 +64,7 @@ export const inputCls =
 export const Toast = ({ toast, onUndo }) => {
   if (!toast) return null;
   return (
-    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[70] bg-[#1e293b] text-white text-[13px] font-semibold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 max-w-[90vw]">
+    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[90] bg-[#1e293b] text-white text-[13px] font-semibold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 max-w-[90vw]">
       <span>{toast.message}</span>
       {toast.undo && (
         <button type="button" onClick={onUndo} className="text-amber-300 font-black">Undo</button>
@@ -72,3 +72,21 @@ export const Toast = ({ toast, onUndo }) => {
     </div>
   );
 };
+
+/** Full-screen window (used for the counsellor's customise / status windows). */
+export const FullWindow = ({ title, subtitle, onClose, right, children, footer }) => (
+  <div className="fixed inset-0 z-[70] bg-[#f8fafc] flex flex-col">
+    <div className="w-full max-w-md mx-auto flex flex-col h-full">
+      <div className="px-5 pt-8 pb-3 flex items-center gap-3 border-b border-gray-100 bg-[#f8fafc]">
+        <button type="button" onClick={onClose} aria-label="Back" className="w-10 h-10 shrink-0 rounded-full bg-white shadow-sm text-[#0f172a] font-black text-lg active:scale-90">←</button>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-[18px] font-extrabold text-[#0f172a] leading-tight truncate">{title}</h2>
+          {subtitle && <p className="text-[12px] font-semibold text-gray-400 truncate">{subtitle}</p>}
+        </div>
+        {right}
+      </div>
+      <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+      {footer && <div className="px-5 py-4 border-t border-gray-100 bg-white">{footer}</div>}
+    </div>
+  </div>
+);

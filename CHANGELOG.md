@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🧑‍🏫 [Reading Lecture Feature] - 2026-10-09, 04:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: First look at the COUNSELLOR screens for books and lectures, with sample data only (nothing is saved, nothing talks to the server or database). Open it by typing `/counsellor/reading-preview` (not linked from any menu yet). Same Reading / Lectures tabs as students, plus a box at the top, "Reading Order/Status for Mentees" (and "Lectures for Mentees"), where the counsellor picks All groups / one group / one sub-group and sees whether that scope uses the DEFAULT or a CUSTOM list. Reading: "Change order" opens a window to re-order books (drag on a computer, or the up/down arrows on a phone; a book can move to another level), "+" on each level to add a book (from the library or a new name; author starts as Srila Prabhupada), add or rename levels, remove books, "Reset to default list", and "Save for mentees". "Mentee status" shows each mentee's completed books and status (filters: reading now, ongoing 30+ days, not started; a "By book" view with counts; mentees' own added books are marked). Lectures: "Edit lecture list" (add one lecture, re-order, remove, or "Upload Excel" with columns Title, Speaker, Link: a preview shows how many rows are ready and why others are skipped, plus "Download sample Excel"), and "Mentee lectures" shows what each mentee heard. The counsellor's own reading/lecture list appears below, same as a student's.
+- **Files touched**: `src/reading-lecture-feature/` (new: `CounsellorReadingLecturePage.jsx`, `data/mockCounsellor.js`, `components/ScopePicker.jsx`, `CustomiseOrderWindow.jsx`, `MenteeStatusWindow.jsx`, `MenteeLecturesWindow.jsx`, `LectureListEditor.jsx`; small additions to `components/ui.jsx`), `src/routes/AppRoutes.jsx` (one new route), `CHANGELOG.md`. No new packages: the Excel library already in the website is loaded only when someone uploads or downloads an Excel file.
+- **Tested**: the website builds; lint is clean for the new folder. In a real browser at phone size I tried: choosing group and sub-group, moving a book to another level, adding a book, saving, the mentee status window (both views), adding lectures from an uploaded .xlsx (3 rows accepted; a row with no title and a row with a bad link were skipped with the reason shown), saving, and the mentee lectures window: no errors. NOT tested: on a real phone, with real data, drag-and-drop by touch (the arrows are the phone method), or the Excel download button. The mentee status window shows the default book list for every scope for now (the real version will follow each scope's own list).
+- **Backend**: nothing yet.
+
 ## 📖 [Reading Lecture Feature] - 2026-10-09, 04:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

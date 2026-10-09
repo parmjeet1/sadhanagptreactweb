@@ -11,6 +11,7 @@ import UnderConstruction from '../pages/UnderConstruction';
 import Analytics from '../pages/student/Analytics';
 import Inspiration from '../pages/student/Inspiration';
 import ReadingLecturePage from '../reading-lecture-feature/ReadingLecturePage';
+import CounsellorReadingLecturePage from '../reading-lecture-feature/CounsellorReadingLecturePage';
 import Profile from '../pages/student/Profile';
 import AIChat from '../pages/student/AIChat';
 import AIChatLegacy from '../pages/student/AIChatLegacy';
@@ -79,6 +80,7 @@ const AppRoutes = () => {
           <Route path="/counsellor/mentee/:id" element={<StudentReport />} />
           <Route path="/counsellor/mentee/:id/conversation" element={<MenteeConversation />} />
           <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
+          <Route path="/counsellor/reading-preview" element={<CounsellorReadingLecturePage />} />
           <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
           <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
           <Route path="/counsellor/ungrouped" element={<UngroupedMentees />} />
