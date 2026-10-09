@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🔗 [Reading Lecture Feature] - 2026-10-09, 07:06 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Reading & Lectures pages can now be opened from the Inspiration tab. Students: a new "📖 Reading" button is the first chip in the row at the top of Inspiration (opens `/student/reading`). Counsellors: a new "📖 Reading & Lectures for mentees" bar at the top of the Content Hub (the counsellor Inspiration tab) opens `/counsellor/reading`. Nothing else on those screens changed.
+- **Files touched**: `src/pages/student/Inspiration.jsx`, `src/pages/counsellor/CounsellorAddContent.jsx`, `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same 15 problems as before my change (none new). In a browser at phone size both buttons show and open the right page. NOT tested with real logins on the test site. Note: once this is deployed, every student and counsellor will see the button, and the pages only work after the backend is deployed and the two SQL scripts are run.
+- **Backend**: nothing new.
+
 ## 🔌 [Reading Lecture Feature] - 2026-10-09, 06:46 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

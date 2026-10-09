@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
 
@@ -30,6 +30,7 @@ const handleShare = async (title, url) => {
 
 const Inspiration = () => {
   const { userDetails } = useOutletContext();
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Ranking');
   const [inspirations, setInspirations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,6 +190,13 @@ const Inspiration = () => {
 
         {/* Filter Bar */}
         <div className="px-6 mb-8 flex gap-3 overflow-x-auto no-scrollbar">
+          {/* Opens the Reading & Lectures page (books and recommended lectures) */}
+          <button
+            onClick={() => navigate('/student/reading')}
+            className="px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border bg-white text-gray-500 border-gray-100 hover:border-gray-200"
+          >
+            📖 Reading
+          </button>
           {filters.map((filter) => (
             <button
               key={filter}

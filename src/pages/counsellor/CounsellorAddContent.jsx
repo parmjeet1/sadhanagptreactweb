@@ -247,6 +247,14 @@ const CounsellorAddContent = () => {
             </div>
           </div>
 
+          <button
+            onClick={() => navigate('/counsellor/reading')}
+            className="w-full mb-4 flex items-center justify-between px-4 py-3 rounded-2xl bg-blue-50 text-[#1a73e8] text-[13px] font-black active:scale-[0.98] transition-all"
+          >
+            <span>📖 Reading &amp; Lectures for mentees</span>
+            <span>→</span>
+          </button>
+
           <div className="flex items-center text-gray-400 gap-2">
             <div className={`w-2 h-2 rounded-full ${activeTab === 'Add' ? 'bg-orange-500 animate-pulse' : 'bg-blue-500'}`}></div>
             <span className="text-[12px] font-bold uppercase tracking-widest">
