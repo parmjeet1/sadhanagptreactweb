@@ -27,7 +27,7 @@ export function NumberActivityInput({ activity, onSubmit }) {
           value={manualValue}
           onChange={(e) => setManualValue(e.target.value)}
           placeholder={activity.unit ? `Enter ${activity.unit}` : "Enter value"}
-          className="w-28 px-3 py-2 rounded-xl border border-saffron-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-saffron-300"
+          className="w-28 px-3 py-2 rounded-xl border border-saffron-200 dark:border-[#304766] bg-white dark:bg-[#0B1220] text-gray-900 dark:text-[#F8FAFC] text-sm focus:outline-none focus:ring-2 focus:ring-saffron-300 dark:[color-scheme:dark]"
         />
         <PrimaryButton
           disabled={manualValue === ""}

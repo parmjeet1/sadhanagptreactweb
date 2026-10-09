@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
@@ -94,6 +95,9 @@ const SchemeTable = ({ data }) => {
           </div>
           <div>
             <h3 className="font-bold text-[15px] sm:text-[16px] text-[#0F172A] dark:text-white leading-tight">{data.title}</h3>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
             <span className="text-[11px] font-semibold text-slate-400 dark:text-[#6b7a99] uppercase tracking-wide">
               {data.badge} Activity
             </span>
@@ -230,7 +234,7 @@ const StudentAppliedMarkingScheme = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A192F] font-sans pb-28 transition-colors duration-300 flex flex-col relative">
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A192F]/80 backdrop-blur-xl border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-[12px] min-[380px]:px-[16px] md:px-[20px] lg:px-[24px] py-4 transition-all duration-300 box-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-white dark:bg-[#0f172a]/80 dark:bg-[#0A192F]/80 backdrop-blur-xl border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-[12px] min-[380px]:px-[16px] md:px-[20px] lg:px-[24px] py-4 transition-all duration-300 box-border shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
             <button

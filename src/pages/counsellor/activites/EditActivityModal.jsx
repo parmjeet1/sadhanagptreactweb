@@ -83,7 +83,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 w-full max-w-md mx-auto bg-white rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
+            className="fixed bottom-0 w-full max-w-md mx-auto bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
             style={{
               left: 'auto',
               right: 'max(0px, calc(50% - 224px))'
@@ -91,7 +91,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
           >
             {/* Drag Handle Area - Clickable to close as requested */}
             <div 
-              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10 cursor-pointer"
               onClick={onClose}
             >
               <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
@@ -100,7 +100,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
             <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar flex flex-col h-full">
               
               <div className="flex-grow space-y-6">
-                <h2 className="text-[24px] font-extrabold text-[#0f172a]">Edit Activity</h2>
+                <h2 className="text-[24px] font-extrabold text-[#0f172a] dark:text-white">Edit Activity</h2>
 
                 {/* Name Input */}
                 <div className="space-y-2">
@@ -114,7 +114,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                       placeholder="e.g. Morning Yoga"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer"
+                      className="w-full bg-[#f8fafc] dark:bg-slate-800/50 dark:text-slate-200 text-[#0f172a] dark:text-white font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer"
                     />
                   </div>
                 </div>
@@ -132,7 +132,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                           className={`relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all ${
                             isSelected 
                               ? 'border-[#1a73e8] bg-[#f0f7ff]' 
-                              : 'border-gray-100 bg-white hover:border-gray-200'
+                              : 'border-gray-100 bg-white dark:bg-[#0f172a] hover:border-gray-200'
                           }`}
                         >
                           {isSelected && (
@@ -143,7 +143,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                             </div>
                           )}
                           {type.icon}
-                          <span className={`text-[14px] font-bold ${isSelected ? 'text-[#0f172a]' : 'text-gray-500'}`}>
+                          <span className={`text-[14px] font-bold ${isSelected ? 'text-[#0f172a] dark:text-white' : 'text-gray-500'}`}>
                             {type.id}
                           </span>
                         </button>

@@ -115,7 +115,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit }) => {
   if (isBoolean && isCompleted) displayPercentage = 100;
 
   return (
-    <div className="relative w-full max-w-md mx-auto mb-4 rounded-2xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 bg-white group">
+    <div className="relative w-full max-w-md mx-auto mb-4 rounded-2xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 bg-white dark:bg-[#0f172a] group">
       
       {/* Background layer for swipe actions */}
       <motion.div 
@@ -138,7 +138,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit }) => {
         onDragEnd={handleCardDragEnd}
         animate={cardControls}
         style={{ x: isBoolean ? cardX : 0 }}
-        className="relative z-10 w-full h-full bg-white rounded-2xl p-5 select-none"
+        className="relative z-10 w-full h-full bg-white dark:bg-[#0f172a] rounded-2xl p-5 select-none"
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
@@ -149,7 +149,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit }) => {
             
             {/* Title & Type */}
             <div>
-              <h3 className="text-[17px] font-bold text-[#0f172a] leading-tight mb-0.5">{activity.title}</h3>
+              <h3 className="text-[17px] font-bold text-[#0f172a] dark:text-white leading-tight mb-0.5">{activity.title}</h3>
               <p className="text-[12px] font-bold text-[#94a3b8] uppercase tracking-wider">{activity.type}</p>
             </div>
           </div>
@@ -190,7 +190,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit }) => {
                initial={false}
                animate={{ left: `${displayPercentage}%` }}
                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-               className="absolute top-1/2 -ml-2.5 -mt-2.5 w-5 h-5 bg-white border-2 rounded-full shadow-md z-10 pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
+               className="absolute top-1/2 -ml-2.5 -mt-2.5 w-5 h-5 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border-2 rounded-full shadow-md z-10 pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
                style={{ borderColor: isCompleted ? '#20c997' : activity.barColor }}
              />
           )}
@@ -207,7 +207,7 @@ const ActivityCard = ({ activity, onProgressUpdate, onEdit }) => {
               Completed
             </div>
           ) : (
-            <div className="text-[14px] font-bold text-[#0f172a]">
+            <div className="text-[14px] font-bold text-[#0f172a] dark:text-white">
               {!isBoolean ? `${currentVal}${suffix} / ${maxVal}${suffix}` : (activity.progress || '')}
             </div>
           )}

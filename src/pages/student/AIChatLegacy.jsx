@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
@@ -107,7 +108,7 @@ const MarkdownMessage = ({ text }) => {
             const num = line.match(/^(\d+)\./)[1];
             const content = line.replace(/^\d+\.\s+/, '');
             return (
-                <div key={idx} className="bg-white border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
+                <div key={idx} className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
                     <span className="w-6 h-6 rounded-lg bg-[#1a73e8] text-white text-[11px] font-black flex items-center justify-center shrink-0">
                         {num}
                     </span>
@@ -265,25 +266,28 @@ const AIChatLegacy = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] font-sans pb-40">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-40">
             <div className="w-full max-w-md mx-auto relative min-h-screen flex flex-col">
 
                 {/* Header */}
-                <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-6 py-5 max-w-md mx-auto shadow-sm">
+                <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#0f172a]/90 dark:bg-[#112240]/90 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-6 py-5 max-w-md mx-auto shadow-sm">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-90 transition-all border border-gray-100">
+                        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center text-[#0f172a] dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 active:scale-90 transition-all border border-gray-100 dark:border-slate-700">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                         </button>
                         <div>
-                            <h1 className="text-[17px] font-black text-[#0f172a] leading-none tracking-tight">{userDetails?.name || ""}</h1>
+                            <h1 className="text-[17px] font-black text-[#0f172a] dark:text-white leading-none tracking-tight">{userDetails?.name || ""}</h1>
                             <div className="flex items-center gap-1.5 mt-1.5">
                                 <div className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse"></div>
                                 <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Cognitive Analysis</p>
                             </div>
                         </div>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#1a73e8]">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] dark:text-[#60a5fa]">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
+                        </div>
                     </div>
                 </header>
 
@@ -306,7 +310,7 @@ const AIChatLegacy = () => {
                                 <div className={`max-w-[85%] rounded-[24px] shadow-sm ${
                                     msg.role === 'user'
                                         ? 'bg-[#1a73e8] rounded-tr-none px-5 py-4'
-                                        : 'bg-white border border-gray-100 rounded-tl-none px-5 py-4'
+                                        : 'bg-white dark:bg-[#0f172a] border border-gray-100 rounded-tl-none px-5 py-4'
                                 }`}>
                                     {msg.role === 'user' ? (
                                         <p className="text-[15px] leading-relaxed font-semibold text-white">{msg.text}</p>
@@ -332,7 +336,7 @@ const AIChatLegacy = () => {
     <div className="w-9 h-9 rounded-2xl bg-gray-50 flex items-center justify-center shrink-0">
      <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
      </div>
-     <div className="bg-white border border-gray-100 px-5 py-4 rounded-[24px] rounded-tl-none">
+     <div className="bg-white dark:bg-[#0f172a] border border-gray-100 px-5 py-4 rounded-[24px] rounded-tl-none">
      <div className="flex gap-1.5">
       <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
     <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-100"></div>
@@ -352,7 +356,7 @@ const AIChatLegacy = () => {
                             <button
                                 key={chip}
                                 onClick={() => handleSendMessage(null, chip)}
-                                className="px-4 py-2 bg-white border border-gray-100 rounded-full text-[12px] font-black text-gray-500 whitespace-nowrap shadow-sm hover:border-blue-200 hover:text-[#1a73e8] transition-all"
+                                className="px-4 py-2 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border border-gray-100 rounded-full text-[12px] font-black text-gray-500 whitespace-nowrap shadow-sm hover:border-blue-200 hover:text-[#1a73e8] transition-all"
                             >
                                 {chip}
                             </button>
@@ -361,14 +365,14 @@ const AIChatLegacy = () => {
                 )}
 
                 {/* Input Bar */}
-                <div className="bg-white/80 backdrop-blur-md border-t border-gray-100 px-4 py-4 pb-28">
+                <div className="bg-white dark:bg-[#0f172a]/80 backdrop-blur-md border-t border-gray-100 px-4 py-4 pb-28">
                     <form onSubmit={handleSendMessage} className="relative max-w-md mx-auto">
                         <input
                             type="text"
                             placeholder="Deep dive into your progress..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            className="w-full bg-[#f8fafc] border-2 border-transparent focus:bg-white focus:border-blue-100 rounded-full py-4 pl-6 pr-14 text-[15px] font-bold text-[#0f172a] transition-all placeholder:text-gray-300 outline-none shadow-inner"
+                            className="w-full bg-[#f8fafc] dark:bg-[#0b1628] border-2 border-transparent focus:bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 focus:border-blue-100 rounded-full py-4 pl-6 pr-14 text-[15px] font-bold text-[#0f172a] dark:text-white transition-all placeholder:text-gray-300 outline-none shadow-inner"
                         />
                         <button
                             type="submit"

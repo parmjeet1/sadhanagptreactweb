@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -144,8 +145,8 @@ const MiniChart = ({ data, dates, color, label }) => {
           {yTicks.map((yVal, idx) => {
             const yPos = margin.top + height - ((yVal - min) / range) * height; const fVal = formatY(yVal); const split = String(fVal).split(' '); return (
               <g key={`y-${idx}`}>
-                <line x1={margin.left} y1={yPos} x2={margin.left + width} y2={yPos} stroke="#cbd5e1" strokeDasharray="3 3" strokeWidth="1" />
-                <text x={margin.left - 8} y={yPos} fontSize="10" fill="#64748b" textAnchor="end" fontWeight="bold">
+                <line x1={margin.left} y1={yPos} x2={margin.left + width} y2={yPos} className="stroke-slate-300 dark:stroke-slate-700" strokeDasharray="3 3" strokeWidth="1" />
+                <text x={margin.left - 8} y={yPos} fontSize="10" className="fill-slate-500 dark:fill-slate-400" textAnchor="end" fontWeight="bold">
                   {split.length > 1 ? <><tspan x={margin.left - 8} dy="-2">{split[0]}</tspan><tspan x={margin.left - 8} dy="10" fontSize="8">{split[1]}</tspan></> : <tspan x={margin.left - 8} dy="3">{fVal}</tspan>}
                 </text>
               </g>
@@ -154,8 +155,8 @@ const MiniChart = ({ data, dates, color, label }) => {
           {points.map((p, idx) => {
             if (idx % skipFactor !== 0 && idx !== points.length - 1) return null; const d = dates?.[idx] ? new Date(dates[idx]) : null; const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]; return (
               <g key={`x-${idx}`}>
-                <line x1={p.x} y1={margin.top} x2={p.x} y2={margin.top + height} stroke="#cbd5e1" strokeDasharray="3 3" strokeWidth="1" />
-                {d && !isNaN(d.getTime()) && <text x={p.x} y={margin.top + height + 14} fontSize="9" fill="#94a3b8" textAnchor="middle" fontWeight="bold"><tspan x={p.x} dy="0">{d.getDate()}</tspan><tspan x={p.x} dy="10" fontSize="8">{months[d.getMonth()]}</tspan></text>}
+                <line x1={p.x} y1={margin.top} x2={p.x} y2={margin.top + height} className="stroke-slate-300 dark:stroke-slate-700" strokeDasharray="3 3" strokeWidth="1" />
+                {d && !isNaN(d.getTime()) && <text x={p.x} y={margin.top + height + 14} fontSize="9" className="fill-slate-400 dark:fill-slate-400" textAnchor="middle" fontWeight="bold"><tspan x={p.x} dy="0">{d.getDate()}</tspan><tspan x={p.x} dy="10" fontSize="8">{months[d.getMonth()]}</tspan></text>}
               </g>
             );
           })}
@@ -166,7 +167,7 @@ const MiniChart = ({ data, dates, color, label }) => {
           {points.map((p, i) => ((hoverIndex === i || (i === points.length - 1 && hoverIndex === null)) && (
             <motion.g key={`pt-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <line x1={p.x} y1={margin.top} x2={p.x} y2={margin.top + height} stroke={color} strokeWidth="1.5" strokeOpacity={hoverIndex === i ? 0.4 : 0.1} />
-              <circle cx={p.x} cy={p.y} r="5" fill="white" stroke={color} strokeWidth="2.5" className="drop-shadow-lg" />
+              <circle cx={p.x} cy={p.y} r="5" stroke={color} strokeWidth="2.5" className="fill-white dark:fill-[#0f172a] drop-shadow-lg" />
             </motion.g>
           )))}
         </AnimatePresence>
@@ -177,7 +178,7 @@ const MiniChart = ({ data, dates, color, label }) => {
 // --- End Premium Chart ---
 
 const DUMMY_CHART = ({ label }) => (
-  <div className="w-full h-40 mt-4 flex items-center justify-center text-gray-300 text-[12px] border border-dashed border-gray-200 rounded-xl">No data for {label}</div>
+  <div className="w-full h-40 mt-4 flex items-center justify-center text-gray-300 dark:text-slate-400 text-[12px] border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">No data for {label}</div>
 );
 
 const formatValue = (val) => {
@@ -292,19 +293,22 @@ const StudentReport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-28">
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white pb-28">
       <AnimatePresence>{toastMessage && (<motion.div initial={{ y: -20 }} animate={{ y: 0 }} exit={{ y: -20 }} className="fixed top-24 left-0 right-0 z-50 flex justify-center"><div className="bg-gray-800 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm">{toastMessage}</div></motion.div>)}</AnimatePresence>
       
       {/* Top Header */}
-      <div className="flex items-center justify-between px-6 py-6 border-b border-gray-50">
+      <div className="flex items-center justify-between px-6 py-6 border-b border-gray-50 dark:border-slate-800/50">
         <button onClick={() => navigate(-1)}><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></button>
         <h1 className="font-black text-lg">Mentee Report</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
         <button
           onClick={() => setIsAiModalOpen(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all"
           title="AI Sadhana Analysis"
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0f172a] animate-pulse" />
           <span>AI Analysis</span>
         </button>
       </div>
@@ -319,38 +323,38 @@ const StudentReport = () => {
             onClick={() => setIsAiModalOpen(true)}
             className="mb-5 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs font-black text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
           >
-            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a] animate-pulse" />
             <span>AI Sadhana Analysis</span>
           </button>
 
           <div className="grid grid-cols-3 gap-2 w-full">
-            <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center text-center">
+            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-3 flex flex-col items-center text-center">
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Label</span>
-              <span className="text-[13px] font-black text-gray-800 leading-tight">{studentInfo.label_name || '—'}</span>
+              <span className="text-[13px] font-black text-gray-800 dark:text-white leading-tight">{studentInfo.label_name || '—'}</span>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center text-center">
+            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-3 flex flex-col items-center text-center">
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Birthday</span>
-              <span className="text-[13px] font-black text-gray-800 leading-tight">{formatDateSnippet(studentInfo.birthday)}</span>
+              <span className="text-[13px] font-black text-gray-800 dark:text-white leading-tight">{formatDateSnippet(studentInfo.birthday)}</span>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center text-center">
+            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-3 flex flex-col items-center text-center">
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Joined</span>
-              <span className="text-[13px] font-black text-gray-800 leading-tight">{formatDateSnippet(studentInfo.created_at)}</span>
+              <span className="text-[13px] font-black text-gray-800 dark:text-white leading-tight">{formatDateSnippet(studentInfo.created_at)}</span>
             </div>
           </div>
 
-          <div className="mt-3 flex items-center gap-2 text-gray-400 font-bold text-xs">
+          <div className="mt-3 flex items-center gap-2 text-gray-400 dark:text-gray-300 font-bold text-xs">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" /></svg>
             <span>{studentInfo.email || 'N/A'}</span>
           </div>
         </div>
 
-        <div className="flex p-1 bg-gray-50 rounded-full mb-8">
-          {['7 Days', 'Month', 'Custom'].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-2 rounded-full font-bold text-sm transition-all ${activeTab === t ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400'}`}>{t}</button>)}
+        <div className="flex p-1 bg-gray-50 dark:bg-slate-800/50 rounded-full mb-8">
+          {['7 Days', 'Month', 'Custom'].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`flex-1 py-2 rounded-full font-bold text-sm transition-all ${activeTab === t ? 'bg-white dark:bg-[#0f172a] text-blue-600 shadow-sm' : 'text-gray-400'}`}>{t}</button>)}
         </div>
         {activeTab === 'Custom' && (
           <div className="flex gap-4 mb-8">
-            <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="flex-1 p-3 bg-gray-50 rounded-xl" />
-            <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="flex-1 p-3 bg-gray-50 rounded-xl" />
+            <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-slate-800/50 dark:text-white rounded-xl [color-scheme:light] dark:[color-scheme:dark]" />
+            <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-slate-800/50 dark:text-white rounded-xl [color-scheme:light] dark:[color-scheme:dark]" />
           </div>
         )}
         {isLoading ? <div className="text-center py-20 font-bold text-gray-400">Loading analysis...</div> : (
@@ -359,7 +363,7 @@ const StudentReport = () => {
               <div key={act.activity_id}>
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-black">{act.name}</span>
-                  <span className="text-xs font-bold text-gray-400">{act.label}: {formatValue(act.value)}</span>
+                  <span className="text-xs font-bold text-gray-400 dark:text-gray-300">{act.label}: {formatValue(act.value)}</span>
                 </div>
                 {act.daily_data && act.daily_data.length > 0 ? (
                   <MiniChart
@@ -378,9 +382,9 @@ const StudentReport = () => {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-[80px] left-0 right-0 px-6 py-4 max-w-md mx-auto bg-white/80 backdrop-blur-md flex gap-2 z-40">
+      <div className="fixed bottom-[80px] left-0 right-0 px-6 py-4 max-w-md mx-auto bg-white dark:bg-[#0f172a]/80 backdrop-blur-md flex gap-2 z-40">
         <button onClick={() => setIsAiModalOpen(true)} className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
-          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0f172a] animate-pulse" />
           AI Analysis
         </button>
         <button onClick={() => navigate(`/counsellor/mentee/${id}/conversation`, { state: { student: studentInfo } })} className="flex-1 py-3.5 bg-indigo-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-1.5">
@@ -395,7 +399,7 @@ const StudentReport = () => {
       <AnimatePresence>
         {isNotificationModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setIsNotificationModalOpen(false)}>
-            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="bg-white w-full max-w-md p-8 rounded-t-3xl shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }} className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 w-full max-w-md p-8 rounded-t-3xl shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setIsNotificationModalOpen(false)} className="absolute top-6 right-6 p-2 bg-gray-50 text-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>

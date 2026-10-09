@@ -50,7 +50,7 @@ const ConfirmModal = ({
             <button 
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 py-3.5 bg-gray-50 dark:bg-[#334155] hover:bg-gray-100 dark:hover:bg-[#475569] text-gray-600 dark:text-[#F8FAFC] rounded-xl font-bold text-[15px] transition-colors disabled:opacity-50"
+              className="flex-1 py-3.5 bg-gray-50 dark:bg-[#334155] hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-[#475569] text-gray-600 dark:text-[#F8FAFC] rounded-xl font-bold text-[15px] transition-colors disabled:opacity-50"
             >
               {cancelText}
             </button>

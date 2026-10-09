@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
@@ -352,14 +353,17 @@ const CounsellorProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdfcf5] font-sans pb-32 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#fdfcf5] dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-32 relative overflow-x-hidden">
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <header className="px-8 pt-12 pb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-[28px] font-black text-[#0f172a] tracking-tight leading-tight">My CounsellorProfile</h1>
+            <h1 className="text-[28px] font-black text-[#0f172a] dark:text-white tracking-tight leading-tight">My CounsellorProfile</h1>
             <p className="text-[14px] font-bold text-gray-500/60 mt-0.5">Account Details</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
           </div>
         </header>
 
@@ -373,7 +377,7 @@ const CounsellorProfile = () => {
             {/* CounsellorProfile Identity */}
             <div className="flex flex-col items-center mb-10">
               <div className="relative group">
-                <div className="w-40 h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ring-8 ring-white/50 relative">
+                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-[#0f172a] shadow-xl overflow-hidden bg-white dark:bg-[#0f172a] ring-8 ring-white/50 dark:ring-[#0f172a]/50 relative">
                   <img
                     src={userInfo.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"}
                     className="w-full h-full object-cover"
@@ -406,7 +410,7 @@ const CounsellorProfile = () => {
                   onChange={handleProfileImageChange}
                 />
               </div>
-              <h2 className="text-[24px] font-black text-[#0f172a] mt-5 tracking-tight">{userInfo.name}</h2>
+              <h2 className="text-[24px] font-black text-[#0f172a] dark:text-white mt-5 tracking-tight">{userInfo.name}</h2>
 
               {/* Top Ranker Badge */}
               {(topRankerBadge?.hasBadge || userInfo?.top_ranker_from) && (
@@ -449,7 +453,8 @@ const CounsellorProfile = () => {
             {/* Personal Info */}
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Personal Info</h3>
+                <h3 className="text-[13px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">Personal Info</h3>
+
                 <button
                   onClick={() => setIsEditInfoOpen(true)}
                   className="text-[13px] font-black text-[#f97316]"
@@ -457,38 +462,38 @@ const CounsellorProfile = () => {
                   Edit
                 </button>
               </div>
-              <div className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 space-y-8">
+              <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 space-y-8">
                 <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] flex items-center justify-center text-[#94a3b8]">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] dark:bg-slate-800/50 flex items-center justify-center text-[#94a3b8]">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-1">Email</p>
-                    <p className="text-[16px] font-bold text-[#1e293b]">{userInfo.email}</p>
+                    <p className="text-[16px] font-bold text-[#1e293b] dark:text-white">{userInfo.email}</p>
                   </div>
                 </div>
 
-                <div className="w-full h-px bg-gray-50"></div>
+                <div className="w-full h-px bg-gray-50 dark:bg-slate-800"></div>
 
                 <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] flex items-center justify-center text-[#94a3b8]">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] dark:bg-slate-800/50 flex items-center justify-center text-[#94a3b8]">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-1">Phone</p>
-                    <p className="text-[16px] font-bold text-[#1e293b]">{userInfo.mobile}</p>
+                    <p className="text-[16px] font-bold text-[#1e293b] dark:text-white">{userInfo.mobile}</p>
                   </div>
                 </div>
 
-                <div className="w-full h-px bg-gray-50"></div>
+                <div className="w-full h-px bg-gray-50 dark:bg-slate-800"></div>
 
                 <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] flex items-center justify-center text-[#94a3b8]">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fcf8ed] dark:bg-slate-800/50 flex items-center justify-center text-[#94a3b8]">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-1">Birthday</p>
-                    <p className="text-[16px] font-bold text-[#1e293b]">
+                    <p className="text-[16px] font-bold text-[#1e293b] dark:text-white">
                       {userInfo.dob ? (new Date(userInfo.dob).toString() !== 'Invalid Date' ? new Date(userInfo.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : userInfo.dob) : 'Not set'}
                     </p>
                   </div>
@@ -499,18 +504,18 @@ const CounsellorProfile = () => {
             {/* Add Mentees (invite link) */}
             <section className="px-8 pb-10">
               <div className="mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Add Mentees</h3>
+                <h3 className="text-[13px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">Add Mentees</h3>
               </div>
-              <div className="bg-white rounded-[28px] border border-gray-100 shadow-sm p-5">
-                <p className="text-[14px] font-bold text-[#1e293b] mb-3">Please share this link with mentees to join your group.</p>
-                <div className="flex items-center gap-2 bg-[#fcf8ed] rounded-2xl pl-4 pr-2 py-2">
-                  <p className="flex-1 min-w-0 text-[13px] font-bold text-gray-600 break-all select-all">{inviteLink || 'Link not available'}</p>
+              <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[28px] border border-gray-100 shadow-sm p-5">
+                <p className="text-[14px] font-bold text-[#1e293b] dark:text-white mb-3">Please share this link with mentees to join your group.</p>
+                <div className="flex items-center gap-2 bg-[#fcf8ed] dark:bg-slate-800/50 rounded-2xl pl-4 pr-2 py-2">
+                  <p className="flex-1 min-w-0 text-[13px] font-bold text-gray-600 dark:text-gray-300 break-all select-all">{inviteLink || 'Link not available'}</p>
                   <button
                     onClick={handleCopyInvite}
                     disabled={!inviteLink}
                     title="Copy link"
                     aria-label="Copy link"
-                    className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[#f97316] hover:bg-white active:scale-95 transition-all disabled:opacity-50"
+                    className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-[#f97316] hover:bg-white dark:hover:bg-slate-700 dark:text-orange-400 active:scale-95 transition-all disabled:opacity-50"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                   </button>
@@ -530,10 +535,10 @@ const CounsellorProfile = () => {
             {/* My Mentors */}
             <section className="px-8 pb-10">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">My Mentors</h3>
+                <h3 className="text-[13px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">My Mentors</h3>
                 <button
                   onClick={() => setIsAddMentorOpen(true)}
-                  className="w-8 h-8 rounded-full bg-[#fef3c7]/60 flex items-center justify-center text-[#f97316] font-black text-[20px] transition-all hover:bg-[#fef3c7]"
+                  className="w-8 h-8 rounded-full bg-[#fef3c7]/60 dark:bg-orange-500/10 flex items-center justify-center text-[#f97316] dark:text-orange-400 font-black text-[20px] transition-all hover:bg-[#fef3c7] dark:hover:bg-orange-500/20"
                 >
                   +
                 </button>
@@ -545,19 +550,19 @@ const CounsellorProfile = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all"
+                    className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all"
                   >
                     <div className="flex items-center gap-4">
                       <img src={mentor.avatar || mentor.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.name || 'Mentor')}&background=f97316&color=fff`} className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-100" alt="" />
                       <div>
-                        <h4 className="text-[16px] font-black text-[#1e293b]">{mentor.name}</h4>
+                        <h4 className="text-[16px] font-black text-[#1e293b] dark:text-white">{mentor.name}</h4>
                         {mentor.email && (
                           <div className="flex items-center gap-1.5 text-gray-400 mt-0.5">
                             <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                             <span className="text-[12px] font-bold tracking-tight text-gray-500">{mentor.email}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-1.5 text-gray-400 mt-1">
+                        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-300 mt-1">
                           {/* <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg> */}
                           {/* <span className="text-[12px] font-bold tracking-tight">{mentor.temple || 'Mentor Connection'}</span> */}
                         </div>
@@ -591,10 +596,10 @@ const CounsellorProfile = () => {
 
             {/* Push notifications on/off (moved here from the home screen) */}
             <section className="px-8 mb-6">
-              <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between">
+              <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between">
                 <div>
-                  <h4 className="text-[16px] font-black text-[#1e293b]">Push Notifications</h4>
-                  <p className="text-[13px] font-bold text-gray-400 mt-1">
+                  <h4 className="text-[16px] font-black text-[#1e293b] dark:text-white">Push Notifications</h4>
+                  <p className="text-[13px] font-bold text-gray-400 dark:text-gray-300 mt-1">
                     {isPushEnabled ? 'On — you receive weekly push reminders' : 'Off — turn on to get weekly push reminders'}
                   </p>
                 </div>
@@ -602,31 +607,31 @@ const CounsellorProfile = () => {
                   onClick={handleTogglePush}
                   disabled={isTogglingPush}
                   aria-label={isPushEnabled ? 'Disable push notifications' : 'Enable push notifications'}
-                  className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 disabled:opacity-60 ${isPushEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                  className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 disabled:opacity-60 ${isPushEnabled ? 'bg-[#f97316]' : 'bg-gray-200 dark:bg-slate-700'}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isPushEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                  <div className={`w-4 h-4 rounded-full bg-white dark:bg-[#0f172a] shadow-sm transition-transform ${isPushEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
                 </button>
               </div>
             </section>
             {/* Notification Preferences */}
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Notification Preferences</h3>
+                <h3 className="text-[13px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">Notification Preferences</h3>
               </div>
-              <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6">
+              <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col gap-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-[16px] font-black text-[#1e293b]">Activity Reminders</h4>
-                    <p className="text-[13px] font-bold text-gray-400 mt-1">Get notified if you miss your Sadhana activities</p>
+                    <h4 className="text-[16px] font-black text-[#1e293b] dark:text-white">Activity Reminders</h4>
+                    <p className="text-[13px] font-bold text-gray-400 dark:text-gray-300 mt-1">Get notified if you miss your Sadhana activities</p>
                   </div>
                   <button
                     onClick={() => {
                       const newEnabled = !userInfo.reminder_enabled;
                       handleSavePreferences(newEnabled, userInfo.reminder_days || 3);
                     }}
-                    className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 ${userInfo.reminder_enabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                    className={`w-12 h-6 rounded-full flex items-center transition-colors px-1 ${userInfo.reminder_enabled ? 'bg-[#f97316]' : 'bg-gray-200 dark:bg-slate-700'}`}
                   >
-                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${userInfo.reminder_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                    <div className={`w-4 h-4 rounded-full bg-white dark:bg-[#0f172a] shadow-sm transition-transform ${userInfo.reminder_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
                   </button>
                 </div>
 
@@ -638,11 +643,11 @@ const CounsellorProfile = () => {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="h-px bg-gray-50 w-full mb-6"></div>
+                      <div className="h-px bg-gray-50 dark:bg-slate-800 w-full mb-6"></div>
                       <div className="flex items-center justify-between">
-                        <p className="text-[14px] font-bold text-[#1e293b]">Remind me after missing</p>
+                        <p className="text-[14px] font-bold text-[#1e293b] dark:text-white">Remind me after missing</p>
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center bg-[#f8fafc] rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
+                          <div className="flex items-center bg-[#f8fafc] dark:bg-slate-800/50 dark:text-slate-200 rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
                             <button
                               onClick={() => userInfo.reminder_days > 1 && handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days - 1)}
                               className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
@@ -667,7 +672,7 @@ const CounsellorProfile = () => {
                                   handleSavePreferences(!!userInfo.reminder_enabled, 3);
                                 }
                               }}
-                              className="w-12 text-center bg-transparent text-[#1e293b] font-black text-[14px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="w-12 text-center bg-transparent text-[#1e293b] dark:text-white font-black text-[14px] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
                               onClick={() => userInfo.reminder_days < 10 && handleSavePreferences(userInfo.reminder_enabled, userInfo.reminder_days + 1)}
@@ -688,19 +693,19 @@ const CounsellorProfile = () => {
             {/* App Feedback Section */}
             <section className="px-8 mb-10">
               <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-[13px] font-black text-gray-400 uppercase tracking-widest">App Feedback</h3>
+                <h3 className="text-[13px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest">App Feedback</h3>
               </div>
-              <div className="bg-white rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col items-center">
+              <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-gray-50 flex flex-col items-center">
                 <textarea
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
                   placeholder="Tell us how we can improve this app..."
-                  className="w-full bg-[#f8fafc] text-[#1e293b] font-medium text-[14px] rounded-3xl p-5 outline-none border-2 border-transparent focus:border-[#f97316]/20 transition-all resize-none h-28 shadow-inner"
+                  className="w-full bg-[#f8fafc] dark:bg-slate-800/50 dark:text-slate-200 text-[#1e293b] dark:text-white font-medium text-[14px] rounded-3xl p-5 outline-none border-2 border-transparent focus:border-[#f97316]/20 transition-all resize-none h-28 shadow-inner placeholder-gray-400 dark:placeholder-gray-500"
                 />
                 <button
                   onClick={handlePostFeedback}
                   disabled={isSubmittingFeedback || !feedbackText.trim()}
-                  className="mt-4 w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-black py-4 rounded-full flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 shadow-md"
+                  className="mt-4 w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-black py-4 rounded-full flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 dark:disabled:opacity-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:active:scale-100 shadow-md"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                   {isSubmittingFeedback ? 'Posting...' : 'Post Feedback'}
@@ -723,7 +728,7 @@ const CounsellorProfile = () => {
                   localStorage.clear();
                   navigate('/');
                 }}
-                className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-5 rounded-[32px] border-2 border-red-100/50 flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-sm"
+                className="w-full bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 font-black py-5 rounded-[32px] border-2 border-red-100/50 dark:border-red-500/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -744,14 +749,14 @@ const CounsellorProfile = () => {
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl text-center"
+              className="w-full max-w-sm bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[32px] p-6 shadow-2xl text-center"
             >
               <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="text-[18px] font-black text-[#0f172a] mb-2">Remove Mentor?</h3>
+              <h3 className="text-[18px] font-black text-[#0f172a] dark:text-white mb-2">Remove Mentor?</h3>
               <p className="text-[14px] text-gray-500 font-semibold mb-6">
                 Are you sure you want to remove <strong className="text-gray-800">{mentorToRemove.name}</strong> from your mentors list?
               </p>
@@ -759,7 +764,7 @@ const CounsellorProfile = () => {
                 <button
                   type="button"
                   onClick={() => setMentorToRemove(null)}
-                  className="flex-1 py-3.5 rounded-full bg-gray-100 text-gray-700 font-bold text-[14px] hover:bg-gray-200 transition-all"
+                  className="flex-1 py-3.5 rounded-full bg-gray-100 text-gray-700 font-bold text-[14px] hover:bg-gray-200 dark:bg-slate-700 transition-all"
                 >
                   Cancel
                 </button>

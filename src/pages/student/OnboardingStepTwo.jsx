@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRequest, postRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const OnboardingStepTwo = () => {
@@ -159,40 +160,41 @@ const OnboardingStepTwo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex justify-center font-sans">
-      <div className="w-full max-w-md bg-white flex flex-col relative">
+    <div className="min-h-screen relative bg-white dark:bg-[#0B1220] transition-colors duration-300 text-[#0f172a] dark:text-[#F8FAFC] flex justify-center font-sans">
+      <div className="w-full max-w-md bg-white dark:bg-[#0B1220] flex flex-col relative">
 
-        {/* Header section with back button and steps */}
-        <div className="pt-6 pb-2 px-6 flex flex-col gap-4 sticky top-0 bg-white z-10 w-full">
+        {/* Header section with back button, step indicator, and theme toggle */}
+        <div className="pt-6 pb-2 px-6 flex flex-col gap-4 sticky top-0 bg-white dark:bg-[#0B1220] z-10 w-full transition-colors duration-300">
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
-              className="p-1 -ml-1 text-[#0f172a] hover:bg-gray-50 rounded-full transition-colors"
+              className="p-1 -ml-1 text-[#0f172a] dark:text-[#F8FAFC] hover:bg-gray-100 dark:hover:bg-[#1D2B40] rounded-full transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <span className="text-[14px] font-semibold text-[#475569] absolute left-1/2 -translate-x-1/2">
+            <span className="text-[14px] font-semibold text-[#475569] dark:text-[#B6C5DC] absolute left-1/2 -translate-x-1/2">
               Step 2 of 3
             </span>
+            <ThemeToggle />
           </div>
 
           {/* Progress Bars */}
           <div className="flex gap-2 w-full mt-2">
-            <div className="h-[4px] rounded-full bg-[#1a73e8] w-1/3"></div>
-            <div className="h-[4px] rounded-full bg-[#1a73e8] w-1/3"></div>
-            <div className="h-[4px] rounded-full bg-[#e2e8f0] w-1/3"></div>
+            <div className="h-[4px] rounded-full bg-[#1a73e8] dark:bg-[#3B82F6] w-1/3"></div>
+            <div className="h-[4px] rounded-full bg-[#1a73e8] dark:bg-[#3B82F6] w-1/3"></div>
+            <div className="h-[4px] rounded-full bg-[#e2e8f0] dark:bg-[#34465F] w-1/3"></div>
           </div>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 pt-6 pb-32">
 
-          <h1 className="text-[28px] font-bold text-[#0f172a] mb-2 tracking-tight">
+          <h1 className="text-[28px] font-bold text-[#0f172a] dark:text-[#F8FAFC] mb-2 tracking-tight">
             Tell us a bit more
           </h1>
-          <p className="text-[15px] text-[#64748b] font-medium mb-8">
+          <p className="text-[15px] text-[#64748b] dark:text-[#B6C5DC] font-medium mb-8">
             This helps us personalize your journey
           </p>
 
@@ -200,73 +202,72 @@ const OnboardingStepTwo = () => {
 
             {/* Name Input */}
             <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">Name</label>
+              <label className="block text-[15px] font-medium text-[#0f172a] dark:text-[#F8FAFC] mb-2">Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Enter your full name"
-                className="w-full border border-[#cbd5e1] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                className="w-full bg-white dark:bg-[#1D2B40] border border-[#cbd5e1] dark:border-[#34465F] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-[#94a3b8] dark:placeholder:text-[#9AAAC0] focus:border-[#1a73e8] dark:focus:border-[#3B82F6] focus:ring-1 focus:ring-[#1a73e8] dark:focus:ring-[#3B82F6] outline-none transition-all"
               />
             </div>
 
             {/* Email Input */}
             <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">Email</label>
+              <label className="block text-[15px] font-medium text-[#0f172a] dark:text-[#F8FAFC] mb-2">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email address"
-                className="w-full border border-[#cbd5e1] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                className="w-full bg-white dark:bg-[#1D2B40] border border-[#cbd5e1] dark:border-[#34465F] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-[#94a3b8] dark:placeholder:text-[#9AAAC0] focus:border-[#1a73e8] dark:focus:border-[#3B82F6] focus:ring-1 focus:ring-[#1a73e8] dark:focus:ring-[#3B82F6] outline-none transition-all"
               />
             </div>
 
             {/* Mobile Number Input */}
             <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">Mobile Number</label>
+              <label className="block text-[15px] font-medium text-[#0f172a] dark:text-[#F8FAFC] mb-2">Mobile Number</label>
               <input
                 type="tel"
                 name="mobile"
                 value={formData.mobile}
                 onChange={handleChange}
                 placeholder="Enter your mobile number, no country co"
-                className="w-full border border-[#cbd5e1] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                className="w-full bg-white dark:bg-[#1D2B40] border border-[#cbd5e1] dark:border-[#34465F] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-[#94a3b8] dark:placeholder:text-[#9AAAC0] focus:border-[#1a73e8] dark:focus:border-[#3B82F6] focus:ring-1 focus:ring-[#1a73e8] dark:focus:ring-[#3B82F6] outline-none transition-all"
               />
             </div>
 
             {/* Lock Info Text */}
             <div className="flex items-center gap-2 mt-[-8px]">
-              <svg className="w-[14px] h-[14px] text-[#64748b]" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-[14px] h-[14px] text-[#64748b] dark:text-[#B6C5DC]" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
               </svg>
-              <p className="text-[13px] text-[#64748b] font-medium">We'll only use this for important updates</p>
+              <p className="text-[13px] text-[#64748b] dark:text-[#B6C5DC] font-medium">We'll only use this for important updates</p>
             </div>
 
             {/* Date of Birth Input */}
             <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">Date of Birth</label>
+              <label className="block text-[15px] font-medium text-[#0f172a] dark:text-[#F8FAFC] mb-2">Date of Birth</label>
               <input
                 type="date"
                 name="birthday"
-                value={formData.birthday}
+                value={formData.birthday || ''}
                 onChange={handleChange}
                 placeholder="Select your date of birth"
-                className="w-full border border-[#cbd5e1] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
-
+                className="w-full bg-white dark:bg-[#1D2B40] border border-[#cbd5e1] dark:border-[#34465F] rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-[#94a3b8] dark:placeholder:text-[#9AAAC0] focus:border-[#1a73e8] dark:focus:border-[#3B82F6] focus:ring-1 focus:ring-[#1a73e8] dark:focus:ring-[#3B82F6] outline-none transition-all dark:[color-scheme:dark]"
               />
             </div>
 
             {/* Divider */}
-            <div className="h-[1px] w-full bg-[#f1f5f9] my-6"></div>
+            <div className="h-[1px] w-full bg-[#f1f5f9] dark:bg-[#34465F] my-6"></div>
 
             {/* Counselor Email Input */}
            {!referred_counsellor_id && ( <div>
-              <label className="block text-[15px] font-medium text-[#0f172a] mb-2">
+              <label className="block text-[15px] font-medium text-[#0f172a] dark:text-[#F8FAFC] mb-2">
                 Counsellor
-                <span className="ml-1 text-[13px] font-normal text-[#64748b]">(search by name or enter email)</span>
+                <span className="ml-1 text-[13px] font-normal text-[#64748b] dark:text-[#B6C5DC]">(search by name or enter email)</span>
               </label>
               <div className="relative">
                 <div className="relative flex items-center">
@@ -276,13 +277,13 @@ const OnboardingStepTwo = () => {
                     value={formData.counselorEmail}
                     onChange={handleChange}
                     placeholder="Search by name or enter counsellor email"
-                    className={`w-full border rounded-2xl pl-5 pr-12 py-3.5 text-[15px] text-[#0f172a] placeholder:text-[#94a3b8] focus:ring-1 outline-none transition-all ${
+                    className={`w-full bg-white dark:bg-[#1D2B40] border rounded-2xl pl-5 pr-12 py-3.5 text-[15px] text-[#0f172a] dark:text-[#F8FAFC] placeholder:text-[#94a3b8] dark:placeholder:text-[#9AAAC0] focus:ring-1 outline-none transition-all ${
                       counselorEmailError
                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                        : 'border-[#cbd5e1] focus:border-[#1a73e8] focus:ring-[#1a73e8]'
+                        : 'border-[#cbd5e1] dark:border-[#34465F] focus:border-[#1a73e8] dark:focus:border-[#3B82F6] focus:ring-[#1a73e8] dark:focus:ring-[#3B82F6]'
                     }`}
                   />
-                  <div className="absolute right-4 text-[#64748b]">
+                  <div className="absolute right-4 text-[#64748b] dark:text-[#9AAAC0]">
                     {isSearching ? (
                       <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
@@ -295,17 +296,17 @@ const OnboardingStepTwo = () => {
 
                 {/* Search Results Dropdown */}
                 {counselors.length > 0 && !selectedCounselor && (
-                  <div className="absolute z-30 w-full mt-2 bg-white border border-[#e2e8f0] rounded-2xl shadow-xl overflow-hidden max-h-[220px] overflow-y-auto">
+                  <div className="absolute z-30 w-full mt-2 bg-white dark:bg-[#142238] border border-[#e2e8f0] dark:border-[#34465F] rounded-2xl shadow-xl overflow-hidden max-h-[220px] overflow-y-auto">
                     {counselors.map((counselor) => (
                       <div
                         key={counselor.user_id}
                         onClick={() => handleSelectCounselor(counselor)}
-                        className="px-5 py-4 hover:bg-gray-50 border-b border-[#f1f5f9] last:border-none cursor-pointer group transition-colors"
+                        className="px-5 py-4 hover:bg-gray-50 dark:hover:bg-[#1D2B40] border-b border-[#f1f5f9] dark:border-[#34465F] last:border-none cursor-pointer group transition-colors"
                       >
-                        <p className="text-[15px] font-bold text-[#0f172a] group-hover:text-[#1a73e8]">
+                        <p className="text-[15px] font-bold text-[#0f172a] dark:text-[#F8FAFC] group-hover:text-[#1a73e8] dark:group-hover:text-[#3B82F6]">
                           {counselor.name}
                         </p>
-                        <p className="text-[13px] text-[#64748b]">
+                        <p className="text-[13px] text-[#64748b] dark:text-[#B6C5DC]">
                           {counselor.email}
                         </p>
                       </div>
@@ -315,7 +316,7 @@ const OnboardingStepTwo = () => {
 
                 {/* Inline Error Message */}
                 {counselorEmailError && (
-                  <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm border bg-red-50 text-red-600 border-red-100 animate-in fade-in slide-in-from-top-1">
+                  <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm border bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-100 dark:border-red-900 animate-in fade-in slide-in-from-top-1">
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -326,7 +327,7 @@ const OnboardingStepTwo = () => {
                 {/* Selected / Invited Indicator */}
                 {!counselorEmailError && (selectedCounselor || (!selectedCounselor && isValidEmail(formData.counselorEmail))) && (
                   <div className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm border animate-in fade-in slide-in-from-top-1 ${
-                    selectedCounselor ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-green-50 text-green-700 border-green-100'
+                    selectedCounselor ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-900' : 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-100 dark:border-green-900'
                   }`}>
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -353,10 +354,10 @@ const OnboardingStepTwo = () => {
         </div>
 
         {/* Sticky Bottom Bar */}
-        <div className="fixed bottom-0 w-full max-w-md bg-white p-6 border-t border-gray-50 z-20">
+        <div className="fixed bottom-0 w-full max-w-md bg-white dark:bg-[#0B1220] p-6 border-t border-gray-100 dark:border-[#34465F] z-20 transition-colors duration-300">
           <button
             onClick={handleContinue}
-            className="w-full bg-[#1a73e8] hover:bg-[#155fc3] text-white font-bold text-[16px] py-4 rounded-full shadow-lg shadow-[#1a73e8]/30 transition-all active:scale-[0.98] outline-none"
+            className="w-full bg-[#1a73e8] hover:bg-[#155fc3] dark:bg-[#3B82F6] dark:hover:bg-[#2563EB] text-white font-bold text-[16px] py-4 rounded-full shadow-lg shadow-[#1a73e8]/30 transition-all active:scale-[0.98] outline-none"
           >
             Continue
           </button>

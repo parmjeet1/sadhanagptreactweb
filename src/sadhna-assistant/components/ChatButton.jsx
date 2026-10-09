@@ -17,7 +17,7 @@ export function OptionChip({ children, onClick, selected = false, disabled = fal
         ${
           selected
             ? "bg-saffron-500 border-saffron-500 text-white shadow-sm"
-            : "bg-white border-saffron-200 text-saffron-800 hover:bg-saffron-50 active:bg-saffron-100"
+            : "bg-white dark:bg-[#1C2B42] border-saffron-200 dark:border-[#304766] text-saffron-800 dark:text-[#F8FAFC] hover:bg-saffron-50 dark:hover:bg-[#14243B] active:bg-saffron-100 dark:active:bg-[#0B1220]"
         }`}
     >
       {children}
@@ -46,8 +46,8 @@ export function SecondaryButton({ children, onClick, disabled = false, className
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`px-4 py-2 rounded-xl text-sm font-medium bg-cream-200 text-saffron-800 border border-saffron-100
-        hover:bg-saffron-50 active:bg-saffron-100 transition-colors duration-150
+      className={`px-4 py-2 rounded-xl text-sm font-medium bg-cream-200 dark:bg-[#1C2B42] text-saffron-800 dark:text-[#F8FAFC] border border-saffron-100 dark:border-[#304766]
+        hover:bg-saffron-50 dark:hover:bg-[#14243B] active:bg-saffron-100 dark:active:bg-[#0B1220] transition-colors duration-150
         disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {children}

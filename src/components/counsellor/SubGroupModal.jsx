@@ -147,22 +147,22 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 w-full max-w-md mx-auto bg-white rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
+            className="fixed bottom-0 w-full max-w-md mx-auto bg-white dark:bg-[#0f172a] rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
             style={{
               left: 'auto',
               right: 'max(0px, calc(50% - 224px))'
             }}
           >
             {/* Drag Handle */}
-            <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10">
-              <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10">
+              <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
             </div>
 
             <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar flex flex-col gap-6">
               {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-[24px] font-extrabold text-[#0f172a]">Mentee Sub Groups</h2>
-                <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-all">
+                <h2 className="text-[24px] font-extrabold text-[#0f172a] dark:text-white">Mentee Sub Groups</h2>
+                <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -175,7 +175,7 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
           {/* Group Selector (Locked since we are inside a specific group view) */}
           <div className="mb-6">
             <label className="text-[11px] font-black uppercase text-gray-400 mb-2 block tracking-widest">Select Group</label>
-            <div className="w-full p-4 bg-gray-50 rounded-2xl font-bold text-gray-500 flex items-center justify-between">
+            <div className="w-full p-4 bg-gray-50 dark:bg-[#0b1628] rounded-2xl font-bold text-gray-500 dark:text-gray-400 flex items-center justify-between">
               <span>{groupName || 'Current Group'}</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
@@ -193,22 +193,22 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
                   <p className="text-sm text-gray-400 font-medium italic text-center py-2">No sub-groups exist yet.</p>
                 ) : (
                   labels.map((lbl) => (
-                    <div key={lbl.label_id} className="flex items-center justify-between bg-white border border-gray-100 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div key={lbl.label_id} className="flex items-center justify-between bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-slate-800 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                       {editingId === lbl.label_id ? (
                         <div className="flex flex-1 items-center gap-2">
                           <input 
                             type="text" 
                             value={editingName} 
                             onChange={(e) => setEditingName(e.target.value)} 
-                            className="flex-1 bg-gray-50 px-3 py-1.5 rounded-xl text-sm font-bold outline-none border border-blue-200"
+                            className="flex-1 bg-gray-50 dark:bg-[#0b1628] px-3 py-1.5 rounded-xl text-sm font-bold outline-none border border-blue-200"
                             autoFocus
                           />
                           <button onClick={handleSaveEdit} className="p-1.5 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg></button>
-                          <button onClick={() => setEditingId(null)} className="p-1.5 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                          <button onClick={() => setEditingId(null)} className="p-1.5 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
                         </div>
                       ) : (
                         <>
-                          <span className="font-bold text-[#0f172a] text-sm pl-2">{lbl.label_name}</span>
+                          <span className="font-bold text-[#0f172a] dark:text-white text-sm pl-2">{lbl.label_name}</span>
                           <div className="flex gap-1">
                             <button onClick={() => handleEditLabel(lbl.label_id, lbl.label_name)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -233,7 +233,7 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
                 value={newLabelName}
                 onChange={(e) => setNewLabelName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAddLabel(); }}
-                className="flex-1 bg-[#f8fafc] rounded-2xl py-4 px-5 text-[15px] font-medium outline-none border border-transparent focus:border-blue-200 transition-all"
+                className="flex-1 bg-[#f8fafc] dark:bg-[#0b1628] rounded-2xl py-4 px-5 text-[15px] font-medium outline-none border border-transparent focus:border-blue-200 transition-all"
               />
               <button 
                 onClick={handleAddLabel}
@@ -256,18 +256,18 @@ const SubGroupModal = ({ isOpen, onClose, userDetails, centerId, groupName, onLa
       {deleteTarget && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[95] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-sm bg-white dark:bg-[#0f172a] rounded-3xl shadow-2xl p-6 text-center">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
-            <h3 className="text-xl font-extrabold text-[#0f172a] mb-2">Delete '{deleteTarget.label_name}'?</h3>
-            <p className="text-gray-500 text-sm font-medium mb-6 leading-relaxed">
+            <h3 className="text-xl font-extrabold text-[#0f172a] dark:text-white mb-2">Delete '{deleteTarget.label_name}'?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-6 leading-relaxed">
               Students in this subgroup will NOT be deleted. Their Group stays unchanged, but their Subgroup will be cleared to Uncategorised.
               <br /><br />This action cannot be undone.
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={confirmDeleteLabel} className="w-full bg-red-500 text-white font-bold py-3.5 rounded-2xl active:scale-95 transition-all">Delete Subgroup</button>
-              <button onClick={() => setDeleteTarget(null)} className="w-full bg-gray-100 text-gray-700 font-bold py-3.5 rounded-2xl active:scale-95 transition-all">Cancel</button>
+              <button onClick={() => setDeleteTarget(null)} className="w-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold py-3.5 rounded-2xl active:scale-95 transition-all">Cancel</button>
             </div>
           </motion.div>
         </motion.div>

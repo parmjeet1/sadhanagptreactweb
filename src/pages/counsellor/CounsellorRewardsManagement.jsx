@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -44,22 +45,25 @@ const CounsellorRewardsManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans pb-32 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-32 relative overflow-x-hidden">
       <div className="w-full max-w-md mx-auto relative h-full">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-10 pb-6 bg-[#f8fafc] sticky top-0 z-10 w-full">
+        <div className="flex items-center justify-between px-6 pt-10 pb-6 bg-[#f8fafc] dark:bg-[#0b1628] sticky top-0 z-10 w-full">
           <button 
             onClick={() => navigate(-1)} 
-            className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+            className="w-12 h-12 rounded-full bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 shadow-sm flex items-center justify-center text-[#0f172a] dark:text-white hover:bg-gray-50 active:scale-95 transition-all"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </button>
           
-          <h1 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight">Rewards Management</h1>
+          <h1 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white tracking-tight">Rewards Management</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           
           <button 
-            className="relative w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] hover:bg-gray-50 active:scale-95 transition-all"
+            className="relative w-12 h-12 rounded-full bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 shadow-sm flex items-center justify-center text-[#0f172a] dark:text-white hover:bg-gray-50 active:scale-95 transition-all"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             <span className="absolute top-3 right-3 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
@@ -71,10 +75,10 @@ const CounsellorRewardsManagement = () => {
           
           {/* Active Rewards Section */}
           <section>
-            <h2 className="text-[18px] font-bold text-[#0f172a] mb-4">Active Rewards</h2>
+            <h2 className="text-[18px] font-bold text-[#0f172a] dark:text-white mb-4">Active Rewards</h2>
             <div className="space-y-4">
               {activeRewards.map(reward => (
-                <div key={reward.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50 flex flex-col relative group">
+                <div key={reward.id} className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-3xl p-5 shadow-sm border border-gray-50 flex flex-col relative group">
                   <div className="flex items-start gap-4">
                     <div className={`w-14 h-14 rounded-full ${reward.iconBg} flex items-center justify-center ${reward.iconColor} shrink-0`}>
                       {reward.id === 1 ? (
@@ -84,7 +88,7 @@ const CounsellorRewardsManagement = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0 pr-16 border-r border-[#f1f5f9]">
-                      <h3 className="text-[16px] font-bold text-[#0f172a] truncate">{reward.name}</h3>
+                      <h3 className="text-[16px] font-bold text-[#0f172a] dark:text-white truncate">{reward.name}</h3>
                       <p className="text-[13px] text-gray-400 mt-0.5">Activity: {reward.activity}</p>
                       <div className="mt-2 inline-flex">
                         <span className="px-3 py-1 rounded-full bg-[#eff6ff] text-[#3b82f6] text-[12px] font-bold">
@@ -109,8 +113,8 @@ const CounsellorRewardsManagement = () => {
 
           {/* Add New Reward Form */}
           <section>
-            <h2 className="text-[18px] font-bold text-[#0f172a] mb-4">Add New Reward</h2>
-            <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-6">
+            <h2 className="text-[18px] font-bold text-[#0f172a] dark:text-white mb-4">Add New Reward</h2>
+            <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-6">
               
               {/* Reward Name */}
               <div>
@@ -121,7 +125,7 @@ const CounsellorRewardsManagement = () => {
                   value={formData.rewardName}
                   onChange={handleChange}
                   placeholder="e.g. Early Riser Badge" 
-                  className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                  className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-white placeholder:text-gray-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
                 />
               </div>
 
@@ -133,7 +137,7 @@ const CounsellorRewardsManagement = () => {
                     name="activity"
                     value={formData.activity}
                     onChange={handleChange}
-                    className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] appearance-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all bg-white"
+                    className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-white appearance-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all bg-white dark:bg-[#0f172a]"
                   >
                     <option value="Chanting (Japa)">Chanting (Japa)</option>
                     <option value="Reading">Reading</option>
@@ -156,7 +160,7 @@ const CounsellorRewardsManagement = () => {
                       value={formData.count}
                       onChange={handleChange}
                       placeholder="Count" 
-                      className="w-full border border-gray-100 rounded-2xl px-5 pl-5 pr-14 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-300 focus:border-[#1a73e8] outline-none transition-all"
+                      className="w-full border border-gray-100 rounded-2xl px-5 pl-5 pr-14 py-3.5 text-[15px] text-[#0f172a] dark:text-white placeholder:text-gray-300 focus:border-[#1a73e8] outline-none transition-all"
                     />
                     <span className="absolute right-4 top-[14px] text-[12px] text-gray-400 font-medium">Daily</span>
                   </div>
@@ -167,7 +171,7 @@ const CounsellorRewardsManagement = () => {
                       value={formData.days}
                       onChange={handleChange}
                       placeholder="Days" 
-                      className="w-full border border-gray-100 rounded-2xl px-5 pl-5 pr-20 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-300 focus:border-[#1a73e8] outline-none transition-all"
+                      className="w-full border border-gray-100 rounded-2xl px-5 pl-5 pr-20 py-3.5 text-[15px] text-[#0f172a] dark:text-white placeholder:text-gray-300 focus:border-[#1a73e8] outline-none transition-all"
                     />
                     <span className="absolute right-4 top-[14px] text-[12px] text-gray-400 font-medium">Duration</span>
                   </div>
@@ -184,7 +188,7 @@ const CounsellorRewardsManagement = () => {
                   value={formData.threshold}
                   onChange={handleChange}
                   placeholder="e.g. Minimum 10 rounds daily" 
-                  className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] placeholder:text-gray-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
+                  className="w-full border border-gray-100 rounded-2xl px-5 py-3.5 text-[15px] text-[#0f172a] dark:text-white placeholder:text-gray-300 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all"
                 />
               </div>
 
@@ -192,7 +196,7 @@ const CounsellorRewardsManagement = () => {
               <div className="flex gap-4 pt-4">
                 <button 
                   onClick={() => navigate(-1)}
-                  className="w-1/2 py-4 rounded-full border border-gray-200 text-[#0f172a] font-bold text-[16px] hover:bg-gray-50 active:scale-95 transition-all text-center"
+                  className="w-1/2 py-4 rounded-full border border-gray-200 text-[#0f172a] dark:text-white font-bold text-[16px] hover:bg-gray-50 active:scale-95 transition-all text-center"
                 >
                   Cancel
                 </button>

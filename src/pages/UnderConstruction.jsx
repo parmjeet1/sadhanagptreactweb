@@ -6,7 +6,7 @@ const UnderConstruction = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
       
       {/* Decorative Background Elements */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-blue-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob"></div>
@@ -20,7 +20,7 @@ const UnderConstruction = () => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className="w-32 h-32 bg-white rounded-full shadow-2xl flex items-center justify-center relative mb-8 border-[6px] border-[#f1f5f9]"
+          className="w-32 h-32 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-full shadow-2xl flex items-center justify-center relative mb-8 border-[6px] border-[#f1f5f9]"
         >
           {/* Construction SVG */}
           <div className="absolute inset-0 flex items-center justify-center text-[#1a73e8]">
@@ -46,7 +46,7 @@ const UnderConstruction = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="text-[28px] font-black text-[#0f172a] tracking-tight leading-tight mb-3"
+          className="text-[28px] font-black text-[#0f172a] dark:text-white tracking-tight leading-tight mb-3"
         >
           Coming Soon
         </motion.h1>
@@ -69,7 +69,7 @@ const UnderConstruction = () => {
         >
           <button
             onClick={() => navigate(-1)}
-            className="flex-1 bg-white border-2 border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-[#475569] font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-sm outline-none flex items-center justify-center gap-2"
+            className="flex-1 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border-2 border-gray-100 hover:border-gray-200 hover:bg-gray-50 text-[#475569] font-bold py-3.5 px-4 rounded-xl transition-all active:scale-95 shadow-sm outline-none flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Go Back

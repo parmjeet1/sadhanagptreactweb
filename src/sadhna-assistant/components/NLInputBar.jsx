@@ -236,12 +236,12 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
   const hint = activityNames.length ? ` (${activityNames.join(", ")})` : "";
 
   return (
-    <div className="border-t border-saffron-100 bg-cream-50 px-3 py-2.5">
-      <p className="text-[11px] text-saffron-600 mb-1.5 px-1">
+    <div className="border-t border-saffron-100 dark:border-[#304766] bg-cream-50 dark:bg-[#0F1B30] px-3 py-2.5">
+      <p className="text-[11px] text-saffron-600 dark:text-[#B6C5DC] mb-1.5 px-1">
         Just write/Speak your Sadhna
-        <span className="text-saffron-400">{hint}</span>
+        <span className="text-saffron-400 dark:text-[#FF981F]/70">{hint}</span>
       </p>
-      {micError && <p className="text-[11px] text-saffron-700 bg-saffron-100 rounded-lg px-2 py-1 mb-1.5">{micError}</p>}
+      {micError && <p className="text-[11px] text-saffron-700 dark:text-red-400 bg-saffron-100 dark:bg-red-900/20 rounded-lg px-2 py-1 mb-1.5">{micError}</p>}
       <div className="flex items-end gap-2">
         <textarea
           rows={2}
@@ -250,7 +250,7 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={listening ? "Listening..." : "e.g. 16 rounds, woke at 4:25..."}
-          className="flex-1 min-w-0 resize-none px-4 py-2.5 h-20 rounded-2xl border border-saffron-200 bg-white text-sm
+          className="flex-1 min-w-0 resize-none px-4 py-2.5 h-20 rounded-2xl border border-saffron-200 dark:border-[#304766] bg-white dark:bg-[#14243B] text-gray-900 dark:text-[#F8FAFC] text-sm dark:[color-scheme:dark]
             focus:outline-none focus:ring-2 focus:ring-saffron-300 disabled:opacity-60"
         />
         <div className="flex flex-col gap-2 shrink-0">
@@ -261,7 +261,7 @@ export function NLInputBar({ onSend, disabled, activityNames = [] }) {
               disabled={disabled}
               aria-label={listening ? "Stop listening" : "Speak"}
               className={`h-10 w-10 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed
-                ${listening ? "bg-saffron-700 text-white animate-sadhna-glow" : "bg-cream-200 text-saffron-700 hover:bg-saffron-100"}`}
+                ${listening ? "bg-saffron-700 text-white animate-sadhna-glow" : "bg-cream-200 dark:bg-[#1C2B42] text-saffron-700 dark:text-[#B6C5DC] hover:bg-saffron-100 dark:hover:bg-[#304766]"}`}
             >
               {listening ? <Square size={15} /> : <Mic size={17} />}
             </button>

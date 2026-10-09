@@ -692,7 +692,7 @@ const StudentDashboard = () => {
               fillClass = 'h-0';
               bgClass = 'bg-white dark:bg-[#1e293b]';
               borderClass = 'border border-slate-200/80 dark:border-slate-700/80';
-              textColor = 'text-[#0f172a] dark:text-slate-100';
+              textColor = 'text-[#0f172a] dark:text-white dark:text-slate-100';
               monthColor = 'text-[#94a3b8] dark:text-slate-400';
             }
 

@@ -31,17 +31,17 @@ export function DateRangePickerCard({ onConfirm }) {
   };
 
   return (
-    <div className="bg-white border border-saffron-100 rounded-2xl p-3.5 animate-sadhna-in">
-      <p className="text-sm font-medium text-saffron-900 mb-2">Pick a date range</p>
+    <div className="bg-white dark:bg-[#1e293b] border border-saffron-100 dark:border-slate-700 rounded-2xl p-3.5 animate-sadhna-in">
+      <p className="text-sm font-medium text-saffron-900 dark:text-white mb-2">Pick a date range</p>
       <div className="flex items-end gap-2 flex-wrap">
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] text-saffron-500">From</span>
+          <span className="text-[11px] text-saffron-500 dark:text-slate-400">From</span>
           <input
             type="date"
             value={start}
             max={max}
             onChange={(e) => setStart(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-saffron-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-saffron-300"
+            className="px-3 py-2 rounded-xl border border-saffron-200 dark:border-slate-700 bg-white dark:bg-[#0b1628] text-gray-900 dark:text-white text-sm dark:[color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-saffron-300"
           />
         </label>
         <label className="flex flex-col gap-1">

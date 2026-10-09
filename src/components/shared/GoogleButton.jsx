@@ -19,7 +19,7 @@ const GoogleButton = () => {
             
             <button
                 onClick={handleGoogleLogin}
-                className="w-full bg-white border border-gray-300 rounded-full py-2 px-4 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition"
+                className="w-full bg-white dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border border-gray-300 dark:border-[#34465F] hover:bg-gray-50 dark:hover:bg-[#253650] rounded-full py-2.5 px-4 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition text-[15px] font-medium"
             >
                 <img 
                     src="https://developers.google.com/identity/images/g-logo.png" 

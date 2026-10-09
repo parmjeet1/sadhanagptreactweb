@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from '../pages/Login';
-import RoleSelection from '../pages/RoleSelection';
-import EmailLogin from '../pages/EmailLogin';
+import Login from '../pages/auth/Login';
+import RoleSelection from '../pages/auth/RoleSelection';
+import EmailLogin from '../pages/auth/EmailLogin';
 import OnboardingStepTwo from '../pages/student/OnboardingStepTwo';
 import StudentDashboard from '../pages/student/StudentDashboard';
 import StudentAppliedMarkingScheme from '../pages/student/StudentAppliedMarkingScheme';
@@ -30,7 +30,7 @@ import CounsellorSubCounsellors from '../pages/counsellor/CounsellorSubCounsello
 import IrregularMentees from '../pages/counsellor/mentees_module/IrregularMentees';
 import StudentRanksList from '../pages/counsellor/mentees_module/StudentRanksList';
 import CounsellorOnboardingStepTwo from '../pages/counsellor/CounsellorOnboardingStepTwo';
-import GoogleCallback from '../pages/GoogleCallback';
+import GoogleCallback from '../pages/auth/GoogleCallback';
 import AuthGuard from '../components/shared/AuthGuard';
 import MarkingScheme from '../pages/counsellor/marking-scheme/MarkingScheme';
 import DefaultSchemeDetail from '../pages/counsellor/marking-scheme/DefaultSchemeDetail';

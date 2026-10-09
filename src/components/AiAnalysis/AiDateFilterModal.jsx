@@ -101,7 +101,7 @@ const AiDateFilterModal = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed bottom-0 w-full max-w-md mx-auto bg-white rounded-t-[32px] shadow-2xl z-[99] flex flex-col overflow-hidden"
+          className="fixed bottom-0 w-full max-w-md mx-auto bg-white dark:bg-[#0f172a] rounded-t-[32px] shadow-2xl z-[99] flex flex-col overflow-hidden"
           style={{
             left: 'auto',
             right: 'max(0px, calc(50% - 224px))'
@@ -109,22 +109,22 @@ const AiDateFilterModal = ({
         >
           {/* Top Drag Handle Bar */}
           <div 
-            className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+            className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10 cursor-pointer"
             onClick={isSubmitting ? null : onClose}
           >
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
           </div>
 
           <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
             {/* Header Title */}
             <div>
-              <h2 className="text-[24px] font-extrabold text-[#0f172a] tracking-tight">{title}</h2>
-              <p className="text-[13px] font-medium text-gray-500 mt-1">{subtitle}</p>
+              <h2 className="text-[24px] font-extrabold text-[#0f172a] dark:text-white tracking-tight">{title}</h2>
+              <p className="text-[13px] font-medium text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
             </div>
 
             {/* Date Window Presets Grid */}
             <div className="space-y-3">
-              <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider block">
+              <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
                 Select Date Window
               </label>
 
@@ -139,8 +139,8 @@ const AiDateFilterModal = ({
                       disabled={isSubmitting}
                       className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
                         isSelected 
-                          ? 'border-[#1a73e8] bg-[#f0f7ff]' 
-                          : 'border-gray-100 bg-white hover:border-gray-200'
+                          ? 'border-[#1a73e8] bg-[#f0f7ff] dark:bg-[#1e293b]' 
+                          : 'border-gray-100 dark:border-slate-800 bg-white dark:bg-[#0f172a] hover:border-gray-200 dark:border-slate-700'
                       }`}
                     >
                       {isSelected && (
@@ -152,7 +152,7 @@ const AiDateFilterModal = ({
                       )}
 
                       <span className="text-2xl mb-1">{opt.icon}</span>
-                      <span className={`text-[15px] font-bold ${isSelected ? 'text-[#0f172a]' : 'text-gray-700'}`}>
+                      <span className={`text-[15px] font-bold ${isSelected ? 'text-[#0f172a] dark:text-white' : 'text-gray-700 dark:text-slate-200'}`}>
                         {opt.label}
                       </span>
                       <span className="text-[11px] font-medium text-gray-400 text-center mt-0.5">
@@ -170,9 +170,9 @@ const AiDateFilterModal = ({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="p-4 rounded-2xl bg-[#f8fafc] border border-gray-100 space-y-3"
+                className="p-4 rounded-2xl bg-[#f8fafc] dark:bg-[#0b1628] border border-gray-100 dark:border-slate-800 space-y-3"
               >
-                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider block">
+                <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">
                   Custom Date Range
                 </label>
 
@@ -184,7 +184,7 @@ const AiDateFilterModal = ({
                       value={customFrom}
                       onChange={(e) => setCustomFrom(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full bg-white text-[#0f172a] font-bold text-[14px] rounded-xl p-3 outline-none border border-gray-200 focus:border-[#1a73e8] transition-all"
+                      className="w-full bg-white dark:bg-[#0f172a] text-[#0f172a] dark:text-white font-bold text-[14px] rounded-xl p-3 outline-none border border-gray-200 dark:border-slate-700 focus:border-[#1a73e8] transition-all"
                     />
                   </div>
                   <div>
@@ -194,7 +194,7 @@ const AiDateFilterModal = ({
                       value={customTo}
                       onChange={(e) => setCustomTo(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full bg-white text-[#0f172a] font-bold text-[14px] rounded-xl p-3 outline-none border border-gray-200 focus:border-[#1a73e8] transition-all"
+                      className="w-full bg-white dark:bg-[#0f172a] text-[#0f172a] dark:text-white font-bold text-[14px] rounded-xl p-3 outline-none border border-gray-200 dark:border-slate-700 focus:border-[#1a73e8] transition-all"
                     />
                   </div>
                 </div>
@@ -203,7 +203,7 @@ const AiDateFilterModal = ({
 
             {/* Status updates during collection */}
             {isSubmitting && (
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-[#f0f7ff] border border-blue-100 text-[#1a73e8] text-xs font-bold">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-[#f0f7ff] dark:bg-[#1e293b] border border-blue-100 text-[#1a73e8] text-xs font-bold">
                 <div className="w-4 h-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin" />
                 <span>{statusMessage || 'Collecting metrics & launching ChatGPT...'}</span>
               </div>
@@ -215,7 +215,7 @@ const AiDateFilterModal = ({
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+                className="flex-1 py-4 text-[15px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-slate-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

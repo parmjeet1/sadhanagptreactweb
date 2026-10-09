@@ -200,7 +200,7 @@ const DefaultSchemeDetail = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A192F] font-sans pb-28 transition-colors duration-300 flex flex-col relative">
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A192F]/80 backdrop-blur-xl border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-[12px] min-[380px]:px-[16px] md:px-[20px] lg:px-[24px] py-4 transition-all duration-300 box-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-white dark:bg-[#0f172a]/80 dark:bg-[#0A192F]/80 backdrop-blur-xl border-b border-[#E5E7EB] dark:border-[rgba(255,255,255,0.06)] px-[12px] min-[380px]:px-[16px] md:px-[20px] lg:px-[24px] py-4 transition-all duration-300 box-border shadow-sm">
         <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
             <button

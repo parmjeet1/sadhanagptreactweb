@@ -171,13 +171,13 @@ export const ContributeModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white dark:bg-[#0f172a]/10 hover:bg-white dark:bg-[#0f172a]/20 rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl">
+                <div className="p-3 bg-white dark:bg-[#0f172a]/20 backdrop-blur-md rounded-2xl">
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -202,8 +202,8 @@ export const ContributeModal = ({
                       type="button"
                       onClick={() => setCustomAmount(amt)}
                       className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${customAmount === amt
-                        ? 'bg-white text-[#ea580c] shadow-md scale-105 ring-2 ring-white'
-                        : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
+                        ? 'bg-white dark:bg-[#0f172a] text-[#ea580c] shadow-md scale-105 ring-2 ring-white'
+                        : 'bg-white dark:bg-[#0f172a]/20 text-white hover:bg-white dark:bg-[#0f172a]/30 border border-white/20'
                         }`}
                     >
                       ₹{amt}
@@ -221,7 +221,7 @@ export const ContributeModal = ({
                       min="10"
                       value={customAmount || ''}
                       onChange={(e) => setCustomAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full bg-white text-[#1f2937] font-extrabold text-sm rounded-xl py-3 pl-8 pr-4 shadow-sm border border-transparent focus:outline-none focus:ring-2 focus:ring-amber-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-white dark:bg-[#0f172a] text-[#1f2937] font-extrabold text-sm rounded-xl py-3 pl-8 pr-4 shadow-sm border border-transparent focus:outline-none focus:ring-2 focus:ring-amber-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Enter amount in ₹"
                     />
                   </div>
@@ -239,7 +239,7 @@ export const ContributeModal = ({
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
                   placeholder="Leave an encouraging message for the team..."
-                  className="w-full bg-white text-[#1f2937] font-medium rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none shadow-sm"
+                  className="w-full bg-white dark:bg-[#0f172a] text-[#1f2937] font-medium rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none shadow-sm"
                 />
               </div>
 
@@ -248,7 +248,7 @@ export const ContributeModal = ({
                 type="button"
                 onClick={handleBuyBook}
                 disabled={isProcessingPayment}
-                className="w-full py-3.5 px-6 rounded-2xl bg-white text-[#ea580c] font-extrabold text-sm sm:text-base hover:bg-amber-50 active:scale-[0.99] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#0f172a] text-[#ea580c] font-extrabold text-sm sm:text-base hover:bg-amber-50 active:scale-[0.99] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
               >
                 {isProcessingPayment ? (
                   <>
@@ -308,7 +308,7 @@ const ContributeButton = ({
     if (className) return className;
     switch (variant) {
       case 'outline':
-        return 'inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/20 backdrop-blur-md text-white border border-white/40 font-bold text-sm hover:bg-white/30 active:scale-95 transition-all cursor-pointer';
+        return 'inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#0f172a]/20 backdrop-blur-md text-white border border-white/40 font-bold text-sm hover:bg-white dark:bg-[#0f172a]/30 active:scale-95 transition-all cursor-pointer';
       case 'light':
         return 'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-orange-100 hover:bg-orange-200 text-[#ea580c] text-xs sm:text-sm font-extrabold active:scale-95 transition-all cursor-pointer border border-orange-200';
       case 'small':

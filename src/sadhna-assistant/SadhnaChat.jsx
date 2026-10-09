@@ -939,17 +939,17 @@ export function SadhnaChat({ adapter }) {
   // Render
   // ---------------------------------------------------------------------
   return (
-    <div className="flex flex-col h-full bg-cream-50">
-      <header className="flex items-center gap-2.5 px-4 py-3 border-b border-saffron-100 bg-white/80 backdrop-blur">
+    <div className="flex flex-col h-full bg-cream-50 dark:bg-[#0F1B30]">
+      <header className="flex items-center gap-2.5 px-4 py-3 border-b border-saffron-30 dark:border-[#F59E0B] bg-white/80 dark:bg-saffron-500 backdrop-blur dark:backdrop-blur-none opacity-100">
         <Sticker name="lotus_sparkles" size={30} />
         <div>
-          <h1 className="text-sm font-semibold text-saffron-900 leading-none">Sadhna Assistant</h1>
-          <p className="text-[11px] text-saffron-500 mt-0.5">Your daily devotional companion</p>
+          <h1 className="text-sm font-semibold text-saffron-900 dark:text-[#F8FAFC] leading-none">Sadhna Assistant</h1>
+          <p className="text-[11px] text-saffron-500 dark:text-[#FDE0C3] mt-0.5">Your daily devotional companion</p>
         </div>
       </header>
 
       {nlActiveDate !== todayISO() && (
-        <div className="flex items-center justify-between gap-2 px-4 py-1.5 bg-saffron-100 border-b border-saffron-200 text-[11px] font-semibold text-saffron-700">
+        <div className="flex items-center justify-between gap-2 px-4z py-1.5 bg-saffron-100 dark:bg-[#14243B] border-b border-saffron-200 dark:border-[#304766] text-[11px] font-semibold text-saffron-700 dark:text-[#B6C5DC]">
           <span>📅 Free-text is currently filling: {formatDateLabel(nlActiveDate)}</span>
           <button
             type="button"
@@ -1076,16 +1076,16 @@ function BlockRenderer({
     case "activity": {
       if (block.resolved) return null;
       return (
-        <div className="bg-white border border-saffron-100 rounded-2xl p-3.5 animate-sadhna-in">
+        <div className="bg-white dark:bg-[#14243B] border border-saffron-100 dark:border-[#304766] rounded-2xl p-3.5 animate-sadhna-in">
           {block.target && (
-            <p className="text-[11px] font-semibold text-saffron-500 mb-1">📅 For {block.target.dateLabel}</p>
+            <p className="text-[11px] font-semibold text-saffron-500 dark:text-[#FF981F] mb-1">📅 For {block.target.dateLabel}</p>
           )}
-          <p className="text-sm font-medium text-saffron-900">
+          <p className="text-sm font-medium text-saffron-900 dark:text-[#F8FAFC]">
             {activityQuestionText(block.activity)}
           </p>
           {isFilled(block.suggestion) && (
             <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-saffron-600">
+              <span className="text-xs text-saffron-600 dark:text-[#B6C5DC]">
                 {block.suggestionLabel || "Yesterday"}:{" "}
                 <span className="font-medium">{formatValueForEcho(block.activity, block.suggestion)}</span>
               </span>
@@ -1143,7 +1143,7 @@ function BlockRenderer({
         <div className="bg-white border border-saffron-100 rounded-2xl p-3.5 space-y-2 animate-sadhna-in">
           {block.records.map((r) => (
             <div key={r.activity_id} className="flex items-center justify-between text-sm">
-              <span className="text-saffron-800">{r.activity_id.replace(/_/g, " ")}</span>
+              <span className="text-saffron-800 dark:text-[#F8FAFC]">{r.activity_id.replace(/_/g, " ")}</span>
               <span className="font-medium text-saffron-900">
                 {isFilled(r.value) ? String(r.value) : "Not recorded"}
               </span>
@@ -1169,7 +1169,7 @@ function BlockRenderer({
     case "nlMissing":
       if (block.resolved) return null;
       return (
-        <div className="bg-white border border-saffron-100 rounded-2xl p-4 animate-sadhna-in">
+        <div className="bg-white dark:bg-[#1e293b] border border-saffron-100 dark:border-slate-700 rounded-2xl p-4 animate-sadhna-in">
           <p className="text-sm text-saffron-900 mb-3">🙏 {block.message}</p>
           <div className="flex flex-wrap gap-2">
             {block.sourceText && <PrimaryButton onClick={onNlAskAI}>🤖 Ask AI to re-check</PrimaryButton>}

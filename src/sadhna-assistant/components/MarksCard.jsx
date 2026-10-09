@@ -13,27 +13,27 @@ export function MarksCard({ marksResponse, celebrate = false, onSparkleDone, tit
     typeof yesterdayMarks === "number" ? Math.round((marks - yesterdayMarks) * 10) / 10 : null;
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-cream-100 to-saffron-50 border border-saffron-200 rounded-2xl p-4 animate-sadhna-pop">
+    <div className="relative overflow-hidden bg-gradient-to-br from-cream-100 to-saffron-50 dark:from-[#14243B] dark:to-[#0F1B30] border border-saffron-200 dark:border-[#FF981F]/30 rounded-2xl p-4 animate-sadhna-pop">
       <SparkleBurst active={celebrate} onDone={onSparkleDone} />
       <div className="flex items-center gap-3">
         <Sticker name={celebrate ? "lotus_sparkles" : "marks_glow"} size={44} animation={celebrate ? "gentle_sparkle" : "gentle_glow"} />
         <div>
-          <p className="text-xs uppercase tracking-wide text-saffron-600 font-semibold">
+          <p className="text-xs uppercase tracking-wide text-saffron-600 dark:text-[#FF981F] font-semibold">
             {title || "Today's Sadhna"}
           </p>
-          <p className="text-2xl font-bold text-saffron-900 leading-tight">
+          <p className="text-2xl font-bold text-saffron-900 dark:text-[#F8FAFC] leading-tight">
             {marks}
-            {maxMarks ? <span className="text-base font-medium text-saffron-500"> / {maxMarks}</span> : null}
-            <span className="text-sm font-medium text-saffron-500"> Marks</span>
+            {maxMarks ? <span className="text-base font-medium text-saffron-500 dark:text-[#FFB347]"> / {maxMarks}</span> : null}
+            <span className="text-sm font-medium text-saffron-500 dark:text-[#FFB347]"> Marks</span>
           </p>
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-4 text-xs text-saffron-700">
+      <div className="mt-3 flex items-center gap-4 text-xs text-saffron-700 dark:text-[#B6C5DC]">
         <span>
           {completedCount} of {totalActiveCount} activities recorded
         </span>
         {diff !== null && (
-          <span className={diff >= 0 ? "text-leaf-500 font-medium" : "text-saffron-600 font-medium"}>
+          <span className={diff >= 0 ? "text-leaf-500 dark:text-[#8FD65A] font-medium" : "text-saffron-600 font-medium"}>
             {previousLabel}: {yesterdayMarks} · {currentLabel}: {marks} {diff >= 0 ? `↑${diff}` : `↓${Math.abs(diff)}`}
           </span>
         )}

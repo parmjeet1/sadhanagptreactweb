@@ -28,7 +28,7 @@ function ValueEditor({ activity, value, onChange }) {
         type="time"
         value={typeof value === "string" ? value : ""}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-saffron-200 bg-white px-2 py-1 text-sm text-saffron-900"
+        className="rounded-lg border border-saffron-200 dark:border-[#304766] bg-white dark:bg-[#1C2B42] px-2 py-1 text-sm text-saffron-900"
       />
     );
   }
@@ -45,7 +45,7 @@ function ValueEditor({ activity, value, onChange }) {
       <select
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-saffron-200 bg-white px-2 py-1 text-sm text-saffron-900"
+        className="rounded-lg border border-saffron-200 dark:border-[#304766] bg-white dark:bg-[#0B1220] px-2 py-1 text-sm text-gray-900 dark:text-[#F8FAFC] dark:[color-scheme:dark]"
       >
         {(activity.options || []).map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -64,7 +64,7 @@ function ValueEditor({ activity, value, onChange }) {
           onChange={(e) => onChange(e.target.value)}
           className="w-24 rounded-lg border border-saffron-200 bg-white px-2 py-1 text-sm text-saffron-900"
         />
-        {activity.unit && <span className="text-xs text-saffron-500">{activity.unit}</span>}
+        {activity.unit && <span className="text-xs text-saffron-500 dark:text-[#FF981F]">{activity.unit}</span>}
       </span>
     );
   }
@@ -138,19 +138,19 @@ export function NLConfirmCard({ updates, activitiesById, dateLabel, missing, onC
   };
 
   return (
-    <div className="bg-white border border-saffron-100 rounded-2xl p-4 animate-sadhna-in">
-      <p className="text-sm font-medium text-saffron-900 mb-1">🙏 I understood:</p>
-      <p className="text-[11px] text-saffron-500 mb-2">Untick a line that's wrong, or tap ✏️ to change it.</p>
+    <div className="bg-white dark:bg-[#14243B] border border-saffron-100 dark:border-[#304766] rounded-2xl p-4 animate-sadhna-in">
+      <p className="text-sm font-medium text-saffron-900 dark:text-[#F8FAFC] mb-1">🙏 I understood:</p>
+      <p className="text-[11px] text-saffron-500 dark:text-[#B6C5DC] mb-2">Untick a line that's wrong, or tap ✏️ to change it.</p>
       {dateLabel && (
-        <p className="text-[11px] font-semibold text-saffron-500 mb-2">📅 Saving for {dateLabel}</p>
+        <p className="text-[11px] font-semibold text-saffron-500 dark:text-slate-400 mb-2">📅 Saving for {dateLabel}</p>
       )}
       <ul className="flex flex-col gap-2 mb-3">
         {rows.map((r, i) => {
           const activity = activitiesById[r.activity_id];
           if (!activity) return null;
           return (
-            <li key={r.key} className={`rounded-xl border px-2.5 py-2 ${r.on ? "border-saffron-200 bg-white" : "border-saffron-100 bg-saffron-50/50"}`}>
-              <div className="flex items-center gap-2 text-sm text-saffron-800">
+            <li key={r.key} className={`rounded-xl border px-2.5 py-2 ${r.on ? "border-saffron-200 bg-white" : "border-saffron-100 dark:border-[#304766] bg-saffron-50/50 dark:bg-[#14243B]/50"}`}>
+              <div className="flex items-center gap-2 text-sm text-saffron-800 dark:text-[#F8FAFC]">
                 <input
                   type="checkbox"
                   checked={r.on}
@@ -193,7 +193,7 @@ export function NLConfirmCard({ updates, activitiesById, dateLabel, missing, onC
         })}
       </ul>
       {Array.isArray(missing) && missing.length > 0 && (
-        <p className="text-[11px] text-saffron-700 bg-saffron-100 rounded-lg px-2 py-1 mb-3">
+        <p className="text-[11px] text-saffron-700 dark:text-red-400 bg-saffron-100 dark:bg-red-900/20 rounded-lg px-2 py-1 mb-3">
           ⚠️ Not in your list, so not saved: {missing.join(", ")}
         </p>
       )}

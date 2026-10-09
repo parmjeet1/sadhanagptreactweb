@@ -74,7 +74,7 @@ export const CustomActivitiesPage = () => {
             </AnimatePresence>
 
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#112240] flex items-center justify-between px-6 py-4 transition-all duration-300">
+            <header className="sticky top-0 z-40 bg-white dark:bg-[#0f172a]/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#112240] flex items-center justify-between px-6 py-4 transition-all duration-300">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}
@@ -85,7 +85,7 @@ export const CustomActivitiesPage = () => {
                         </svg>
                     </button>
                     <div>
-                        <h1 className="text-[16px] font-semibold text-[#0f172a] dark:text-[#ffffff] leading-none tracking-tight">{groupName}</h1>
+                        <h1 className="text-[16px] font-semibold text-[#0f172a] dark:text-white dark:text-[#ffffff] leading-none tracking-tight">{groupName}</h1>
                         <p className="text-[11px] font-medium text-teal-600 dark:text-[#1de9b6] mt-1">Activities assigned to this sub-group</p>
                     </div>
                 </div>

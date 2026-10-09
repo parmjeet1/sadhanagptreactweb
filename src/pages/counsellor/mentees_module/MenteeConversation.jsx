@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -155,8 +156,8 @@ const MenteeConversation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28 font-sans">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10 px-6 py-6 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white pb-28 font-sans">
+      <div className="bg-white dark:bg-[#0f172a] border-b border-gray-100 sticky top-0 z-10 px-6 py-6 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-800">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
         </button>
@@ -167,7 +168,7 @@ const MenteeConversation = () => {
       <div className="max-w-md mx-auto px-6 py-8">
         
         {/* Header Info */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 flex items-center gap-4">
+        <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg">
             {studentInfo.name.charAt(0)}
           </div>
@@ -189,14 +190,14 @@ const MenteeConversation = () => {
             type="date" 
             value={date} 
             onChange={e => setDate(e.target.value)}
-            className="w-full bg-white p-4 rounded-2xl border border-gray-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-gray-800 transition-all"
+            className="w-full bg-white dark:bg-[#0f172a] p-4 rounded-2xl border border-gray-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold text-gray-800 transition-all"
           />
 
           <div>
             <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Notes</label>
             
             {/* Custom Simple Editor Container */}
-            <div className="bg-white rounded-2xl border border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-[#0f172a] rounded-2xl border border-gray-100 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all overflow-hidden flex flex-col">
               
               {/* Toolbar */}
               <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
@@ -235,19 +236,22 @@ const MenteeConversation = () => {
         {/* Past Logs List */}
         <div>
           <h3 className="text-sm font-black text-gray-800 mb-4 px-2">Past Conversations</h3>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           
           {isLoading ? (
             <div className="flex justify-center py-10">
               <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : notesList.length === 0 ? (
-            <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
+            <div className="text-center py-10 bg-white dark:bg-[#0f172a] rounded-3xl border border-dashed border-gray-200">
               <p className="text-gray-400 font-bold text-sm">No logs found.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {notesList.map((note) => (
-                <div key={note.id || note.note_id} className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 group">
+                <div key={note.id || note.note_id} className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 p-5 rounded-3xl shadow-sm border border-gray-100 group">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
                       {formatDateLabel(note.meeting_date)}

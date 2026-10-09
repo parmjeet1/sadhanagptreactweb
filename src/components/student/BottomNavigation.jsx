@@ -57,21 +57,25 @@ const BottomNavigation = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 w-full left-0 right-0 flex justify-center z-50">
-      <SadhnaAssistantLauncher />
-      <div className="w-full max-w-md bg-white dark:bg-[#112240] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border-t border-gray-100 dark:border-slate-800 px-6 py-4 flex justify-between items-center transition-colors duration-300">
+    <div className="fixed bottom-0 w-full left-0 right-0 flex flex-col items-center justify-end z-50 pointer-events-none">
+      <div className="w-full max-w-md relative pointer-events-auto">
+        <SadhnaAssistantLauncher />
+      </div>
+
+      <div className="w-full max-w-md bg-white dark:bg-[#0F1B30] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border-t border-gray-100 dark:border-[#304766] px-6 py-4 flex justify-between items-center transition-colors duration-300 pointer-events-auto">
         {navItems.map((item) => {
           const active = isActive(item.path);
           return (
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center transition-colors ${
-                active ? 'text-[#1a73e8] dark:text-[#60a5fa]' : 'text-[#94a3b8] dark:text-[#64748b] hover:text-[#64748b] dark:hover:text-slate-300'
+              className={`relative flex flex-col items-center transition-colors ${
+                active ? 'text-[#1a73e8] dark:text-[#60a5fa] relative' : 'text-[#94a3b8] dark:text-[#B6C5DC] hover:text-[#64748b] dark:hover:text-[#F8FAFC]'
               }`}
             >
               {item.icon}
               <span className="text-[11px] font-bold">{item.name}</span>
+              {active && <span className="absolute -bottom-3 w-1 h-1 bg-[#1a73e8] dark:bg-[#60a5fa] rounded-full"></span>}
             </button>
           );
         })}

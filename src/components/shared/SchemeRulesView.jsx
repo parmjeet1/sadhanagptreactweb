@@ -37,7 +37,7 @@ export const ActivityFilter = ({ groups, value, onChange }) => (
 const GroupHeader = ({ group }) => (
   <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-gray-100 dark:border-white/10">
     <div className="flex items-center gap-2 min-w-0">
-      <span className="w-8 h-8 shrink-0 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-base">{group.icon}</span>
+      <span className="w-8 h-8 shrink-0 rounded-full bg-slate-100 dark:bg-white dark:bg-[#0f172a]/5 flex items-center justify-center text-base">{group.icon}</span>
       <div className="min-w-0">
         <p className="font-bold text-sm text-[#0F172A] dark:text-white truncate">{group.name}</p>
         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{group.frequency}</p>
@@ -118,7 +118,7 @@ export const SchemeRulesEditor = ({ groups, onChange, addable = [] }) => {
               const unit = String(g.unit || '').trim();
               const valueLabel = unit && !['time', 'count', 'boolean', 'yes/no', 'numb'].includes(unit.toLowerCase()) ? `Value (${unit})` : 'Value';
               return (
-                <div key={`${r.ruleId ?? 'n'}_${i}`} className="rounded-xl bg-slate-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 p-2.5">
+                <div key={`${r.ruleId ?? 'n'}_${i}`} className="rounded-xl bg-slate-50 dark:bg-white dark:bg-[#0f172a]/5 border border-gray-100 dark:border-white/10 p-2.5">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Condition {i + 1}</span>
                     <button
@@ -161,7 +161,7 @@ export const SchemeRulesEditor = ({ groups, onChange, addable = [] }) => {
                           aria-label="Plus or minus sign"
                           title="Plus / minus"
                           onClick={() => updateRow(g.key, i, { marks: flipMarksSign(r.marks) })}
-                          className="shrink-0 h-5 px-1.5 rounded-md bg-slate-200 dark:bg-white/10 text-[11px] font-black leading-none text-slate-600 dark:text-slate-200"
+                          className="shrink-0 h-5 px-1.5 rounded-md bg-slate-200 dark:bg-white dark:bg-[#0f172a]/10 text-[11px] font-black leading-none text-slate-600 dark:text-slate-200"
                         >
                           ±
                         </button>

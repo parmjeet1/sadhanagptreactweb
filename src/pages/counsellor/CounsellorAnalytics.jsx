@@ -400,7 +400,7 @@ const CounsellorAnalytics = () => {
 
             <button 
               onClick={() => navigate('/counsellor/ranks/bottom')}
-              className="w-full mt-4 bg-white/60 dark:bg-red-900/30 text-red-600 dark:text-red-300 font-bold py-3 rounded-2xl flex items-center justify-center gap-1 active:scale-95 transition-all text-sm"
+              className="w-full mt-4 bg-white dark:bg-[#0f172a]/60 dark:bg-red-900/30 text-red-600 dark:text-red-300 font-bold py-3 rounded-2xl flex items-center justify-center gap-1 active:scale-95 transition-all text-sm"
             >
               View All <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
             </button>
@@ -615,7 +615,7 @@ const CounsellorAnalytics = () => {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white rounded-t-[32px] shadow-2xl z-[9999] flex flex-col px-6 pb-8 pt-4"
+              className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-t-[32px] shadow-2xl z-[9999] flex flex-col px-6 pb-8 pt-4"
             >
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onClick={() => setSelectedGroupForOptions(null)} />
               <h2 className="text-xl font-extrabold text-center mb-6">Manage "{selectedGroupForOptions.name}"</h2>
@@ -651,10 +651,10 @@ const CounsellorAnalytics = () => {
             />
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white rounded-t-[32px] shadow-2xl z-[9999] px-6 pb-8 pt-4"
+              className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-t-[32px] shadow-2xl z-[9999] px-6 pb-8 pt-4"
             >
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" onClick={() => setEditGroup(null)} />
-              <h2 className="text-2xl font-extrabold mb-6 text-[#0f172a]">Edit Group</h2>
+              <h2 className="text-2xl font-extrabold mb-6 text-[#0f172a] dark:text-white">Edit Group</h2>
               <div className="space-y-4 mb-8">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Group Name</label>
@@ -662,7 +662,7 @@ const CounsellorAnalytics = () => {
                     type="text"
                     value={editGroup.name}
                     onChange={(e) => setEditGroup({ ...editGroup, name: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-200 text-[#0f172a] rounded-2xl px-5 py-4 font-semibold text-[15px] focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 text-[#0f172a] dark:text-white rounded-2xl px-5 py-4 font-semibold text-[15px] focus:outline-none focus:border-blue-500 focus:bg-white dark:bg-[#0f172a] transition-all"
                     placeholder="Enter group name"
                   />
                 </div>
@@ -690,12 +690,12 @@ const CounsellorAnalytics = () => {
               />
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center"
+                className="relative w-full max-w-sm bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl p-6 text-center"
               >
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               </div>
-              <h3 className="text-xl font-extrabold text-[#0f172a] mb-2">Delete Group?</h3>
+              <h3 className="text-xl font-extrabold text-[#0f172a] dark:text-white mb-2">Delete Group?</h3>
               <p className="text-gray-500 text-sm font-medium mb-6 leading-relaxed">
                 Are you sure you want to delete <span className="font-bold text-gray-800">"{deleteGroup.name}"</span>? 
                 This will unassign all students and delete all its sub-groups. Students' accounts will not be deleted. This action cannot be undone.

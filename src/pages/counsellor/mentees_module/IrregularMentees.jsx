@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,19 +30,22 @@ const IrregularMentees = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans pb-[84px]">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-[84px]">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-10 pb-6 sticky top-0 bg-[#f8fafc] z-20">
+        <div className="flex items-center justify-between px-6 pt-10 pb-6 sticky top-0 bg-[#f8fafc] dark:bg-[#0b1628] z-20">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm text-[#64748b]"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 shadow-sm text-[#64748b]"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-[20px] font-black text-[#0f172a]">Irregular Mentees</h1>
+          <h1 className="text-[20px] font-black text-[#0f172a] dark:text-white">Irregular Mentees</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           <div className="w-10" /> {/* Spacer */}
         </div>
 
@@ -76,7 +80,7 @@ const IrregularMentees = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => navigate(`/counsellor/mentee/${mentee.user_id}`)}
-                    className="bg-white rounded-[24px] p-5 shadow-sm border border-gray-50 flex items-center gap-4 active:scale-[0.98] transition-all cursor-pointer group"
+                    className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[24px] p-5 shadow-sm border border-gray-50 flex items-center gap-4 active:scale-[0.98] transition-all cursor-pointer group"
                   >
                     <div className="relative">
                       <img
@@ -88,7 +92,7 @@ const IrregularMentees = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[16px] text-[#0f172a] truncate group-hover:text-blue-600 transition-colors">{mentee.name}</h3>
+                      <h3 className="font-bold text-[16px] text-[#0f172a] dark:text-white truncate group-hover:text-blue-600 transition-colors">{mentee.name}</h3>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-tight">
                           {mentee.irregularity_reason || "Needs Attention"}
@@ -116,7 +120,7 @@ const IrregularMentees = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-black text-[#0f172a] mb-2">Everything's Perfect!</h3>
+                <h3 className="text-lg font-black text-[#0f172a] dark:text-white mb-2">Everything's Perfect!</h3>
                 <p className="text-gray-400 font-bold px-10">All your mentees are consistent with their sadhana targets. Keep up the good work!</p>
               </motion.div>
             )}

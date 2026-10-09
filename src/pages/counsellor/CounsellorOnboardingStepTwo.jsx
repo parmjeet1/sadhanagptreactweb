@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postRequest, getRequest } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import {  AnimatePresence } from 'framer-motion';
 
 const CounsellorOnboardingStepTwo = () => {
@@ -27,27 +28,6 @@ const CounsellorOnboardingStepTwo = () => {
   };
 
   useEffect(() => {
-    /*
-    const params = new URLSearchParams(window.location.search);
-    const userDataParam = params.get('user_data');
-    const userParam = params.get('user');
-
-    let initialDetails = userDetails;
-
-    if (userDataParam || userParam) {
-      try {
-        const rawData = userDataParam || userParam;
-        initialDetails = JSON.parse(decodeURIComponent(rawData));
-       
-        localStorage.setItem('user_details', JSON.stringify(initialDetails));
-        setUserDetails(initialDetails);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (err) {
-        console.error("Failed to parse user data from URL", err);
-      }
-    }
-    */
-
     let initialDetails = userDetails;
 
     if (initialDetails) {
@@ -134,96 +114,97 @@ const CounsellorOnboardingStepTwo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex justify-center font-sans">
-      <div className="w-full max-w-md bg-white flex flex-col relative">
+    <div className="min-h-screen bg-white dark:bg-[#0B1220] transition-colors duration-300 text-[#0f172a] dark:text-[#F8FAFC] flex justify-center font-sans">
+      <div className="w-full max-w-md bg-white dark:bg-[#0B1220] flex flex-col relative">
 
-        <div className="pt-6 pb-2 px-6 flex flex-col gap-4 sticky top-0 bg-white z-10 w-full">
+        <div className="pt-6 pb-2 px-6 flex flex-col gap-4 sticky top-0 bg-white dark:bg-[#0B1220] z-10 w-full transition-colors duration-300">
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
-              className="p-1 -ml-1 text-[#0f172a] hover:bg-gray-50 rounded-full transition-colors"
+              className="p-1 -ml-1 text-[#0f172a] dark:text-[#F8FAFC] hover:bg-gray-100 dark:hover:bg-[#1D2B40] rounded-full transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-gray-200" />
-              <div className="w-8 h-2 rounded-full bg-blue-600" />
+              <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-[#34465F]" />
+              <div className="w-8 h-2 rounded-full bg-blue-600 dark:bg-[#3B82F6]" />
             </div>
+            <ThemeToggle />
           </div>
           <div>
-            <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight leading-tight"> Almost there </h1>
-            <p className="text-[15px] font-medium text-[#64748b] mt-1.5 leading-relaxed"> Complete your Counsellor profile </p>
+            <h1 className="text-[28px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight leading-tight"> Almost there </h1>
+            <p className="text-[15px] font-medium text-[#64748b] dark:text-[#B6C5DC] mt-1.5 leading-relaxed"> Complete your Counsellor profile </p>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-24 hide-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-28 hide-scrollbar">
           <div className="flex flex-col gap-5">
             <div>
-              <label className="block text-[13px] font-bold text-[#475569] uppercase tracking-wider mb-2 ml-1"> Full Name </label>
+              <label className="block text-[13px] font-bold text-[#475569] dark:text-[#B6C5DC] uppercase tracking-wider mb-2 ml-1"> Full Name </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Enter your name"
-                className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-500 focus:bg-white text-[#0f172a] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400"
+                className="w-full bg-[#f8fafc] dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border-2 border-transparent dark:border-[#34465F] focus:border-blue-500 dark:focus:border-[#3B82F6] focus:bg-white dark:focus:bg-[#1D2B40] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400 dark:placeholder:text-[#9AAAC0]"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#475569] uppercase tracking-wider mb-2 ml-1"> Email Address </label>
+              <label className="block text-[13px] font-bold text-[#475569] dark:text-[#B6C5DC] uppercase tracking-wider mb-2 ml-1"> Email Address </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-500 focus:bg-white text-[#0f172a] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400"
+                className="w-full bg-[#f8fafc] dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border-2 border-transparent dark:border-[#34465F] focus:border-blue-500 dark:focus:border-[#3B82F6] focus:bg-white dark:focus:bg-[#1D2B40] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400 dark:placeholder:text-[#9AAAC0]"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#475569] uppercase tracking-wider mb-2 ml-1"> Mobile Number </label>
+              <label className="block text-[13px] font-bold text-[#475569] dark:text-[#B6C5DC] uppercase tracking-wider mb-2 ml-1"> Mobile Number </label>
               <input
                 type="tel"
                 name="mobile"
                 value={formData.mobile}
                 onChange={handleChange}
                 placeholder="Enter your mobile number"
-                className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-500 focus:bg-white text-[#0f172a] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400"
+                className="w-full bg-[#f8fafc] dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border-2 border-transparent dark:border-[#34465F] focus:border-blue-500 dark:focus:border-[#3B82F6] focus:bg-white dark:focus:bg-[#1D2B40] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400 dark:placeholder:text-[#9AAAC0]"
               />
             </div>
             <div>
-              <label className="block text-[13px] font-bold text-[#475569] uppercase tracking-wider mb-2 ml-1">Birthday </label>
+              <label className="block text-[13px] font-bold text-[#475569] dark:text-[#B6C5DC] uppercase tracking-wider mb-2 ml-1">Birthday </label>
               <input
                 type="date"
                 name="birthday"
-                value={formData.birthday}
+                value={formData.birthday || ''}
                 onChange={handleChange}
                 placeholder="Enter your Birth Date"
-                className="w-full bg-[#f8fafc] border-2 border-transparent focus:border-blue-500 focus:bg-white text-[#0f172a] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400"
+                className="w-full bg-[#f8fafc] dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border-2 border-transparent dark:border-[#34465F] focus:border-blue-500 dark:focus:border-[#3B82F6] focus:bg-white dark:focus:bg-[#1D2B40] text-[15px] font-semibold px-4 py-3.5 rounded-xl outline-none transition-all placeholder:font-medium placeholder:text-gray-400 dark:placeholder:text-[#9AAAC0] dark:[color-scheme:dark]"
               />
             </div>
             <div className="relative">
-              <label className="block text-[13px] font-bold text-[#475569] uppercase tracking-wider mb-2 ml-1"> Temple / Center Name </label>
+              <label className="block text-[13px] font-bold text-[#475569] dark:text-[#B6C5DC] uppercase tracking-wider mb-2 ml-1"> Temple / Center Name </label>
               <div className="relative">
                   <select
                     name="templeId"
                     value={formData.templeId}
                     onChange={handleChange}
                     disabled={isFetchingTemples || temples.length === 0}
-                    className="w-full appearance-none bg-[#f8fafc] border-2 border-transparent focus:border-blue-500 focus:bg-white text-[#0f172a] text-[15px] font-semibold px-4 py-3.5 pr-10 rounded-xl outline-none transition-all disabled:opacity-60"
+                    className="w-full appearance-none bg-[#f8fafc] dark:bg-[#1D2B40] text-[#0f172a] dark:text-[#F8FAFC] border-2 border-transparent dark:border-[#34465F] focus:border-blue-500 dark:focus:border-[#3B82F6] focus:bg-white dark:focus:bg-[#1D2B40] text-[15px] font-semibold px-4 py-3.5 pr-10 rounded-xl outline-none transition-all disabled:opacity-60"
                   >
-                    <option value="" disabled className="text-gray-400">
+                    <option value="" disabled className="text-gray-400 dark:text-[#9AAAC0] dark:bg-[#1D2B40]">
                       {isFetchingTemples ? "Fetching temples..." : "Select your base temple..."}
                     </option>
                     {temples.map(temple => {
                         const id = temple.temple_id || temple.id;
                         const name = temple.temple_name || temple.name;
-                        return <option key={id} value={id}>{name}</option>;
+                        return <option key={id} value={id} className="dark:bg-[#142238] dark:text-[#F8FAFC]">{name}</option>;
                     })}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-[#B6C5DC]">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                   </div>
               </div>
@@ -231,11 +212,11 @@ const CounsellorOnboardingStepTwo = () => {
           </div>
         </div>
 
-        <div className="fixed sm:absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 z-20">
+        <div className="fixed sm:absolute bottom-0 left-0 right-0 p-6 bg-white dark:bg-[#0B1220] border-t border-gray-100 dark:border-[#34465F] z-20 transition-colors duration-300">
           <button
             onClick={handleContinue}
             disabled={!formData.name || !formData.email || !formData.mobile || !formData.templeId}
-            className="w-full bg-[#1a73e8] disabled:bg-gray-300 disabled:shadow-none hover:bg-[#155fc3] text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_rgba(26,115,232,0.3)] transition-all active:scale-[0.98] outline-none"
+            className="w-full bg-[#1a73e8] dark:bg-[#3B82F6] disabled:bg-gray-300 dark:disabled:bg-[#1D2B40] dark:disabled:text-gray-500 disabled:shadow-none hover:bg-[#155fc3] dark:hover:bg-[#2563EB] text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_rgba(26,115,232,0.3)] transition-all active:scale-[0.98] outline-none"
           >
             Continue to Dashboard
           </button>

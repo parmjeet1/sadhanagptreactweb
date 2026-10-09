@@ -25,7 +25,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-[320px] bg-white shadow-2xl z-[70] flex flex-col"
+            className="fixed inset-y-0 right-0 w-full max-w-[320px] bg-white dark:bg-[#0f172a] shadow-2xl z-[70] flex flex-col"
             style={{
               /* center in max-w-md container visually */
               left: 'auto',
@@ -33,11 +33,11 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
             }}
           >
             {/* Panel Header */}
-            <div className="px-6 py-6 border-b border-gray-100 flex items-center justify-between bg-white">
-              <h2 className="text-[20px] font-extrabold text-[#0f172a]">Notifications</h2>
+            <div className="px-6 py-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#0f172a]">
+              <h2 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white">Notifications</h2>
               <button 
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                 aria-label="Close notifications"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -45,7 +45,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
             </div>
 
             {/* Notifications List */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#f8fafc]">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#f8fafc] dark:bg-[#0b1628]">
               {dummyNotifications.length === 0 ? (
                 <div className="text-center py-10 text-gray-400 font-medium text-sm">
                   No new notifications
@@ -54,12 +54,12 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                 dummyNotifications.map((notif) => (
                   <div 
                     key={notif.id} 
-                    className={`p-4 rounded-2xl bg-white shadow-sm border ${notif.read ? 'border-transparent' : 'border-blue-100'} flex gap-4 transition-all`}
+                    className={`p-4 rounded-2xl bg-white dark:bg-[#0f172a] shadow-sm border ${notif.read ? 'border-transparent' : 'border-blue-100'} flex gap-4 transition-all`}
                   >
-                    <div className={`mt-1 flex-shrink-0 w-2 h-2 rounded-full ${notif.read ? 'bg-transparent' : 'bg-blue-500'}`} />
+                    <div className={`mt-1 flex-shrink-0 w-2 h-2 rounded-full ${notif.read ? 'bg-transparent' : 'bg-blue-50 dark:bg-[#1e293b]0'}`} />
                     <div>
-                      <h3 className={`text-[14px] ${notif.read ? 'font-semibold text-gray-800' : 'font-bold text-[#0f172a]'}`}>{notif.title}</h3>
-                      <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">{notif.message}</p>
+                      <h3 className={`text-[14px] ${notif.read ? 'font-semibold text-gray-800 dark:text-slate-100' : 'font-bold text-[#0f172a] dark:text-white'}`}>{notif.title}</h3>
+                      <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{notif.message}</p>
                       <span className="text-[11px] font-bold text-gray-400 mt-3 block">{notif.time}</span>
                     </div>
                   </div>

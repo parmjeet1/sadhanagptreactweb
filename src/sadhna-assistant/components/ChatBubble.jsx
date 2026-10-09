@@ -24,7 +24,7 @@ export function ChatBubble({ role, text, visual, animation = "none", size = "sm"
   return (
     <div className="flex justify-start items-end gap-2 animate-sadhna-in">
       {visual && <Sticker name={visual} size={stickerSize} animation={animation} />}
-      <div className="max-w-[82%] bg-white border border-saffron-100 rounded-2xl rounded-bl-md px-4 py-2.5 text-sm text-saffron-950 shadow-sm whitespace-pre-line">
+      <div className="max-w-[82%] bg-white dark:bg-[#1C2B42] border border-saffron-100 dark:border-[#304766] rounded-2xl rounded-bl-md px-4 py-2.5 text-sm text-saffron-950 dark:text-[#F8FAFC] shadow-sm whitespace-pre-line">
         {text}
       </div>
     </div>

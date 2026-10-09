@@ -335,7 +335,7 @@ const MarkingScheme = () => {
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] font-sans pb-28 transition-colors duration-300 flex flex-col">
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-300 dark:border-[#112240] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 gap-2 sm:gap-4">
+      <header className="sticky top-0 z-50 bg-white dark:bg-[#0f172a]/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-300 dark:border-[#112240] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 gap-2 sm:gap-4">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
             onClick={() => navigate(-1)}
@@ -356,7 +356,7 @@ const MarkingScheme = () => {
             </svg>
           </button>
           <div className="min-w-0">
-            <h1 className="text-[15px] sm:text-[17px] font-bold text-[#0f172a] dark:text-[#ffffff] leading-tight truncate">Marking Schemes</h1>
+            <h1 className="text-[15px] sm:text-[17px] font-bold text-[#0f172a] dark:text-white dark:text-[#ffffff] leading-tight truncate">Marking Schemes</h1>
             <p className="hidden sm:block text-[11px] font-medium text-teal-600 dark:text-[#1de9b6] mt-1 truncate">Create, manage, and assign grading rules for groups and assessments.</p>
           </div>
         </div>
@@ -479,7 +479,7 @@ const MarkingScheme = () => {
                       )}
                     </div>
                     <div>
-                      <h2 className="font-bold text-[14px] text-[#0f172a] dark:text-[#ffffff] leading-tight">{scheme.name}</h2>
+                      <h2 className="font-bold text-[14px] text-[#0f172a] dark:text-white dark:text-[#ffffff] leading-tight">{scheme.name}</h2>
                       <p className="text-[10px] font-medium text-slate-400 dark:text-[#6b7a99] mt-0.5">{scheme.isSystemDefault ? '(Global)' : '(Custom)'}</p>
                     </div>
                   </div>

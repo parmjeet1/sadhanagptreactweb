@@ -317,28 +317,28 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed bottom-0 w-full max-w-md mx-auto bg-white rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
+          className="fixed bottom-0 w-full max-w-md mx-auto bg-white dark:bg-[#0f172a] rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
           style={{
             left: 'auto',
             right: 'max(0px, calc(50% - 224px))'
           }}
         >
           {/* Drag Handle Area */}
-          <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10">
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+          <div className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10">
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
           </div>
           
           <div className="absolute top-4 right-4 z-20">
-            <button onClick={onClose} className="p-2 bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200 active:scale-95 transition-all">
+            <button onClick={onClose} className="p-2 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 active:scale-95 transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
 
           <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
-            <h2 className="text-[24px] font-extrabold text-[#0f172a]">Export Data</h2>
+            <h2 className="text-[24px] font-extrabold text-[#0f172a] dark:text-white">Export Data</h2>
 
             {/* Export Students Panel */}
-            <div className="bg-gradient-to-b from-blue-50/60 to-slate-50/60 border border-blue-100 rounded-3xl p-5 space-y-4 shadow-sm">
+            <div className="bg-gradient-to-b from-blue-50/60 to-slate-50/60 dark:from-slate-800/60 dark:to-slate-800/30 border border-blue-100 dark:border-slate-700/50 rounded-3xl p-5 space-y-4 shadow-sm">
               <div className="flex items-start gap-3.5">
                 <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,41 +346,41 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-[17px] font-extrabold text-[#0f172a] leading-snug">Export Students</h3>
-                  <p className="text-[12px] text-gray-500 font-medium">Select group, date range and file format to export student data.</p>
+                  <h3 className="text-[17px] font-extrabold text-[#0f172a] dark:text-white leading-snug">Export Students</h3>
+                  <p className="text-[12px] text-gray-500 dark:text-slate-400 font-medium">Select group, date range and file format to export student data.</p>
                 </div>
               </div>
 
               {/* Date Range Selector */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Date Range</label>
-                  <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-gray-200">
+                  <label className="text-[11px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-wider">Date Range</label>
+                  <div className="flex items-center gap-1 bg-white dark:bg-[#0f172a] p-0.5 rounded-lg border border-gray-200 dark:border-slate-700">
                     <button
                       type="button"
                       onClick={() => handlePresetChange('TODAY')}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'TODAY' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-800'}`}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'TODAY' ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                       Today
                     </button>
                     <button
                       type="button"
                       onClick={() => handlePresetChange('LAST_7_DAYS')}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'LAST_7_DAYS' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-800'}`}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'LAST_7_DAYS' ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                       7 Days
                     </button>
                     <button
                       type="button"
                       onClick={() => handlePresetChange('LAST_30_DAYS')}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'LAST_30_DAYS' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-800'}`}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'LAST_30_DAYS' ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                       30 Days
                     </button>
                     <button
                       type="button"
                       onClick={() => handlePresetChange('CUSTOM')}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'CUSTOM' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-gray-800'}`}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${datePreset === 'CUSTOM' ? 'bg-blue-600 text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-800 dark:hover:text-white'}`}
                     >
                       Custom
                     </button>
@@ -396,22 +396,22 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
                       className="overflow-hidden pt-1"
                     >
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 flex flex-col focus-within:border-blue-500">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">From</span>
+                        <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 flex flex-col focus-within:border-blue-500">
+                          <span className="text-[9px] font-bold text-gray-400 dark:text-slate-400 uppercase">From</span>
                           <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="text-[13px] font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer"
+                            className="text-[13px] font-bold text-[#0f172a] dark:text-white bg-transparent outline-none cursor-pointer dark:[color-scheme:dark]"
                           />
                         </div>
-                        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 flex flex-col focus-within:border-blue-500">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">To</span>
+                        <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 flex flex-col focus-within:border-blue-500">
+                          <span className="text-[9px] font-bold text-gray-400 dark:text-slate-400 uppercase">To</span>
                           <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="text-[13px] font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer"
+                            className="text-[13px] font-bold text-[#0f172a] dark:text-white bg-transparent outline-none cursor-pointer dark:[color-scheme:dark]"
                           />
                         </div>
                       </div>
@@ -422,15 +422,15 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
 
               {/* Group Selector */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Group</label>
-                <div className="relative bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center gap-2.5 focus-within:border-blue-500">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label className="text-[11px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-wider">Group</label>
+                <div className="relative bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 flex items-center gap-2.5 focus-within:border-blue-500">
+                  <svg className="w-5 h-5 text-gray-400 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   <select
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="w-full text-[13px] font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer pr-4"
+                    className="w-full text-[13px] font-bold text-[#0f172a] dark:text-white bg-transparent outline-none cursor-pointer dark:[color-scheme:dark] pr-4"
                   >
                     <option value="all">All Groups</option>
                     {groups.map((g) => (
@@ -444,16 +444,16 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
 
               {/* Subgroup Selector */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Subgroup</label>
-                <div className="relative bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center gap-2.5 focus-within:border-blue-500">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label className="text-[11px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-wider">Subgroup</label>
+                <div className="relative bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 flex items-center gap-2.5 focus-within:border-blue-500">
+                  <svg className="w-5 h-5 text-gray-400 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                   <select
                     value={selectedSubgroup}
                     onChange={(e) => setSelectedSubgroup(e.target.value)}
                     disabled={selectedGroup === 'all' || subgroups.length === 0}
-                    className="w-full text-[13px] font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer pr-4 disabled:opacity-50"
+                    className="w-full text-[13px] font-bold text-[#0f172a] dark:text-white bg-transparent outline-none cursor-pointer dark:[color-scheme:dark] pr-4 disabled:opacity-50"
                   >
                     <option value="all">All Subgroups</option>
                     {subgroups.map((sg) => (
@@ -467,37 +467,37 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
 
               {/* File Format Selector */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider">File Format</label>
+                <label className="text-[11px] font-black text-gray-400 dark:text-slate-400 uppercase tracking-wider">File Format</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setExportFormat('EXCEL')}
-                    className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all ${exportFormat === 'EXCEL' ? 'bg-blue-50/80 border-blue-600 shadow-sm' : 'bg-white border-gray-200 hover:border-gray-300'}`}
+                    className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all ${exportFormat === 'EXCEL' ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500 shadow-sm' : 'bg-white dark:bg-[#0f172a] border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'}`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
                         <span className="text-emerald-700 font-black text-[12px]">X</span>
                       </div>
-                      <span className="text-[13px] font-bold text-[#0f172a]">Excel (.xlsx)</span>
+                      <span className="text-[13px] font-bold text-[#0f172a] dark:text-white">Excel (.xlsx)</span>
                     </div>
                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${exportFormat === 'EXCEL' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
-                      {exportFormat === 'EXCEL' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      {exportFormat === 'EXCEL' && <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0f172a]" />}
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setExportFormat('PDF')}
-                    className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all ${exportFormat === 'PDF' ? 'bg-blue-50/80 border-blue-600 shadow-sm' : 'bg-white border-gray-200 hover:border-gray-300'}`}
+                    className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all ${exportFormat === 'PDF' ? 'bg-blue-50/80 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500 shadow-sm' : 'bg-white dark:bg-[#0f172a] border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'}`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
                         <span className="text-rose-600 font-black text-[12px]">PDF</span>
                       </div>
-                      <span className="text-[13px] font-bold text-[#0f172a]">PDF (.pdf)</span>
+                      <span className="text-[13px] font-bold text-[#0f172a] dark:text-white">PDF (.pdf)</span>
                     </div>
                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${exportFormat === 'PDF' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
-                      {exportFormat === 'PDF' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      {exportFormat === 'PDF' && <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-[#0f172a]" />}
                     </div>
                   </button>
                 </div>
@@ -529,13 +529,13 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
               </button>
             </div>
 
-            <div className="h-px w-full bg-gray-100 my-2"></div>
+            <div className="h-px w-full bg-gray-100 dark:bg-slate-800 my-2"></div>
 
             {/* Push Notifications Enable Banner */}
             {!isPushEnabled && (
               <div className="bg-gradient-to-r from-[#1a73e8] to-[#2563eb] rounded-2xl p-4 shadow-md text-white mb-2">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-white dark:bg-[#0f172a]/20 rounded-full flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
@@ -558,12 +558,12 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
             <div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-[#0f172a] font-bold">Activity Reminders</h3>
-                  <p className="text-sm text-gray-500">Get notified if you miss Sadhana</p>
+                  <h3 className="text-[#0f172a] dark:text-white font-bold">Activity Reminders</h3>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">Get notified if you miss Sadhana</p>
                 </div>
                 <button
                   type="button"
-                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${reminderEnabled ? 'bg-[#f97316]' : 'bg-gray-200'}`}
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${reminderEnabled ? 'bg-[#f97316]' : 'bg-gray-200 dark:bg-slate-700'}`}
                   onClick={handleToggleActivityReminders}
                 >
                   <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${reminderEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -580,13 +580,13 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
                     className="overflow-hidden"
                   >
                     <div className="flex items-center justify-between mt-4">
-                      <p className="text-[#0f172a] font-bold text-[13px]">Remind me after missing</p>
+                      <p className="text-[#0f172a] dark:text-white font-bold text-[13px]">Remind me after missing</p>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center bg-[#f8fafc] rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
+                        <div className="flex items-center bg-[#f8fafc] dark:bg-[#0b1628] rounded-xl border-2 border-transparent focus-within:border-[#f97316]/20 overflow-hidden">
                           <button
                             type="button"
                             onClick={() => reminderDays > 1 && setReminderDays(reminderDays - 1)}
-                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 dark:text-slate-400 hover:text-[#f97316] hover:bg-gray-100 dark:bg-slate-800 transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" /></svg>
                           </button>
@@ -596,34 +596,34 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
                             max="30"
                             value={reminderDays}
                             onChange={(e) => setReminderDays(Math.max(1, parseInt(e.target.value) || 1))}
-                            className="w-10 text-center font-bold text-[#0f172a] text-sm bg-transparent outline-none focus:ring-0 focus:outline-none"
+                            className="w-10 text-center font-bold text-[#0f172a] dark:text-white text-sm bg-transparent outline-none focus:ring-0 focus:outline-none"
                           />
                           <button
                             type="button"
                             onClick={() => reminderDays < 30 && setReminderDays(reminderDays + 1)}
-                            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#f97316] hover:bg-gray-100 transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-gray-400 dark:text-slate-400 hover:text-[#f97316] hover:bg-gray-100 dark:bg-slate-800 transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
                           </button>
                         </div>
-                        <span className="text-[13px] font-bold text-gray-400">days</span>
+                        <span className="text-[13px] font-bold text-gray-400 dark:text-slate-400">days</span>
                       </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="h-px w-full bg-gray-100 my-4"></div>
+              <div className="h-px w-full bg-gray-100 dark:bg-slate-800 my-4"></div>
             </div>
 
             {/* Toggle Switch Area */}
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-[#0f172a] font-bold">Email Reports</h3>
-                <p className="text-sm text-gray-500">Receive automated CSV mentee logs</p>
+                <h3 className="text-[#0f172a] dark:text-white font-bold">Email Reports</h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Receive automated CSV mentee logs</p>
               </div>
               <button
                 type="button"
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoReportStatus ? 'bg-[#1a73e8]' : 'bg-gray-200'}`}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoReportStatus ? 'bg-[#1a73e8]' : 'bg-gray-200 dark:bg-slate-700'}`}
                 onClick={() => setAutoReportStatus(prev => !prev)}
               >
                 <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${autoReportStatus ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -633,22 +633,22 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
             {/* Frequency Selector Area */}
             <div className={`transition-opacity duration-300 ${!autoReportStatus ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-[#0f172a] font-bold">Report Frequency</label>
-                <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                <label className="block text-[#0f172a] dark:text-white font-bold">Report Frequency</label>
+                <span className="bg-blue-50 dark:bg-[#1e293b] text-blue-600 dark:text-blue-400 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
                   Active: {reportFrequencyDays} Days
                 </span>
               </div>
               <select
                 value={reportFrequencyDays}
                 onChange={(e) => setReportFrequencyDays(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-[#1a73e8] focus:border-[#1a73e8] block p-3 font-medium outline-none"
+                className="w-full bg-gray-50 dark:bg-[#0b1628] border border-gray-200 dark:[color-scheme:dark] dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-[#1a73e8] focus:border-[#1a73e8] block p-3 font-medium outline-none"
               >
                 <option value={3}>Every 3 Days</option>
                 <option value={7}>Weekly (Every 7 Days)</option>
                 <option value={14}>Bi-Weekly (Every 14 Days)</option>
                 <option value={30}>Monthly (Every 30 Days)</option>
               </select>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                 This determines how many days backwards the PDF looks.
               </p>
             </div>
@@ -657,7 +657,7 @@ const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
             <div className="flex items-center gap-4 pt-4 pb-4">
               <button 
                 onClick={onClose}
-                className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors"
+                className="flex-1 py-4 text-[15px] font-bold text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:text-slate-200 transition-colors"
               >
                 Cancel
               </button>

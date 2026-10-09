@@ -46,7 +46,7 @@ export function QuickFillAllCard({ activities, todayMap, onActivitySubmit, onCon
           return (
             <div key={activity.activity_id} className="py-3 first:pt-1 last:pb-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-saffron-900">{activity.name}</p>
+                <p className="text-sm font-medium text-saffron-900 dark:text-white">{activity.name}</p>
                 {done && (
                   <span className="flex items-center gap-1 text-leaf-500 text-xs font-medium">
                     <Check size={14} />

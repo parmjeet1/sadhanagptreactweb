@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -635,9 +636,9 @@ const GroupMenteesList = () => {
             <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </button>
 
-          <h1 className="text-[20px] font-extrabold text-[#0f172a] uppercase dark:text-[#F8FAFC] truncate px-4">{groupName}</h1>
-
+          <h1 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white uppercase dark:text-[#F8FAFC] truncate px-4">{groupName}</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setIsDownloadModalOpen(true)}
               className="px-4 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-gray-400/70 dark:border-slate-700 rounded-xl shadow-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors font-bold text-[14px]">
@@ -845,7 +846,7 @@ const GroupMenteesList = () => {
 
               {/* Drag handle pill */}
               <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                <div className="w-10 h-1.5 rounded-full bg-white/30" />
+                <div className="w-10 h-1.5 rounded-full bg-white dark:bg-[#0f172a]/30" />
               </div>
 
               <div className="px-5 pb-5 pt-2">
@@ -856,7 +857,7 @@ const GroupMenteesList = () => {
                   </div>
                   <button
                     onClick={() => setSelectedStudents([])}
-                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-all touch-auto active:scale-90"
+                    className="w-8 h-8 rounded-full bg-white/20 dark:bg-[#0f172a]/10 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 text-white/80 hover:text-white flex items-center justify-center transition-all touch-auto active:scale-90"
                     title="Deselect All"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -880,7 +881,7 @@ const GroupMenteesList = () => {
 
                   <button
                     onClick={() => setIsNotificationModalOpen(true)}
-                    className="touch-auto bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    className="touch-auto bg-white/20 dark:bg-[#0f172a]/10 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                   >
                     <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -893,7 +894,7 @@ const GroupMenteesList = () => {
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <button
                     onClick={() => setIsBulkAssignOpen(true)}
-                    className="touch-auto bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    className="touch-auto bg-white/20 dark:bg-[#0f172a]/10 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                   >
                     <svg className="w-4 h-4 text-emerald-300 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" />
@@ -903,7 +904,7 @@ const GroupMenteesList = () => {
 
                   <button
                     onClick={() => setIsDownloadModalOpen(true)}
-                    className="touch-auto bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    className="touch-auto bg-white/20 dark:bg-[#0f172a]/10 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 text-white border border-white/10 rounded-2xl py-3.5 px-3 font-extrabold text-[13px] sm:text-[14px] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                   >
                     <svg className="w-4 h-4 text-sky-300 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
@@ -934,7 +935,7 @@ const GroupMenteesList = () => {
         {isLabelPopupOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setIsLabelPopupOpen(false)}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Add New Sub-Group</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Add New Sub-Group</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8">Create a new sub-group for mentees</p>
               <div className="space-y-6">
                 <input
@@ -942,10 +943,10 @@ const GroupMenteesList = () => {
                   placeholder="Enter Sub-Group name"
                   value={newLabelName}
                   onChange={e => setNewLabelName(e.target.value)}
-                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border-none placeholder-gray-400"
+                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-white dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border-none placeholder-gray-400"
                 />
                 <button onClick={handleAddLabel} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Create Sub-Group</button>
-                <button onClick={() => setIsLabelPopupOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
+                <button onClick={() => setIsLabelPopupOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
               </div>
             </motion.div>
           </motion.div>
@@ -957,7 +958,7 @@ const GroupMenteesList = () => {
               <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mb-6">
                 <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               </div>
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Performance Alerts</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Performance Alerts</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8 text-[15px] leading-relaxed">
                 Receive push notifications when these {selectedStudents.length} students miss their sadhana or fall below their target average.
               </p>
@@ -969,7 +970,7 @@ const GroupMenteesList = () => {
                 <button onClick={() => handleToggleNotifications(false)} className="w-full bg-gray-50 dark:bg-[#1E293B] text-gray-900 dark:text-[#F8FAFC] py-5 rounded-2xl font-black active:scale-[0.98] transition-all">
                   Disable Notifications
                 </button>
-                <button onClick={() => setIsNotificationModalOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Maybe Later</button>
+                <button onClick={() => setIsNotificationModalOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Maybe Later</button>
               </div>
             </motion.div>
           </motion.div>
@@ -1010,17 +1011,17 @@ const GroupMenteesList = () => {
         {isBulkAssignOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setIsBulkAssignOpen(false)}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Move Students</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Move Students</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8">Update labels for {selectedStudents.length} students</p>
               <div className="space-y-6">
-                <select value={bulkLabel} onChange={e => setBulkLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border-none">
+                <select value={bulkLabel} onChange={e => setBulkLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-white dark:text-[#F8FAFC] rounded-2xl font-bold outline-none border-none">
                   <option
                     className="uppercase"
                     value="">Select Sub-Group</option>
                   {labels.map(l => <option className="uppercase" key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
                 <button onClick={handleBulkAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Confirm Move</button>
-                <button onClick={() => setIsBulkAssignOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
+                <button onClick={() => setIsBulkAssignOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
               </div>
             </motion.div>
           </motion.div>
@@ -1048,7 +1049,7 @@ const GroupMenteesList = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
                     </div>
                     <div className="text-left">
-                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-[#F8FAFC]">Update Sub-Group</div>
+                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Update Sub-Group</div>
                       <div className="text-[13px] font-medium text-gray-400 dark:text-[#94A3B8]">Move to a different sub-group</div>
                     </div>
                   </div>
@@ -1157,7 +1158,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Remove Students</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Remove Students</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to remove <span className="font-bold text-gray-800 dark:text-gray-200">{selectedStudents.length}</span> selected student(s) from their sub-group(s)?
               </p>
@@ -1185,7 +1186,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Remove Students</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Remove Students</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to remove <span className="font-bold text-gray-800 dark:text-gray-200">{selectedStudents.length}</span> selected student(s) from this group entirely?
               </p>
@@ -1213,7 +1214,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Remove Member</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Remove Member</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to remove <span className="font-bold text-gray-800 dark:text-gray-200">{studentToRemoveFromSubgroup.name}</span> from this sub-group?
               </p>
@@ -1258,7 +1259,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Remove Member</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Remove Member</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to remove <span className="font-bold text-gray-800 dark:text-gray-200">{studentToRemove.name}</span> from this group? This action cannot be undone.
               </p>
@@ -1299,15 +1300,15 @@ const GroupMenteesList = () => {
         {editingStudent && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setEditingStudent(null)}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">{editingStudent.name}</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">{editingStudent.name}</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8">Change Sub-Group within Group</p>
               <div className="space-y-6">
-                <select value={editLabel} onChange={e => setEditLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none">
+                <select value={editLabel} onChange={e => setEditLabel(e.target.value)} className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-white dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none">
                   <option className="uppercase" value="">Select Sub-Group</option>
                   {labels.map(l => <option className="uppercase" key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
                 <button onClick={handleSingleAssign} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">Update Sub-Group</button>
-                <button onClick={() => setEditingStudent(null)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
+                <button onClick={() => setEditingStudent(null)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
               </div>
             </motion.div>
           </motion.div>
@@ -1450,7 +1451,7 @@ const GroupMenteesList = () => {
                           X
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'EXCEL' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
-                          {exportFormat === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white" />}
+                          {exportFormat === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                         </div>
                       </div>
                       <div>
@@ -1475,7 +1476,7 @@ const GroupMenteesList = () => {
                           PDF
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'PDF' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
-                          {exportFormat === 'PDF' && <div className="w-2 h-2 rounded-full bg-white" />}
+                          {exportFormat === 'PDF' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                         </div>
                       </div>
                       <div>
@@ -1536,7 +1537,7 @@ const GroupMenteesList = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </div>
                     <div className="text-left">
-                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-[#F8FAFC]">Rename Group</div>
+                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Rename Group</div>
                       <div className="text-[13px] font-medium text-gray-400 dark:text-[#94A3B8]">Change the group name</div>
                     </div>
                   </div>
@@ -1572,7 +1573,7 @@ const GroupMenteesList = () => {
         {isRenameModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => setIsRenameModalOpen(false)}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Rename Group</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Rename Group</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8">Enter a new name for the group</p>
               <div className="space-y-6">
                 <input
@@ -1580,7 +1581,7 @@ const GroupMenteesList = () => {
                   value={renameInput}
                   onChange={(e) => setRenameInput(e.target.value)}
                   placeholder="Group Name"
-                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-white dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
                 />
                 <button
                   onClick={() => {
@@ -1606,7 +1607,7 @@ const GroupMenteesList = () => {
                 >
                   Save Changes
                 </button>
-                <button onClick={() => setIsRenameModalOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
+                <button onClick={() => setIsRenameModalOpen(false)} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
               </div>
             </motion.div>
           </motion.div>
@@ -1618,7 +1619,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Delete Group</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Delete Group</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to permanently delete <span className="font-bold text-gray-800 dark:text-gray-200 uppercase">{groupName}</span>? This action cannot be undone.
               </p>
@@ -1674,7 +1675,7 @@ const GroupMenteesList = () => {
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </div>
                     <div className="text-left">
-                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-[#F8FAFC]">Rename Sub-Group</div>
+                      <div className="text-[16px] font-bold text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Rename Sub-Group</div>
                       <div className="text-[13px] font-medium text-gray-400 dark:text-[#94A3B8]">Change the sub-group name</div>
                     </div>
 
@@ -1707,7 +1708,7 @@ const GroupMenteesList = () => {
         {isRenameSubgroupModalOpen && actionMenuSubgroup && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={() => { setIsRenameSubgroupModalOpen(false); setActionMenuSubgroup(null); }}>
             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-10 rounded-t-[48px] transition-colors duration-300">
-              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Rename Sub-Group</h2>
+              <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-white dark:text-[#F8FAFC]">Rename Sub-Group</h2>
               <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-8">Enter a new name for the sub-group</p>
               <div className="space-y-6">
                 <input
@@ -1715,7 +1716,7 @@ const GroupMenteesList = () => {
                   value={renameSubgroupInput}
                   onChange={(e) => setRenameSubgroupInput(e.target.value)}
                   placeholder="Sub-Group Name"
-                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  className="w-full p-5 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-white dark:text-[#F8FAFC] rounded-2xl font-bold border-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
                 />
                 <button
                   onClick={() => {
@@ -1741,7 +1742,7 @@ const GroupMenteesList = () => {
                 >
                   Save Changes
                 </button>
-                <button onClick={() => { setIsRenameSubgroupModalOpen(false); setActionMenuSubgroup(null); }} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
+                <button onClick={() => { setIsRenameSubgroupModalOpen(false); setActionMenuSubgroup(null); }} className="w-full py-4 text-gray-400 dark:text-[#94A3B8] hover:text-[#0f172a] dark:text-white dark:hover:text-[#F8FAFC] transition-colors font-bold">Cancel</button>
               </div>
             </motion.div>
           </motion.div>
@@ -1753,7 +1754,7 @@ const GroupMenteesList = () => {
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </div>
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-2">Delete Sub-Group</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-2">Delete Sub-Group</h3>
               <p className="text-gray-500 dark:text-[#94A3B8] font-medium mb-8">
                 Are you sure you want to permanently delete <span className="font-bold text-gray-800 dark:text-gray-200 uppercase">{actionMenuSubgroup.name}</span>?
               </p>
@@ -1794,7 +1795,7 @@ const GroupMenteesList = () => {
         {isAddMemberModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setIsAddMemberModalOpen(false)}>
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-[#0F172A] w-full max-w-md p-6 rounded-[32px] shadow-2xl transition-colors duration-300 max-h-[80vh] flex flex-col">
-              <h3 className="text-xl font-black text-[#0f172a] dark:text-[#F8FAFC] mb-1">Add Members to Group</h3>
+              <h3 className="text-xl font-black text-[#0f172a] dark:text-white dark:text-[#F8FAFC] mb-1">Add Members to Group</h3>
               {!isFetchingUncategorized && uncategorizedStudents.length > 0 && (
                 <p className="text-[12px] text-gray-500 mb-3">{uncategorizedStudents.length} unassigned mentees &middot; {selectedUncategorized.length} selected</p>
               )}

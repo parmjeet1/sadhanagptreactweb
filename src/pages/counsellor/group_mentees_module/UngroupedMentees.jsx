@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
@@ -58,7 +59,10 @@ const UngroupedMentees = () => {
           <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-xl shadow-sm">
             <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </button>
-          <h1 className="text-[20px] font-extrabold text-[#0f172a] uppercase dark:text-[#F8FAFC] truncate px-4">Ungrouped</h1>
+          <h1 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white uppercase dark:text-[#F8FAFC] truncate px-4">Ungrouped</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           <button
             onClick={() => setIsAiOpen(true)}
             disabled={total === 0}

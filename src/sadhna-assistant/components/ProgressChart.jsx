@@ -43,10 +43,10 @@ export function ProgressChart({ data = [] }) {
   const areaD = `${pathD} L ${points[points.length - 1].x} 100 L ${points[0].x} 100 Z`;
 
   const TrendIcon = change > 0 ? TrendingUp : change < 0 ? TrendingDown : Minus;
-  const trendColor = change > 0 ? "text-leaf-500" : change < 0 ? "text-saffron-600" : "text-saffron-400";
+  const trendColor = change > 0 ? "text-leaf-500 dark:text-[#8FD65A]" : change < 0 ? "text-saffron-600" : "text-saffron-400 dark:text-[#FFB347]";
 
   return (
-    <div className="bg-white rounded-2xl border border-saffron-100 p-4">
+    <div className="bg-white dark:bg-[#14243B] rounded-2xl border border-saffron-100 dark:border-[#304766] p-4">
       <svg viewBox="0 0 280 110" className="w-full h-28" role="img" aria-label="7-day Sadhna marks trend">
         <defs>
           <linearGradient id="sadhnaAreaFill" x1="0" y1="0" x2="0" y2="1">
@@ -62,14 +62,14 @@ export function ProgressChart({ data = [] }) {
       </svg>
       <div className="flex justify-between mt-1 px-1">
         {data.map((d, i) => (
-          <div key={i} className="flex flex-col items-center text-[11px] text-saffron-700/80 w-8">
+          <div key={i} className="flex flex-col items-center text-[11px] text-saffron-700/80 dark:text-[#B6C5DC] w-8">
             <span>{d.label}</span>
-            <span className="font-medium text-saffron-900">{d.marks}</span>
+            <span className="font-medium text-saffron-900 dark:text-[#F8FAFC]">{d.marks}</span>
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-saffron-100">
-        <div className="text-sm text-saffron-800">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-saffron-100 dark:border-[#304766]">
+        <div className="text-sm text-saffron-800 dark:text-[#B6C5DC]">
           7-day average: <span className="font-semibold">{average}</span>
         </div>
         <div className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>

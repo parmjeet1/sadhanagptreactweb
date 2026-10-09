@@ -334,7 +334,7 @@ const StoryBehindSadhanaGpt = () => {
   return (
     <div className="min-h-screen bg-[#fffaf3] dark:bg-[#17120d] text-[#1f2937] dark:text-[#f5efe6] font-sans pb-28">
       {/* Sticky Navigation Bar */}
-      <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#221a12]/80 backdrop-blur-md border-b border-[#f3e3c7] dark:border-[#3a2c1c] px-4 py-3 sm:px-6">
+      <div className="sticky top-0 z-40 bg-white dark:bg-[#0f172a]/80 dark:bg-[#221a12]/80 backdrop-blur-md border-b border-[#f3e3c7] dark:border-[#3a2c1c] px-4 py-3 sm:px-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <button
             type="button"
@@ -361,10 +361,10 @@ const StoryBehindSadhanaGpt = () => {
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#c2410c] via-[#f97316] to-[#f59e0b] p-6 sm:p-8 text-white shadow-xl shadow-orange-900/10 space-y-4"
         >
-          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-44 h-44 bg-white dark:bg-[#0f172a]/10 rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 space-y-3">
-            <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold uppercase tracking-wider text-amber-100">
+            <span className="inline-block px-3 py-1 bg-white dark:bg-[#0f172a]/20 backdrop-blur-md rounded-full text-xs font-semibold uppercase tracking-wider text-amber-100">
               BUILT WITH DEVOTION 🪷
             </span>
 
@@ -380,7 +380,7 @@ const StoryBehindSadhanaGpt = () => {
               <button
                 type="button"
                 onClick={() => setIsProjectModalOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-[#9a3412] font-bold text-sm shadow-md hover:bg-amber-50 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 text-[#9a3412] font-bold text-sm shadow-md hover:bg-amber-50 active:scale-95 transition-all cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4 text-[#ea580c]" />
                 <span>Start a Project</span>
@@ -687,7 +687,7 @@ const StoryBehindSadhanaGpt = () => {
                   href={`https://wa.me/${whatsappNumber}?text=Hello%20Paramjeet%2C%20I%20found%20you%20through%20SadhanaGPT%20and%20want%20to%20discuss%20a%20project.`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-colors text-white text-xs font-bold"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-[#0f172a]/10 hover:bg-white dark:bg-[#0f172a]/20 border border-white/20 transition-colors text-white text-xs font-bold"
                 >
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-emerald-400" />
@@ -697,7 +697,7 @@ const StoryBehindSadhanaGpt = () => {
                 </a>
 
                 {dependency.dev_mobile && (
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/10 border border-white/20 text-white text-xs font-semibold">
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-[#0f172a]/10 border border-white/20 text-white text-xs font-semibold">
                     <div className="min-w-0">
                       <small className="block text-[10px] text-amber-200">Call</small>
                       <a href={`tel:${dependency.dev_mobile}`} className="font-bold hover:underline truncate block">
@@ -707,7 +707,7 @@ const StoryBehindSadhanaGpt = () => {
                     <button
                       type="button"
                       onClick={() => handleCopy(dependency.dev_mobile, 'Mobile')}
-                      className="p-1.5 hover:bg-white/20 rounded-lg text-amber-200 transition-colors cursor-pointer"
+                      className="p-1.5 hover:bg-white dark:bg-[#0f172a]/20 rounded-lg text-amber-200 transition-colors cursor-pointer"
                     >
                       {copiedField === 'Mobile' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
@@ -715,7 +715,7 @@ const StoryBehindSadhanaGpt = () => {
                 )}
 
                 {dependency.dev_email && (
-                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/10 border border-white/20 text-white text-xs font-semibold sm:col-span-2">
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-[#0f172a]/10 border border-white/20 text-white text-xs font-semibold sm:col-span-2">
                     <div className="min-w-0">
                       <small className="block text-[10px] text-amber-200">Email</small>
                       <a href={`mailto:${dependency.dev_email}`} className="font-bold hover:underline truncate block">
@@ -725,7 +725,7 @@ const StoryBehindSadhanaGpt = () => {
                     <button
                       type="button"
                       onClick={() => handleCopy(dependency.dev_email, 'Email')}
-                      className="p-1.5 hover:bg-white/20 rounded-lg text-amber-200 transition-colors cursor-pointer"
+                      className="p-1.5 hover:bg-white dark:bg-[#0f172a]/20 rounded-lg text-amber-200 transition-colors cursor-pointer"
                     >
                       {copiedField === 'Email' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     </button>
@@ -737,7 +737,7 @@ const StoryBehindSadhanaGpt = () => {
               <button
                 type="button"
                 onClick={() => setIsProjectModalOpen(true)}
-                className="w-full py-3.5 px-5 rounded-2xl bg-white text-[#7c2d12] font-extrabold text-sm hover:bg-amber-50 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-5 rounded-2xl bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 text-[#7c2d12] font-extrabold text-sm hover:bg-amber-50 active:scale-[0.99] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4 text-[#ea580c]" />
                 <span>Tell Us About Your Project 🚀</span>
@@ -774,7 +774,7 @@ const StoryBehindSadhanaGpt = () => {
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#221a12]/95 backdrop-blur-md border-t border-[#f3e3c7] dark:border-[#3a2c1c] px-4 py-3 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#0f172a]/95 dark:bg-[#221a12]/95 backdrop-blur-md border-t border-[#f3e3c7] dark:border-[#3a2c1c] px-4 py-3 shadow-lg">
         <div className="max-w-xl mx-auto flex items-center justify-center gap-2.5 sm:gap-3">
           <button
             type="button"
@@ -816,7 +816,7 @@ const StoryBehindSadhanaGpt = () => {
               <button
                 type="button"
                 onClick={() => setIsProjectModalOpen(false)}
-                className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white dark:bg-[#0f172a]/10 hover:bg-white dark:bg-[#0f172a]/20 rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -836,7 +836,7 @@ const StoryBehindSadhanaGpt = () => {
                     value={inquiryName}
                     onChange={(e) => setInquiryName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full bg-white text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
+                    className="w-full bg-white dark:bg-[#0f172a] text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
                   />
                 </div>
 
@@ -847,7 +847,7 @@ const StoryBehindSadhanaGpt = () => {
                     value={inquiryPhone}
                     onChange={(e) => setInquiryPhone(e.target.value)}
                     placeholder="Enter your contact number"
-                    className="w-full bg-white text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
+                    className="w-full bg-white dark:bg-[#0f172a] text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
                   />
                 </div>
 
@@ -858,7 +858,7 @@ const StoryBehindSadhanaGpt = () => {
                     value={inquiryMessage}
                     onChange={(e) => setInquiryMessage(e.target.value)}
                     placeholder="Tell us about your project requirements..."
-                    className="w-full bg-white text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium resize-none"
+                    className="w-full bg-white dark:bg-[#0f172a] text-[#1f2937] rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium resize-none"
                   />
                 </div>
 

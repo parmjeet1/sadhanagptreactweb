@@ -45,7 +45,7 @@ const SadhnaAssistantLauncher = () => {
 
   return (
     <>
-      <DraggableFloating storageKey="sadhna-mic" className="fixed z-40 bottom-[188px] right-6 lg:right-10">
+      <DraggableFloating storageKey="sadhna-mic" className="absolute z-40 bottom-[100px] right-6">
         {/* Blinking ring behind the button — keeps it prominent without a person needing to notice a static icon. */}
         <span className="absolute inset-0 rounded-full bg-[#dd7f22] animate-ping opacity-60" />
         <motion.button
@@ -75,13 +75,13 @@ const SadhnaAssistantLauncher = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="w-full sm:max-w-md h-[92vh] sm:h-[820px] sm:max-h-[92vh] sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl relative bg-cream-50"
+              className="w-full sm:max-w-md h-[92vh] sm:h-[820px] sm:max-h-[92vh] sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl relative bg-cream-50 dark:bg-[#0F1B30] dark:border dark:border-[#FF981F]"
             >
               <button
                 type="button"
                 onClick={handleClose}
                 aria-label="Close Sadhna Assistant"
-                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-[#0f172a]"
+                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white dark:bg-[#2D1B0E] shadow flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />

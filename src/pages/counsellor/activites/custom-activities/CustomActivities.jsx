@@ -296,7 +296,7 @@ const CustomActivities = () => {
             </AnimatePresence>
 
             {/* Sticky Header */}
-            <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#112240] flex items-center justify-between px-4 sm:px-6 py-4 transition-all duration-300">
+            <header className="sticky top-0 z-40 bg-white dark:bg-[#0f172a]/80 dark:bg-[#0b1628]/80 backdrop-blur-md border-b border-gray-200 dark:border-[#112240] flex items-center justify-between px-4 sm:px-6 py-4 transition-all duration-300">
                 <div className="flex items-center gap-3 sm:gap-4">
                     <button
                         onClick={() => navigate(-1)}
@@ -307,7 +307,7 @@ const CustomActivities = () => {
                         </svg>
                     </button>
                     <div>
-                        <h1 className="text-[16px] sm:text-[18px] font-bold text-[#0f172a] dark:text-[#ffffff] leading-tight tracking-tight">Custom Activities</h1>
+                        <h1 className="text-[16px] sm:text-[18px] font-bold text-[#0f172a] dark:text-white dark:text-[#ffffff] leading-tight tracking-tight">Custom Activities</h1>
                         <p className="text-[11px] font-medium text-teal-600 dark:text-[#1de9b6] mt-0.5">Assign custom activities to groups and sub-groups</p>
                     </div>
                 </div>
@@ -350,7 +350,7 @@ const CustomActivities = () => {
                         <div className="w-16 h-16 bg-teal-50 dark:bg-[rgba(29,233,182,0.12)] text-teal-500 dark:text-[#1de9b6] rounded-full flex items-center justify-center mb-4">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <h3 className="text-[#0f172a] dark:text-[#ffffff] font-extrabold text-lg mb-2">Select a Group</h3>
+                        <h3 className="text-[#0f172a] dark:text-white dark:text-[#ffffff] font-extrabold text-lg mb-2">Select a Group</h3>
                         <p className="text-gray-500 dark:text-[#6b7a99] text-sm max-w-sm">Please select a group above to view, assign, and manage custom activities.</p>
                     </div>
                 ) : (
@@ -520,7 +520,7 @@ const CustomActivities = () => {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="pointer-events-auto bg-white/95 dark:bg-[#112240]/95 backdrop-blur-md border border-slate-200 dark:border-teal-500/30 rounded-2xl px-4 sm:px-6 py-3.5 shadow-2xl flex items-center gap-3 sm:gap-6 w-full max-w-md justify-between text-slate-800 dark:text-white transition-colors select-none"
+                        className="pointer-events-auto bg-white dark:bg-[#0f172a]/95 dark:bg-[#112240]/95 backdrop-blur-md border border-slate-200 dark:border-teal-500/30 rounded-2xl px-4 sm:px-6 py-3.5 shadow-2xl flex items-center gap-3 sm:gap-6 w-full max-w-md justify-between text-slate-800 dark:text-white transition-colors select-none"
                     >
                         <div className="flex items-center gap-2">
                             <div>

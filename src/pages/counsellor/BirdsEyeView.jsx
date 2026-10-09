@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +14,9 @@ import {
 // Pastel card treatment per status — subtle, not harsh warning colors
 // (spec section 11).
 const STATUS_STYLES = {
-  green: { card: 'bg-emerald-50 border-emerald-100', dot: 'bg-emerald-500', text: 'text-emerald-700' },
-  amber: { card: 'bg-amber-50 border-amber-100', dot: 'bg-amber-500', text: 'text-amber-700' },
-  red: { card: 'bg-red-50/70 border-red-100', dot: 'bg-red-400', text: 'text-red-600' },
+  green: { card: 'bg-emerald-50 hover:bg-emerald-100/50 border border-emerald-100 dark:bg-[#1e293b] dark:hover:bg-[#1e293b]/80 dark:border-[#334155]', dot: 'bg-emerald-500 dark:bg-emerald-400', text: 'text-emerald-700 dark:text-emerald-400' },
+  amber: { card: 'bg-amber-50 hover:bg-amber-100/50 border border-amber-100 dark:bg-[#1e293b] dark:hover:bg-[#1e293b]/80 dark:border-[#334155]', dot: 'bg-amber-500 dark:bg-amber-400', text: 'text-amber-700 dark:text-amber-400' },
+  red: { card: 'bg-red-50/70 hover:bg-red-50 border-2 border-red-100 dark:bg-[#261B27] dark:hover:bg-[#321D28] dark:border-[#C44050]', dot: 'bg-red-400 dark:bg-red-500', text: 'text-red-600 dark:text-red-400' },
 };
 
 const STATUS_FILTERS = [
@@ -28,14 +29,14 @@ const STATUS_FILTERS = [
 const StudentRow = ({ student, onOpenStudent }) => {
   const style = STATUS_STYLES[student.color] || STATUS_STYLES.amber;
   return (
-    <div className={`rounded-2xl border p-3.5 mb-2 ${style.card} sm:flex sm:items-center sm:justify-between sm:gap-4`}>
+    <div className={`rounded-2xl p-3.5 mb-2 transition-colors ${style.card} sm:flex sm:items-center sm:justify-between sm:gap-4`}>
       <div className="sm:flex-1 sm:min-w-0">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
           <button
             type="button"
             onClick={() => onOpenStudent(student)}
-            className="font-bold text-[14px] text-[#0f172a] hover:underline text-left truncate"
+            className="font-bold text-[14px] text-[#0f172a] dark:text-white hover:underline text-left truncate"
           >
             {student.name}
           </button>
@@ -43,10 +44,10 @@ const StudentRow = ({ student, onOpenStudent }) => {
         <p className={`text-[12.5px] font-semibold mt-1 ${style.text} truncate`}>{student.statusText}</p>
       </div>
       <div className="sm:flex-1 sm:min-w-0 mt-1.5 sm:mt-0">
-        <p className="text-[12px] text-gray-500 font-medium truncate">{student.action}</p>
+        <p className="text-[12px] text-gray-500 dark:text-gray-400 font-medium truncate">{student.action}</p>
       </div>
       <div className="sm:shrink-0 mt-1.5 sm:mt-0">
-        <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap">Reported {student.loggedDays}/{student.periodDays} days</span>
+        <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 whitespace-nowrap">Reported {student.loggedDays}/{student.periodDays} days</span>
       </div>
     </div>
   );
@@ -210,18 +211,22 @@ const BirdsEyeView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[84px]">
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-[84px]">
       <div className="w-full max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-10 pb-1">
-          <button onClick={() => navigate('/counsellor/dashboard')} className="text-[#64748b] font-bold text-sm">Back</button>
-          <div className="text-center">
-            <h1 className="text-[19px] font-extrabold text-[#0f172a] leading-tight">Bird's Eye View</h1>
-            <p className="text-[11.5px] text-gray-400 font-medium">All your mentees at a glance</p>
+        <div className="flex items-start justify-between px-6 pt-10 pb-1">
+          <div className="flex-1 flex justify-start">
+            <button onClick={() => navigate('/counsellor/dashboard')} className="text-[#64748b] dark:text-slate-400 font-bold text-sm hover:text-slate-800 dark:hover:text-slate-200 transition-colors pt-1">Back</button>
           </div>
-          <span className="w-10" />
+          <div className="text-center shrink-0 px-2">
+            <h1 className="text-[19px] font-extrabold text-[#0f172a] dark:text-white leading-tight">Bird's Eye View</h1>
+            <p className="text-[11.5px] text-gray-400 dark:text-slate-400 font-medium mt-1">All your mentees at a glance</p>
+          </div>
+          <div className="flex-1 flex justify-end -mr-3">
+            <ThemeToggle />
+          </div>
         </div>
-        <p className="px-6 text-center text-[11px] text-gray-400 font-semibold mb-4">
+        <p className="px-6 text-center text-[11px] text-gray-400 dark:text-slate-500 font-semibold mb-4">
           {startDate === defaultWeek.startDate && endDate === defaultWeek.endDate ? 'Last week: ' : 'Period: '}
           {formatDateRangeShort(startDate, endDate)}
         </p>
@@ -230,7 +235,7 @@ const BirdsEyeView = () => {
         <div className="px-6 mb-4">
           <button
             onClick={() => setIsCustomOpen((v) => !v)}
-            className="text-[12px] font-bold text-blue-600 flex items-center gap-1.5"
+            className="text-[12px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             Custom Date Range
@@ -239,9 +244,9 @@ const BirdsEyeView = () => {
             {isCustomOpen && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                 <div className="flex items-center gap-2 mt-3">
-                  <input type="date" value={customStartDraft} onChange={(e) => setCustomStartDraft(e.target.value)} className="flex-1 bg-gray-50 rounded-xl px-3 py-2.5 text-[13px] font-medium outline-none border border-transparent focus:border-blue-200" />
-                  <span className="text-gray-300 text-xs">to</span>
-                  <input type="date" value={customEndDraft} onChange={(e) => setCustomEndDraft(e.target.value)} className="flex-1 bg-gray-50 rounded-xl px-3 py-2.5 text-[13px] font-medium outline-none border border-transparent focus:border-blue-200" />
+                  <input type="date" value={customStartDraft} onChange={(e) => setCustomStartDraft(e.target.value)} className="flex-1 bg-gray-50 dark:bg-slate-800 dark:text-white rounded-xl px-3 py-2.5 text-[13px] font-medium outline-none border border-transparent focus:border-blue-200 dark:focus:border-blue-500 transition-colors" />
+                  <span className="text-gray-300 dark:text-slate-500 text-xs">to</span>
+                  <input type="date" value={customEndDraft} onChange={(e) => setCustomEndDraft(e.target.value)} className="flex-1 bg-gray-50 dark:bg-slate-800 dark:text-white rounded-xl px-3 py-2.5 text-[13px] font-medium outline-none border border-transparent focus:border-blue-200 dark:focus:border-blue-500 transition-colors" />
                   <button onClick={applyCustomRange} className="bg-blue-600 text-white text-[12px] font-bold px-4 py-2.5 rounded-xl shrink-0">Apply</button>
                 </div>
               </motion.div>
@@ -256,22 +261,22 @@ const BirdsEyeView = () => {
             placeholder="Search students by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#f8fafc] rounded-full py-3 px-5 text-[14px] outline-none"
+            className="w-full bg-[#f8fafc] dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 rounded-full py-3 px-5 text-[14px] outline-none border border-transparent dark:border-slate-700 focus:border-blue-200 dark:focus:border-blue-500 transition-colors"
           />
         </div>
 
         {/* Filters: Group / Subgroup / Status — same three everywhere,
             desktop just lays them out in one comfortable row (spec 20/25). */}
         <div className="px-6 pb-4 flex gap-2.5 overflow-x-auto hide-scrollbar sm:overflow-visible sm:flex-wrap">
-          <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border-none ${groupFilter !== 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border dark:border-slate-700 transition-colors ${groupFilter !== 'all' ? 'bg-blue-600 text-white border-transparent dark:border-transparent' : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
             <option value="all">All Groups</option>
             {groupOptions.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
-          <select value={subgroupFilter} onChange={(e) => setSubgroupFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border-none ${subgroupFilter !== 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <select value={subgroupFilter} onChange={(e) => setSubgroupFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border dark:border-slate-700 transition-colors ${subgroupFilter !== 'all' ? 'bg-blue-600 text-white border-transparent dark:border-transparent' : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
             <option value="all">All Subgroups</option>
             {subgroupOptions.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border-none ${statusFilter !== 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`shrink-0 rounded-full px-4 py-2 font-bold text-[12.5px] outline-none border dark:border-slate-700 transition-colors ${statusFilter !== 'all' ? 'bg-blue-600 text-white border-transparent dark:border-transparent' : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
             {STATUS_FILTERS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
         </div>
@@ -285,7 +290,7 @@ const BirdsEyeView = () => {
             <button onClick={fetchData} className="text-blue-600 font-bold text-sm">Try again</button>
           </div>
         ) : hierarchy.length === 0 ? (
-          <div className="px-6 py-16 text-center text-gray-400 font-medium">
+          <div className="px-6 py-16 text-center text-gray-400 dark:text-slate-500 font-medium">
             {students.length === 0 ? 'No mentees found.' : 'No mentees match your search/filters.'}
           </div>
         ) : (
@@ -294,9 +299,9 @@ const BirdsEyeView = () => {
               const groupCollapsed = collapsedGroups.has(groupName);
               return (
                 <div key={groupName} className="mb-4">
-                  <button onClick={() => toggleGroupCollapsed(groupName)} className="w-full flex items-center justify-between py-2 border-b border-gray-100">
-                    <span className="font-extrabold text-[15px] text-[#0f172a]">{groupName}</span>
-                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${groupCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                  <button onClick={() => toggleGroupCollapsed(groupName)} className="w-full flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-800/80 transition-colors">
+                    <span className="font-extrabold text-[15px] text-[#0f172a] dark:text-white">{groupName}</span>
+                    <svg className={`w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform ${groupCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                   </button>
                   <AnimatePresence initial={false}>
                     {!groupCollapsed && (
@@ -307,8 +312,8 @@ const BirdsEyeView = () => {
                           return (
                             <div key={subKey} className="mt-3">
                               <button onClick={() => toggleSubgroupCollapsed(subKey)} className="w-full flex items-center justify-between mb-2">
-                                <span className="font-bold text-[12px] uppercase tracking-wider text-gray-400">{subgroupName}</span>
-                                <svg className={`w-3.5 h-3.5 text-gray-300 transition-transform ${subCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                <span className="font-bold text-[12px] uppercase tracking-wider text-gray-400 dark:text-slate-400">{subgroupName}</span>
+                                <svg className={`w-3.5 h-3.5 text-gray-300 dark:text-slate-600 transition-transform ${subCollapsed ? '-rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                               </button>
                               <AnimatePresence initial={false}>
                                 {!subCollapsed && (

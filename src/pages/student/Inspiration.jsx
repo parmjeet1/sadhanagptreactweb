@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
@@ -173,18 +174,21 @@ const Inspiration = () => {
   const filteredContent = inspirations; // Filtering now handled by API
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans pb-32 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1220] transition-colors duration-300 text-[#0f172a] dark:text-[#F8FAFC] font-sans pb-32 relative overflow-x-hidden">
       <div className="w-full max-w-md mx-auto">
 
         {/* Header */}
         <header className="px-6 pt-10 pb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-[28px] font-extrabold text-[#0f172a] tracking-tight leading-tight">Daily Wisdom</h1>
-            <p className="text-[14px] font-medium text-gray-400 mt-1">Tuesday, Oct 24</p>
+            <h1 className="text-[28px] font-extrabold text-[#0f172a] dark:text-[#F8FAFC] tracking-tight leading-tight">Daily Wisdom</h1>
+            <p className="text-[14px] font-medium text-gray-400 dark:text-[#B6C5DC] mt-1">Tuesday, Oct 24</p>
           </div>
-          <button className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0f172a] active:scale-90 transition-all">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button className="w-12 h-12 rounded-full bg-white dark:bg-[#142238] border border-gray-100 dark:border-[#34465F] shadow-sm flex items-center justify-center text-[#0f172a] dark:text-[#F8FAFC] active:scale-90 transition-all">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+            </button>
+          </div>
         </header>
 
         {/* Filter Bar */}
@@ -194,13 +198,13 @@ const Inspiration = () => {
               key={filter}
               onClick={() => setActiveFilter(filter)}
               className={`relative px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
-                ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md'
-                : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
+                ? 'bg-[#1e293b] dark:bg-[#3B82F6] text-white border-[#1e293b] dark:border-[#3B82F6] shadow-md'
+                : 'bg-white dark:bg-[#142238] text-gray-500 dark:text-[#B6C5DC] border-gray-100 dark:border-[#34465F] hover:border-gray-200 dark:hover:border-[#3B82F6]'
                 }`}
             >
               {filter}
               {filter === 'Ranking' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-[#142238] rounded-full"></span>
               )}
             </button>
           ))}
@@ -213,18 +217,18 @@ const Inspiration = () => {
             isLoading ? (
               <div className="flex flex-col items-center justify-center pt-20 gap-3">
                 <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium">Loading rankings...</p>
+                <p className="text-gray-500 dark:text-[#B6C5DC] font-medium">Loading rankings...</p>
               </div>
             ) : (
               <div className="space-y-4 pb-8">
                 {/* Group Rank vs Global Rank Toggle */}
-                <div className="flex bg-slate-200/70 p-1.5 rounded-2xl mb-4 shadow-inner">
+                <div className="flex bg-slate-200/70 dark:bg-[#142238] border border-transparent dark:border-[#34465F] p-1.5 rounded-2xl mb-4 shadow-inner">
                   <button
                     onClick={() => setRankingType('center')}
                     className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
                       rankingType === 'center'
-                        ? 'bg-white text-teal-600 shadow-md'
-                        : 'text-gray-500 hover:text-gray-800'
+                        ? 'bg-white dark:bg-[#1D2B40] text-teal-600 dark:text-[#38BDF8] shadow-md border border-transparent dark:border-[#34465F]'
+                        : 'text-gray-500 dark:text-[#B6C5DC] hover:text-gray-800 dark:hover:text-[#F8FAFC]'
                     }`}
                   >
                     🏢 Group Rank
@@ -233,8 +237,8 @@ const Inspiration = () => {
                     onClick={() => setRankingType('global')}
                     className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
                       rankingType === 'global'
-                        ? 'bg-white text-blue-600 shadow-md'
-                        : 'text-gray-500 hover:text-gray-800'
+                        ? 'bg-white dark:bg-[#1D2B40] text-blue-600 dark:text-[#38BDF8] shadow-md border border-transparent dark:border-[#34465F]'
+                        : 'text-gray-500 dark:text-[#B6C5DC] hover:text-gray-800 dark:hover:text-[#F8FAFC]'
                     }`}
                   >
                     🌐 Global Rank
@@ -244,7 +248,7 @@ const Inspiration = () => {
                 {/* Current User Stats Card */}
                 {currentUserRank !== null && (
                   <div className="bg-gradient-to-br from-teal-500 to-blue-600 rounded-[24px] p-6 text-white shadow-xl mb-6 relative overflow-hidden">
-                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 dark:bg-white/10 rounded-full blur-2xl"></div>
                     <p className="text-teal-100 font-medium text-sm mb-1 uppercase tracking-wider">
                       Your Daily {rankingType === 'center' ? 'Group' : 'Global'} Rank
                     </p>
@@ -258,8 +262,8 @@ const Inspiration = () => {
                 )}
                 
                 {/* Ranking List */}
-                <div className="bg-white rounded-[32px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
-                  <h3 className="font-bold text-[#1e293b] text-lg mb-6 flex items-center gap-2">
+                <div className="bg-white dark:bg-[#142238] dark:border-[#34465F] rounded-[32px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
+                  <h3 className="font-bold text-[#1e293b] dark:text-[#F8FAFC] text-lg mb-6 flex items-center gap-2">
                     <span className="text-xl">🏆</span> {rankingType === 'center' ? 'Group' : 'Global'} Leaderboard
                   </h3>
                   
@@ -268,17 +272,25 @@ const Inspiration = () => {
                       {rankings.map((user, idx) => {
                         const rank = user.rank ?? idx + 1; // rank from the server (same percentage = same rank)
                         const hasMarks = Number(user.total_marks) > 0;
-                        let rankColor = "text-gray-500 bg-gray-100";
-                        if (hasMarks && rank === 1) rankColor = "text-yellow-600 bg-yellow-100";
-                        if (hasMarks && rank === 2) rankColor = "text-slate-500 bg-slate-100";
-                        if (hasMarks && rank === 3) rankColor = "text-amber-700 bg-amber-100";
+                        let rankColor = "text-gray-500 dark:text-[#B6C5DC] bg-gray-100 dark:bg-[#1D2B40] dark:border dark:border-[#34465F]";
+                        if (hasMarks && rank === 1) rankColor = "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-950/50 dark:border dark:border-yellow-700/50";
+                        if (hasMarks && rank === 2) rankColor = "text-slate-500 bg-slate-100 dark:text-slate-300 dark:bg-slate-800 dark:border dark:border-slate-600";
+                        if (hasMarks && rank === 3) rankColor = "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-950/50 dark:border dark:border-amber-700/50";
+
+                        const isCurrentUser = (userDetails?.user_id && user.user_id === userDetails.user_id) || 
+                                              (userDetails?.email && user.email === userDetails.email) ||
+                                              (userDetails?.name && user.name === userDetails.name && rank === currentUserRank);
 
                         const isLast = idx === rankings.length - 1;
                         return (
                           <div 
                             ref={isLast ? lastElementRef : null}
-                            key={user.user_id} 
-                            className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
+                            key={user.user_id || idx} 
+                            className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
+                              isCurrentUser
+                                ? 'bg-white dark:bg-[#1D2B40] border-gray-100 dark:border-[#34465F] shadow-sm dark:shadow-md'
+                                : 'hover:bg-gray-50 dark:hover:bg-[#1D2B40]/50 border-transparent hover:border-gray-100 dark:hover:border-[#34465F]'
+                            }`}
                           >
                             <div className="flex items-center gap-4">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${rankColor}`}>
@@ -286,15 +298,24 @@ const Inspiration = () => {
                               </div>
                               <div className="flex items-center gap-3">
                                 {user.profile ? (
-                                  <img src={user.profile.startsWith('http') ? user.profile : `${import.meta.env.VITE_IMAGE_URL}${user.profile}`} className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white" alt={user.name} />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white text-sm">
-                                    {user.name?.charAt(0).toUpperCase()}
-                                  </div>
-                                )}
+                                  <img 
+                                    src={user.profile.startsWith('http') ? user.profile : `${import.meta.env.VITE_IMAGE_URL}${user.profile}`} 
+                                    className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white dark:border-[#34465F]" 
+                                    alt={user.name} 
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      if (e.currentTarget.nextElementSibling) {
+                                        e.currentTarget.nextElementSibling.classList.remove('hidden');
+                                      }
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white dark:border-[#34465F] text-sm ${user.profile ? 'hidden' : 'flex'}`}>
+                                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
                                 <div>
-                                  <h4 className="font-bold text-[#1e293b] text-[15px]">{user.name}</h4>
-                                  <p className="text-[12px] font-medium text-gray-400">{user.percentage ?? 0}% · {user.total_marks || 0} Marks</p>
+                                  <h4 className="font-bold text-[#1e293b] dark:text-[#F8FAFC] text-[15px]">{user.name}</h4>
+                                  <p className="text-[12px] font-medium text-gray-400 dark:text-[#B6C5DC]">{user.percentage ?? 0}% · {user.total_marks || 0} Marks</p>
                                 </div>
                               </div>
                             </div>
@@ -303,7 +324,7 @@ const Inspiration = () => {
                       })}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-6">No rankings available yet.</p>
+                    <p className="text-center text-gray-500 dark:text-[#B6C5DC] py-6">No rankings available yet.</p>
                   )}
                   
                   {isFetchingRankings && (
@@ -317,7 +338,7 @@ const Inspiration = () => {
           ) : isLoading ? (
             <div className="flex flex-col items-center justify-center pt-20 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-medium">Loading inspiration...</p>
+              <p className="text-gray-500 dark:text-[#B6C5DC] font-medium">Loading inspiration...</p>
             </div>
           ) : filteredContent.length > 0 ? (
             <AnimatePresence mode="popLayout">
@@ -335,16 +356,16 @@ const Inspiration = () => {
                   >
                     {/* Quote / Text Format */}
                     {(!item.content_type || item.content_type === 'text' || item.content_type === 'quote' || item.type === 'text') && (
-                      <div className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 border-l-8 border-l-blue-500">
-                        <div className="mb-6 opacity-20">
+                      <div className="bg-white dark:bg-[#142238] dark:border-[#34465F] dark:text-[#F8FAFC] rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 border-l-8 border-l-blue-500">
+                        <div className="mb-6 opacity-20 text-[#1e293b] dark:text-[#F8FAFC]">
                           <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
                         </div>
-                        <h2 className="text-[22px] font-bold text-[#1e293b] leading-relaxed italic mb-8">
+                        <h2 className="text-[22px] font-bold text-[#1e293b] dark:text-[#F8FAFC] leading-relaxed italic mb-8">
                           {item.content}
                         </h2>
-                        <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                          <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg">Daily Wisdom</span>
-                          <button onClick={() => handleShare(item.content, window.location.href)} className="text-gray-400 hover:text-[#1e293b] p-2">
+                        <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-[#34465F]">
+                          <span className="text-[11px] font-black uppercase tracking-widest bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg">Daily Wisdom</span>
+                          <button onClick={() => handleShare(item.content, window.location.href)} className="text-gray-400 hover:text-[#1e293b] dark:hover:text-[#F8FAFC] p-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                           </button>
                         </div>
@@ -353,7 +374,7 @@ const Inspiration = () => {
 
                     {/* Image Format */}
                     {(item.content_type === 'image' || item.content_type === 'image_quote') && (
-                      <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl group border-4 border-white">
+                      <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl group border-4 border-white dark:border-[#34465F]">
                         <img
                           src={item.content.startsWith('http')
                             ? item.content
@@ -363,7 +384,7 @@ const Inspiration = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-10 flex flex-col justify-end">
                           <div className="flex justify-end pt-6">
-                    ``        <button onClick={() => handleShare("Shared Image", item.content)} className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 hover:bg-white/30 transition-all">
+                            <button onClick={() => handleShare("Shared Image", item.content)} className="w-12 h-12 bg-white/20 dark:bg-[#0B1220]/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 hover:bg-white/30 transition-all">
                               <svg className="w-5 h-5 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                             </button>
                           </div>
@@ -373,7 +394,7 @@ const Inspiration = () => {
 
                     {/* YouTube Format */}
                     {(item.content_type === 'youtube') && (
-                      <div className="bg-white rounded-[40px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
+                      <div className="bg-white dark:bg-[#142238] dark:border-[#34465F] rounded-[40px] overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
                         <div className="aspect-video bg-black">
                           {extractYouTubeId(item.content) ? (
                             <iframe
@@ -392,11 +413,11 @@ const Inspiration = () => {
                         </div>
                         <div className="p-8">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-black text-red-600 uppercase tracking-widest bg-red-50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                            <span className="text-[11px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest bg-red-50 dark:bg-red-950/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                               YouTube Lesson
                             </span>
-                            <button onClick={() => handleShare("YouTube Inspiration", item.content)} className="text-gray-400 p-2">
+                            <button onClick={() => handleShare("YouTube Inspiration", item.content)} className="text-gray-400 hover:text-[#1e293b] dark:hover:text-[#F8FAFC] p-2">
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                             </button>
                           </div>
@@ -408,16 +429,16 @@ const Inspiration = () => {
                     {(item.content_type === 'url') && (
                       <div
                         onClick={() => window.open(item.content, '_blank')}
-                        className="bg-white rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 flex items-center gap-6 cursor-pointer active:scale-[0.98] transition-all"
+                        className="bg-white dark:bg-[#142238] dark:border-[#34465F] rounded-[40px] p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 flex items-center gap-6 cursor-pointer active:scale-[0.98] transition-all"
                       >
-                        <div className="w-16 h-16 rounded-[24px] bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                        <div className="w-16 h-16 rounded-[24px] bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
                           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-[17px] font-black text-[#1e293b] leading-tight mb-2">Internal Resource</h3>
-                          <p className="text-[13px] font-medium text-gray-400 truncate max-w-[180px]">{item.content}</p>
+                          <h3 className="text-[17px] font-black text-[#1e293b] dark:text-[#F8FAFC] leading-tight mb-2">Internal Resource</h3>
+                          <p className="text-[13px] font-medium text-gray-400 dark:text-[#B6C5DC] truncate max-w-[180px]">{item.content}</p>
                         </div>
-                        <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                        <svg className="w-5 h-5 text-gray-300 dark:text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                       </div>
                     )}
                   </motion.div>
@@ -426,7 +447,7 @@ const Inspiration = () => {
             </AnimatePresence>
           ) : (
             <div className="text-center pt-10">
-              <p className="text-gray-500 font-medium text-lg">No content found</p>
+              <p className="text-gray-500 dark:text-[#B6C5DC] font-medium text-lg">No content found</p>
             </div>
           )}
         </div>

@@ -1,3 +1,4 @@
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,11 +17,11 @@ const ConfirmDialog = ({ isOpen, title, message, confirmLabel = 'Confirm', destr
     {isOpen && (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm" onClick={onCancel} />
-        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center">
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-sm bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl p-6 text-center">
           <div className={`w-16 h-16 ${destructive ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
           </div>
-          <h3 className="text-xl font-extrabold text-[#0f172a] mb-2">{title}</h3>
+          <h3 className="text-xl font-extrabold text-[#0f172a] dark:text-white mb-2">{title}</h3>
           <p className="text-gray-500 text-sm font-medium mb-6 leading-relaxed whitespace-pre-line">{message}</p>
           <div className="flex flex-col gap-3">
             <button onClick={onConfirm} className={`w-full ${destructive ? 'bg-red-500' : 'bg-blue-600'} text-white font-bold py-3.5 rounded-2xl active:scale-95 transition-all`}>{confirmLabel}</button>
@@ -594,31 +595,34 @@ Please provide:
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[84px]">
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-[84px]">
       <AnimatePresence>
         {errorMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-red-50 text-red-600 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-red-100">{errorMessage}</div></motion.div>)}
         {successMessage && (<motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} exit={{opacity:0}} className="fixed top-24 left-0 right-0 z-[100] flex justify-center"><div className="bg-green-50 text-green-700 px-6 py-3 rounded-2xl shadow-lg font-bold text-sm border border-green-100">{successMessage}</div></motion.div>)}
       </AnimatePresence>
 
       <div className="max-w-md mx-auto">
-        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white z-20 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white dark:bg-[#0f172a] z-20 border-b border-gray-100 dark:border-slate-800/50">
           <button onClick={() => navigate(-1)} className="text-[#64748b] font-bold">Back</button>
-          <h1 className="text-[17px] font-extrabold text-[#0f172a] text-center leading-tight">Mentees n<br/>Group Management</h1>
+          <h1 className="text-[17px] font-extrabold text-[#0f172a] dark:text-white text-center leading-tight">Mentees n<br/>Group Management</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           <button onClick={() => selectedStudents.length > 0 ? setSelectedStudents([]) : setSelectedStudents(sortedStudents.slice(0, SELECTION_LIMIT).map(s=>s.id))} className="text-[#1a73e8] font-bold shrink-0">{selectedStudents.length > 0 ? 'Clear' : 'Select'}</button>
         </div>
 
         <div className="px-6 py-4">
-          <input type="text" placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-[#f8fafc] rounded-full py-3.5 px-6 text-[15px] outline-none" />
+          <input type="text" placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-[#f8fafc] dark:bg-slate-800/50 dark:text-slate-200 border border-transparent dark:border-slate-700/50 placeholder-gray-400 dark:placeholder-slate-400 rounded-full py-3.5 px-6 text-[15px] outline-none" />
         </div>
 
         <div className="px-6 pb-4 flex gap-3 overflow-x-auto hide-scrollbar">
-          <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); setSelectedLabel('All'); setLabels([]); }} className={`shrink-0 rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); setSelectedLabel('All'); setLabels([]); }} className={`shrink-0 rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800 dark:bg-slate-800/50 dark:text-gray-200'}`}>
             <option value="All">All Groups</option>
             <option value="Uncategorized">Uncategorised</option>
             {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
           </select>
 
-          <select value={selectedLabel} onChange={(e) => setSelectedLabel(e.target.value)} disabled={selectedGroup === 'All' || selectedGroup === 'Uncategorized'} className={`shrink-0 rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none disabled:opacity-50 ${selectedLabel !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+          <select value={selectedLabel} onChange={(e) => setSelectedLabel(e.target.value)} disabled={selectedGroup === 'All' || selectedGroup === 'Uncategorized'} className={`shrink-0 rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none disabled:opacity-50 ${selectedLabel !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800 dark:bg-slate-800/50 dark:text-gray-200'}`}>
             <option value="All">All Subgroups</option>
             {labels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
@@ -631,18 +635,18 @@ Please provide:
         ) : (
           <div className="px-2">
             {sortedStudents.map(student => (
-              <div key={student.id} className="flex items-center px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                <button onClick={() => toggleStudent(student.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mr-3 shrink-0 ${selectedStudents.includes(student.id) ? 'bg-blue-600 border-blue-600' : 'border-gray-200'}`}>
+              <div key={student.id} className="flex items-center px-4 py-3 border-b border-gray-50 dark:border-slate-800/50 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                <button onClick={() => toggleStudent(student.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mr-3 shrink-0 ${selectedStudents.includes(student.id) ? 'bg-blue-600 border-blue-600' : 'border-gray-200 dark:border-slate-600'}`}>
                   {selectedStudents.includes(student.id) && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </button>
                 <div onClick={() => navigate(`/counsellor/mentee/${student.id}`, { state: { student } })} className="flex items-center flex-1 min-w-0 cursor-pointer gap-3">
                   <img src={student.avatar} className="w-11 h-11 rounded-full border border-gray-100 shrink-0" />
                   <div className="min-w-0">
-                    <h3 className="font-bold text-[15px] text-[#0f172a] truncate">{student.name}</h3>
+                    <h3 className="font-bold text-[15px] text-[#0f172a] dark:text-white truncate">{student.name}</h3>
                     <p className={`text-[12px] font-medium truncate ${student.group ? 'text-gray-400' : 'text-gray-300 italic'}`}>{groupSubgroupLabel(student)}</p>
                   </div>
                 </div>
-                <button onClick={() => setActionMenuStudent(student)} className="p-2 text-gray-300 hover:text-gray-900 transition-colors shrink-0">
+                <button onClick={() => setActionMenuStudent(student)} className="p-2 text-gray-300 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-300 transition-colors shrink-0">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" /></svg>
                 </button>
               </div>
@@ -670,17 +674,17 @@ Please provide:
           >
             <div className="bg-[#1a73e8] rounded-[32px] shadow-2xl shadow-blue-500/40 w-full relative">
               <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                <div className="w-10 h-1.5 rounded-full bg-white/40" />
+                <div className="w-10 h-1.5 rounded-full bg-white dark:bg-[#0f172a]/40" />
               </div>
               <div className="px-5 pb-5 pt-2">
                 <div className="flex justify-between items-center mb-4 text-white px-2">
                   <span className="font-extrabold text-[15px]">{selectedStudents.length} Students Selected</span>
-                  <button onClick={() => setSelectedStudents([])} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center touch-auto"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                  <button onClick={() => setSelectedStudents([])} className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 dark:bg-[#0f172a]/10 dark:hover:bg-[#0f172a]/20 flex items-center justify-center touch-auto"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Assign Group</button>
-                  <button onClick={() => setIsAiAnalysisModalOpen(true)} className="touch-auto flex-1 bg-white text-[#1a73e8] rounded-2xl py-3.5 font-black text-[13px] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
-                  <button onClick={() => setIsDownloadModalOpen(true)} className="touch-auto flex-1 bg-white/10 text-white rounded-2xl py-3.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
+                  <button onClick={() => setIsBulkAssignOpen(true)} className="touch-auto flex-1 bg-white/20 dark:bg-[#0f172a]/10 text-white rounded-2xl py-3.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12M5,9V6H3V9H0V11H3V14H5V11H8V9H5Z" /></svg>Assign Group</button>
+                  <button onClick={() => setIsAiAnalysisModalOpen(true)} className="touch-auto flex-1 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 text-[#1a73e8] rounded-2xl py-3.5 font-black text-[13px] flex items-center justify-center gap-1.5 shadow-lg active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 19.93C7.06 19.43 4 16.05 4 12C4 7.95 7.06 4.57 11 4.07V19.93M13 4.07C16.94 4.57 20 7.95 20 12C20 16.05 16.94 19.43 13 19.93V4.07M12 11.5A1.5 1.5 0 0 1 10.5 10A1.5 1.5 0 0 1 12 8.5A1.5 1.5 0 0 1 13.5 10A1.5 1.5 0 0 1 12 11.5M12 15.5A1.5 1.5 0 0 1 10.5 14A1.5 1.5 0 0 1 12 12.5A1.5 1.5 0 0 1 13.5 14A1.5 1.5 0 0 1 12 15.5Z" /></svg>AI Analysis</button>
+                  <button onClick={() => setIsDownloadModalOpen(true)} className="touch-auto flex-1 bg-white/20 dark:bg-[#0f172a]/10 text-white rounded-2xl py-3.5 font-bold text-[13px] flex items-center justify-center gap-1.5 hover:bg-white/30 dark:hover:bg-[#0f172a]/20 active:scale-[0.98] transition-all"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>Export</button>
                 </div>
               </div>
             </div>
@@ -693,7 +697,7 @@ Please provide:
         {actionMenuStudent && (
           <>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={() => setActionMenuStudent(null)} className="fixed inset-0 bg-[#0f172a]/40 backdrop-blur-[2px] z-[80]" />
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white rounded-t-[32px] shadow-2xl z-[90] flex flex-col px-6 pb-8 pt-4">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-t-[32px] shadow-2xl z-[90] flex flex-col px-6 pb-8 pt-4">
               <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" />
               <h2 className="text-lg font-extrabold text-center mb-1">{actionMenuStudent.name}</h2>
               <p className="text-gray-400 text-sm text-center mb-6">{groupSubgroupLabel(actionMenuStudent)}</p>
@@ -720,7 +724,7 @@ Please provide:
       <AnimatePresence>
         {namingStudent && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setNamingStudent(null)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px]">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[40px]">
               <h2 className="text-xl font-black mb-6">Edit Mentee Name</h2>
               <input
                 type="text"
@@ -772,7 +776,7 @@ Please provide:
                 initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}}
                 transition={{ type: 'spring', damping: 28, stiffness: 220 }}
                 onClick={e=>e.stopPropagation()}
-                className="bg-white w-full max-w-md rounded-t-[32px] flex flex-col"
+                className="bg-white dark:bg-[#0f172a] w-full max-w-md rounded-t-[32px] flex flex-col"
                 style={{ height: '80vh' }}
               >
                 {/* Drag handle + header (fixed) */}
@@ -780,7 +784,7 @@ Please provide:
                   <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
                 </div>
                 <div className="flex items-center justify-between px-6 pb-4 shrink-0 border-b border-gray-50">
-                  <h2 className="text-xl font-black text-[#0f172a]">Assign {selectedStudents.length} Student{selectedStudents.length !== 1 ? 's' : ''}</h2>
+                  <h2 className="text-xl font-black text-[#0f172a] dark:text-white">Assign {selectedStudents.length} Student{selectedStudents.length !== 1 ? 's' : ''}</h2>
                   <button onClick={closeBulkAssign} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-all">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -810,12 +814,12 @@ Please provide:
                       <button
                         key={c.center_id}
                         onClick={() => { setBulkGroup(c.center_id); setBulkLabel(''); }}
-                        className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left ${bulkGroup === c.center_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
+                        className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left ${bulkGroup === c.center_id ? 'bg-blue-50 border-blue-200' : 'bg-white dark:bg-[#0f172a] border-gray-100 hover:bg-gray-50'}`}
                       >
                         <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${bulkGroup === c.center_id ? 'border-blue-600' : 'border-gray-300'}`}>
                           {bulkGroup === c.center_id && <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
                         </span>
-                        <span className="font-bold text-[#0f172a] text-[14px] truncate">{c.name}</span>
+                        <span className="font-bold text-[#0f172a] dark:text-white text-[14px] truncate">{c.name}</span>
                       </button>
                     ))}
                   </div>
@@ -868,12 +872,12 @@ Please provide:
                           <button
                             key={l.id}
                             onClick={() => setBulkLabel(l.id)}
-                            className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left ${bulkLabel === l.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
+                            className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left ${bulkLabel === l.id ? 'bg-blue-50 border-blue-200' : 'bg-white dark:bg-[#0f172a] border-gray-100 hover:bg-gray-50'}`}
                           >
                             <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${bulkLabel === l.id ? 'border-blue-600' : 'border-gray-300'}`}>
                               {bulkLabel === l.id && <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
                             </span>
-                            <span className="font-bold text-[#0f172a] text-[14px] truncate">{l.name}</span>
+                            <span className="font-bold text-[#0f172a] dark:text-white text-[14px] truncate">{l.name}</span>
                           </button>
                         ))}
                       </div>
@@ -903,7 +907,7 @@ Please provide:
                 </div>
 
                 {/* Fixed footer action */}
-                <div className="px-6 pt-3 pb-6 shrink-0 border-t border-gray-50 bg-white">
+                <div className="px-6 pt-3 pb-6 shrink-0 border-t border-gray-50 bg-white dark:bg-[#0f172a]">
                   <button onClick={handleBulkAssign} disabled={!bulkGroup} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl disabled:opacity-40 active:scale-[0.98] transition-all">
                     Assign to {selectedStudents.length} Student{selectedStudents.length !== 1 ? 's' : ''}
                   </button>
@@ -915,7 +919,7 @@ Please provide:
 
         {editingStudent && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setEditingStudent(null)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[48px]">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[48px]">
                <h2 className="text-2xl font-black mb-1">{editingStudent.name}</h2>
                <p className="text-gray-400 font-bold mb-6">Change Group / Subgroup</p>
                <div className="space-y-5">
@@ -1072,7 +1076,7 @@ Please provide:
                           X
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'EXCEL' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
-                          {exportFormat === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white" />}
+                          {exportFormat === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                         </div>
                       </div>
                       <div>
@@ -1097,7 +1101,7 @@ Please provide:
                           PDF
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${exportFormat === 'PDF' ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-slate-600'}`}>
-                          {exportFormat === 'PDF' && <div className="w-2 h-2 rounded-full bg-white" />}
+                          {exportFormat === 'PDF' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                         </div>
                       </div>
                       <div>
@@ -1140,14 +1144,14 @@ Please provide:
             never listed here since it isn't a row in `centers`. */}
         {isManageGroupsOpen && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsManageGroupsOpen(false)} className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-end justify-center">
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px] max-h-[80vh] overflow-y-auto">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[40px] max-h-[80vh] overflow-y-auto">
               <h2 className="text-xl font-black mb-6">Manage Groups</h2>
               <div className="space-y-2">
                 {centers.length === 0 ? (
                   <p className="text-sm text-gray-400 font-medium italic text-center py-4">No groups created yet.</p>
                 ) : centers.map(c => (
                   <div key={c.center_id} className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
-                    <span className="font-bold text-[#0f172a] text-sm">{c.name}</span>
+                    <span className="font-bold text-[#0f172a] dark:text-white text-sm">{c.name}</span>
                     <div className="flex gap-1">
                       <button onClick={() => setEditGroupTarget({ id: c.center_id, name: c.name })} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -1166,7 +1170,7 @@ Please provide:
 
         {editGroupTarget && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[75] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setEditGroupTarget(null)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px]">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[40px]">
               <h2 className="text-xl font-black mb-6">Rename Group</h2>
               <input type="text" value={editGroupTarget.name} onChange={(e) => setEditGroupTarget({ ...editGroupTarget, name: e.target.value })} className="w-full p-5 bg-gray-50 rounded-2xl font-bold outline-none border border-transparent focus:border-blue-200 mb-6" autoFocus />
               <button onClick={submitEditGroupTarget} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl mb-3">Save Changes</button>
@@ -1187,14 +1191,14 @@ Please provide:
         {/* Manage Subgroups (rename/delete) for the chosen Group */}
         {isManageSubgroupsOpen && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsManageSubgroupsOpen(false)} className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm flex items-end justify-center">
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px] max-h-[85vh] overflow-y-auto">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[40px] max-h-[85vh] overflow-y-auto">
               <h2 className="text-xl font-black mb-6">Manage Subgroups</h2>
               <div className="space-y-2 mb-4">
                 {subgroupsForManage.length === 0 ? (
                   <p className="text-sm text-gray-400 font-medium italic text-center py-2">No subgroups exist yet.</p>
                 ) : subgroupsForManage.map(l => (
                   <div key={l.label_id} className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
-                    <span className="font-bold text-[#0f172a] text-sm">{l.label_name}</span>
+                    <span className="font-bold text-[#0f172a] dark:text-white text-sm">{l.label_name}</span>
                     <div className="flex gap-1">
                       <button onClick={() => { setEditSubgroupTarget(l); setEditSubgroupDraft(l.label_name); }} className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -1219,7 +1223,7 @@ Please provide:
 
         {editSubgroupTarget && (
           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[85] bg-black/60 backdrop-blur-md flex items-end justify-center" onClick={()=>setEditSubgroupTarget(null)}>
-            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white w-full max-w-md p-8 rounded-t-[40px]">
+            <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} onClick={e=>e.stopPropagation()} className="bg-white dark:bg-[#0f172a] w-full max-w-md p-8 rounded-t-[40px]">
               <h2 className="text-xl font-black mb-6">Rename Subgroup</h2>
               <input type="text" value={editSubgroupDraft} onChange={(e) => setEditSubgroupDraft(e.target.value)} className="w-full p-5 bg-gray-50 rounded-2xl font-bold outline-none border border-transparent focus:border-blue-200 mb-6" autoFocus />
               <button onClick={submitEditSubgroupTarget} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl mb-3">Save Changes</button>

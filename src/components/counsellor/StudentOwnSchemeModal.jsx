@@ -50,7 +50,7 @@ const StudentOwnSchemeModal = ({ studentId, studentName, onClose }) => {
             <h2 className="font-bold text-base truncate">{studentName || 'Student'}</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Own marking scheme (view only)</p>
           </div>
-          <button type="button" aria-label="Close" onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10">
+          <button type="button" aria-label="Close" onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-[#0f172a]/10">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>

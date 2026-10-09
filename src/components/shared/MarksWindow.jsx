@@ -217,7 +217,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
       role="tab"
       aria-selected={tab === id}
       onClick={() => { setTab(id); setNotice(null); }}
-      className={`flex-1 min-w-0 py-2.5 px-2 rounded-xl text-sm font-bold transition ${tab === id ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300'}`}
+      className={`flex-1 min-w-0 py-2.5 px-2 rounded-xl text-sm font-bold transition ${tab === id ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-white dark:bg-[#0f172a]/5 text-slate-600 dark:text-slate-300'}`}
     >
       {label}
     </button>
@@ -242,7 +242,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
               type="button"
               aria-label="Back to the score"
               onClick={() => { setView('score'); setEditing(false); setNotice(null); }}
-              className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
+              className="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-[#0f172a]/10"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
             </button>
@@ -256,7 +256,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
               aria-label="Show the marks of each activity"
               aria-expanded={expanded}
               onClick={toggleExpanded}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-white/10 active:scale-95"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-white dark:bg-[#0f172a]/10 active:scale-95"
             >
               <Chevron up={expanded} />
             </button>
@@ -265,7 +265,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white dark:bg-[#0f172a]/10"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -311,7 +311,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
                           <span className="font-semibold min-w-0 truncate">{a.name}</span>
                           <span className="shrink-0 font-bold tabular-nums">{a.earned} <span className="text-slate-400 font-medium">/ {a.max}</span></span>
                         </div>
-                        <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden" aria-hidden="true">
+                        <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-white dark:bg-[#0f172a]/10 overflow-hidden" aria-hidden="true">
                           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: colorForPercent(pct).bar }} />
                         </div>
                       </div>
@@ -430,7 +430,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
 
             {tab === 'custom' && editing && (
               <div className="flex gap-2">
-                <button type="button" disabled={busy} onClick={() => { setEditing(false); setNotice(null); }} className={`${bigButton} bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200`}>
+                <button type="button" disabled={busy} onClick={() => { setEditing(false); setNotice(null); }} className={`${bigButton} bg-slate-100 dark:bg-white dark:bg-[#0f172a]/10 text-slate-700 dark:text-slate-200`}>
                   Cancel
                 </button>
                 <button type="button" disabled={busy} onClick={save} className={`${bigButton} bg-teal-600 text-white`}>
@@ -441,7 +441,7 @@ const MarksWindow = ({ scoreData, activityDate, onClose, onChanged }) => {
 
             {tab === 'custom' && !editing && hasOwn && (
               <div className="flex gap-2">
-                <button type="button" disabled={busy} onClick={startEditing} className={`${bigButton} bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200`}>
+                <button type="button" disabled={busy} onClick={startEditing} className={`${bigButton} bg-slate-100 dark:bg-white dark:bg-[#0f172a]/10 text-slate-700 dark:text-slate-200`}>
                   Edit
                 </button>
                 {usingOwn ? (

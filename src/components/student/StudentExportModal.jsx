@@ -206,14 +206,14 @@ const StudentExportModal = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md mx-auto bg-white rounded-t-[32px] sm:rounded-t-[32px] shadow-2xl z-[99] flex flex-col overflow-hidden max-h-[85vh]"
+          className="relative w-full max-w-md mx-auto bg-white dark:bg-[#0f172a] rounded-t-[32px] sm:rounded-t-[32px] shadow-2xl z-[99] flex flex-col overflow-hidden max-h-[85vh]"
         >
           {/* Top Drag Handle */}
           <div
-            className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+            className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10 cursor-pointer"
             onClick={isProcessing ? null : onClose}
           >
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
           </div>
 
           <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-6">
@@ -226,10 +226,10 @@ const StudentExportModal = ({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-[20px] font-extrabold text-[#0f172a] tracking-tight leading-snug">
+                  <h2 className="text-[20px] font-extrabold text-[#0f172a] dark:text-white tracking-tight leading-snug">
                     Export Students
                   </h2>
-                  <p className="text-[12px] font-medium text-gray-500 leading-tight mt-0.5">
+                  <p className="text-[12px] font-medium text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
                     Choose file format and date range to export selected student data.
                   </p>
                 </div>
@@ -239,7 +239,7 @@ const StudentExportModal = ({
                 type="button"
                 onClick={onClose}
                 disabled={isProcessing}
-                className="w-8 h-8 rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 flex items-center justify-center shrink-0 active:scale-95 transition-all"
+                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 active:scale-95 transition-all"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -249,7 +249,7 @@ const StudentExportModal = ({
 
             {/* Select Date Range Section */}
             <div className="space-y-2">
-              <label className="text-[15px] font-extrabold text-[#0f172a] block">
+              <label className="text-[15px] font-extrabold text-[#0f172a] dark:text-white block">
                 Select Date Range
               </label>
 
@@ -265,7 +265,7 @@ const StudentExportModal = ({
                       disabled={isProcessing}
                       className={`flex-1 py-2.5 px-3 rounded-xl text-[13px] font-bold transition-all ${isSelected
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        : 'bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-slate-700 text-gray-600 hover:bg-gray-50 dark:bg-[#0b1628]'
                         }`}
                     >
                       {opt.label}
@@ -283,7 +283,7 @@ const StudentExportModal = ({
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden pt-2"
                   >
-                    <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 grid grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0b1628] border border-gray-200 dark:border-slate-700 grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">From Date</label>
                         <input
@@ -291,7 +291,7 @@ const StudentExportModal = ({
                           value={customFrom}
                           onChange={(e) => setCustomFrom(e.target.value)}
                           disabled={isProcessing}
-                          className="w-full bg-white text-[#0f172a] font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 focus:border-blue-600 transition-all cursor-pointer"
+                          className="w-full bg-white dark:bg-[#0f172a] text-[#0f172a] dark:text-white font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 dark:border-slate-700 focus:border-blue-600 transition-all cursor-pointer"
                         />
                       </div>
                       <div>
@@ -301,7 +301,7 @@ const StudentExportModal = ({
                           value={customTo}
                           onChange={(e) => setCustomTo(e.target.value)}
                           disabled={isProcessing}
-                          className="w-full bg-white text-[#0f172a] font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 focus:border-blue-600 transition-all cursor-pointer"
+                          className="w-full bg-white dark:bg-[#0f172a] text-[#0f172a] dark:text-white font-bold text-[13px] rounded-xl p-2.5 outline-none border border-gray-200 dark:border-slate-700 focus:border-blue-600 transition-all cursor-pointer"
                         />
                       </div>
                     </div>
@@ -316,7 +316,7 @@ const StudentExportModal = ({
 
             {/* Choose File Format Section */}
             <div className="space-y-2">
-              <label className="text-[15px] font-extrabold text-[#0f172a] block">
+              <label className="text-[15px] font-extrabold text-[#0f172a] dark:text-white block">
                 Choose File Format
               </label>
 
@@ -327,8 +327,8 @@ const StudentExportModal = ({
                   onClick={() => setFormat('EXCEL')}
                   disabled={isProcessing}
                   className={`relative flex flex-col justify-between p-4 rounded-2xl border-2 text-left transition-all ${format === 'EXCEL'
-                    ? 'border-blue-600 bg-blue-50/70 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-900/30 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-[#0f172a] hover:border-gray-300'
                     }`}
                 >
                   <div className="flex items-start justify-between w-full mb-3">
@@ -336,11 +336,11 @@ const StudentExportModal = ({
                       X
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${format === 'EXCEL' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
-                      {format === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white" />}
+                      {format === 'EXCEL' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-[14px] text-[#0f172a]">Excel (.xlsx)</h4>
+                    <h4 className="font-extrabold text-[14px] text-[#0f172a] dark:text-white">Excel (.xlsx)</h4>
                     <p className="text-[11px] text-gray-400 font-medium leading-tight mt-1">
                       Best for data analysis and further processing.
                     </p>
@@ -353,8 +353,8 @@ const StudentExportModal = ({
                   onClick={() => setFormat('PDF')}
                   disabled={isProcessing}
                   className={`relative flex flex-col justify-between p-4 rounded-2xl border-2 text-left transition-all ${format === 'PDF'
-                    ? 'border-blue-600 bg-blue-50/70 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-900/30 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-[#0f172a] hover:border-gray-300'
                     }`}
                 >
                   <div className="flex items-start justify-between w-full mb-3">
@@ -362,11 +362,11 @@ const StudentExportModal = ({
                       PDF
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${format === 'PDF' ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
-                      {format === 'PDF' && <div className="w-2 h-2 rounded-full bg-white" />}
+                      {format === 'PDF' && <div className="w-2 h-2 rounded-full bg-white dark:bg-[#0f172a]" />}
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-[14px] text-[#0f172a]">PDF (.pdf)</h4>
+                    <h4 className="font-extrabold text-[14px] text-[#0f172a] dark:text-white">PDF (.pdf)</h4>
                     <p className="text-[11px] text-gray-400 font-medium leading-tight mt-1">
                       Best for printing and sharing.
                     </p>
@@ -377,7 +377,7 @@ const StudentExportModal = ({
 
             {/* Status Indicator */}
             {isProcessing && (
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50 dark:bg-[#1e293b] border border-blue-100 text-blue-600 text-xs font-bold">
                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
                 <span>{statusMessage || 'Processing report...'}</span>
               </div>
@@ -389,7 +389,7 @@ const StudentExportModal = ({
                 type="button"
                 onClick={onClose}
                 disabled={isProcessing}
-                className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-[15px] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50"
+                className="flex-1 py-3.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-extrabold text-[15px] rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50"
               >
                 Cancel
               </button>

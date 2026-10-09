@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ThemeToggle from '../../../components/shared/ThemeToggle';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
@@ -83,14 +84,16 @@ const StudentRanksList = () => {
   }, [page, totalPages, isLoading, fetchStudents]);
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[84px]">
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-[84px]">
       <div className="max-w-md mx-auto">
-        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white z-20 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white dark:bg-[#0f172a] z-20 border-b border-gray-100 dark:bg-[#112240] dark:border-slate-800">
           <button onClick={() => navigate(-1)} className="text-[#64748b] font-bold">Back</button>
-          <h1 className="text-[18px] font-extrabold text-[#0f172a]">
+          <h1 className="text-[18px] font-extrabold text-[#0f172a] dark:text-white">
             {type === 'bottom' ? 'Students Weekly Need Follow-up' : 'Students weekly Rank'}
           </h1>
-          <div className="w-10"></div> {/* Placeholder for balance */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="px-6 pb-2 pt-4 flex flex-col gap-2">
@@ -102,7 +105,7 @@ const StudentRanksList = () => {
           )}
 
           <div className="flex items-center justify-between gap-3 pt-1">
-            <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); }} className={`shrink-0 bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'}`}>
+            <select value={selectedGroup} onChange={(e) => { setSelectedGroup(e.target.value); }} className={`shrink-0 bg-[#f1f5f9] rounded-full px-5 py-2.5 font-bold text-[13px] outline-none border-none ${selectedGroup !== 'All' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800 dark:bg-slate-800/50 dark:text-gray-200'}`}>
               <option value="All">All Groups</option>
               {centers.map(c => <option key={c.center_id} value={c.center_id}>{c.name}</option>)}
             </select>
@@ -118,7 +121,7 @@ const StudentRanksList = () => {
             <div 
               key={`${student.id}-${idx}`} 
               onClick={() => navigate(`/counsellor/mentee/${student.id}`, { state: { student } })} 
-              className="flex items-center px-4 py-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer group"
+              className="flex items-center px-4 py-4 border-b border-gray-50 dark:border-slate-800/50 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
             >
               <span className="w-8 text-center font-bold text-gray-400">{idx + 1}</span>
               <img 
@@ -127,7 +130,7 @@ const StudentRanksList = () => {
                 alt={student.name}
               />
               <div className="flex-1">
-                <h3 className="font-bold text-[16px] text-[#0f172a] group-hover:text-blue-600 transition-colors">
+                <h3 className="font-bold text-[16px] text-[#0f172a] dark:text-white group-hover:text-blue-600 transition-colors">
                   {student.name}
                   {student.usesOwnScheme && (
                     <button

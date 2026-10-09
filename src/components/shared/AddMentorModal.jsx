@@ -85,16 +85,16 @@ const AddMentorModal = ({ isOpen, onClose, onAdd }) => {
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 z-[101] flex justify-center"
           >
-            <div className="w-full max-w-md bg-white rounded-t-[40px] p-8 pb-12 shadow-2xl">
+            <div className="w-full max-w-md bg-white dark:bg-[#0f172a] rounded-t-[40px] p-8 pb-12 shadow-2xl">
               {/* Drag Handle / Close Touch Area */}
               <div 
                 onClick={onClose}
                 className="w-full flex justify-center mb-8 cursor-pointer group"
               >
-                <div className="w-12 h-1.5 bg-gray-100 rounded-full group-hover:bg-gray-200 transition-colors" />
+                <div className="w-12 h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full group-hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors" />
               </div>
 
-              <h2 className="text-[24px] font-black text-[#0f172a] mb-2 tracking-tight">Add Mentor</h2>
+              <h2 className="text-[24px] font-black text-[#0f172a] dark:text-white mb-2 tracking-tight">Add Mentor</h2>
               <p className="text-[14px] font-medium text-gray-400 mb-8 tracking-tight leading-relaxed">
                 Enter the name or email address of the mentor you'd like to connect with.
               </p>
@@ -108,7 +108,7 @@ const AddMentorModal = ({ isOpen, onClose, onAdd }) => {
                       placeholder="Name or email address..."
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      className="w-full bg-[#f8fafc] text-[#0f172a] font-bold text-[16px] rounded-2xl py-4 px-6 outline-none border-2 border-transparent focus:border-[#fef3c7] focus:bg-white transition-all placeholder:text-gray-300"
+                      className="w-full bg-[#f8fafc] dark:bg-[#0b1628] text-[#0f172a] dark:text-white font-bold text-[16px] rounded-2xl py-4 px-6 outline-none border-2 border-transparent focus:border-[#fef3c7] focus:bg-white dark:bg-[#0f172a] transition-all placeholder:text-gray-300"
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">
                       {isSearching ? (
@@ -121,14 +121,14 @@ const AddMentorModal = ({ isOpen, onClose, onAdd }) => {
 
                   {/* Search Results Dropdown */}
                   {counselors.length > 0 && !selectedCounselor && (
-                    <div className="absolute z-50 w-full mt-2 bg-white border border-[#e2e8f0] rounded-2xl shadow-xl overflow-hidden max-h-[220px] overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-2 bg-white dark:bg-[#0f172a] border border-[#e2e8f0] rounded-2xl shadow-xl overflow-hidden max-h-[220px] overflow-y-auto">
                       {counselors.map((counselor) => (
                         <div
                           key={counselor.user_id}
                           onClick={() => handleSelectCounselor(counselor)}
-                          className="px-5 py-4 hover:bg-gray-50 border-b border-[#f1f5f9] last:border-none cursor-pointer group transition-colors"
+                          className="px-5 py-4 hover:bg-gray-50 dark:bg-[#0b1628] border-b border-[#f1f5f9] last:border-none cursor-pointer group transition-colors"
                         >
-                          <p className="text-[15px] font-bold text-[#0f172a] group-hover:text-[#f97316]">
+                          <p className="text-[15px] font-bold text-[#0f172a] dark:text-white group-hover:text-[#f97316]">
                             {counselor.name}
                           </p>
                           <p className="text-[13px] text-[#64748b]">
@@ -162,7 +162,7 @@ const AddMentorModal = ({ isOpen, onClose, onAdd }) => {
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={onClose}
-                    className="flex-1 py-4 rounded-2xl bg-gray-50 text-[#94a3b8] font-black text-[15px] hover:bg-gray-100 transition-all uppercase tracking-widest"
+                    className="flex-1 py-4 rounded-2xl bg-gray-50 dark:bg-[#0b1628] text-[#94a3b8] font-black text-[15px] hover:bg-gray-100 dark:bg-slate-800 transition-all uppercase tracking-widest"
                   >
                     Cancel
                   </button>

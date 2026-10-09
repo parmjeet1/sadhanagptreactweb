@@ -126,13 +126,13 @@ const FirstRankSplash = ({ isVisible, studentName, score, rankText = "#1 Rank!",
 
             {/* Name */}
             <p
-              className="text-center font-bold text-[#0f172a] mb-0.5"
+              className="text-center font-bold text-[#0f172a] dark:text-white mb-0.5"
               style={{ fontSize: "clamp(14px, 4.5vw, 18px)" }}
             >
               Congratulations, {studentName || "Devotee"}!
             </p>
             <p
-              className="text-center text-gray-500 font-medium mb-4 sm:mb-6"
+              className="text-center text-gray-500 dark:text-gray-400 font-medium mb-4 sm:mb-6"
               style={{ fontSize: "clamp(11px, 3vw, 13px)" }}
             >
               {subtitle}

@@ -2,9 +2,9 @@ import React from 'react';
 
 const FooterNote = () => {
   return (
-    <div className="flex items-center gap-2 mt-8 text-[13px] text-[#94a3b8] font-medium">
+    <div className="flex items-center gap-2 mt-8 text-[13px] text-[#94a3b8] dark:text-[#B6C5DC] font-medium">
       <svg 
-        className="w-3.5 h-3.5" 
+        className="w-3.5 h-3.5 text-[#94a3b8] dark:text-[#B6C5DC]" 
         fill="currentColor" 
         viewBox="0 0 20 20"
       >

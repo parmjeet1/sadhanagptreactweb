@@ -44,7 +44,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
     {
       id: 'Count',
       icon: (
-        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-[10px] tracking-wider mb-2">
+        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-[#0b1628] flex items-center justify-center text-gray-400 font-bold text-[10px] tracking-wider mb-2">
           123
         </div>
       )
@@ -52,7 +52,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
     {
       id: 'Duration',
       icon: (
-        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-2">
+        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-[#0b1628] flex items-center justify-center text-gray-400 mb-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
       )
@@ -60,7 +60,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
     {
       id: 'Time',
       icon: (
-        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-2">
+        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-[#0b1628] flex items-center justify-center text-gray-400 mb-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
         </div>
       ) 
@@ -68,7 +68,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
     {
       id: 'Yes/No',
       icon: (
-        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-2">
+        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-[#0b1628] flex items-center justify-center text-gray-400 mb-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
         </div>
       )
@@ -110,7 +110,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 w-full max-w-md mx-auto bg-white rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
+            className="fixed bottom-0 w-full max-w-md mx-auto bg-white dark:bg-[#0f172a] rounded-t-[32px] shadow-2xl z-[90] flex flex-col"
             style={{
               left: 'auto',
               right: 'max(0px, calc(50% - 224px))'
@@ -118,20 +118,20 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
           >
             {/* Drag Handle Area - Clickable to close as requested */}
             <div 
-              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white rounded-t-[32px] z-10 cursor-pointer"
+              className="w-full pt-4 pb-2 flex justify-center sticky top-0 bg-white dark:bg-[#0f172a] rounded-t-[32px] z-10 cursor-pointer"
               onClick={onClose}
             >
-              <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+              <div className="w-12 h-1.5 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
             </div>
 
             <div className="px-6 pb-8 pt-2 max-h-[85vh] overflow-y-auto hide-scrollbar flex flex-col h-full">
               
               <div className="flex-grow space-y-6">
-                <h2 className="text-[24px] font-extrabold text-[#0f172a]">Edit Activity</h2>
+                <h2 className="text-[24px] font-extrabold text-[#0f172a] dark:text-white">Edit Activity</h2>
 
                 {/* Name Input */}
                 <div className="space-y-2">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Name</label>
+                  <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</label>
                   <div className="relative flex items-center">
                     <span className="absolute left-4 text-gray-400">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -141,14 +141,14 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                       placeholder="e.g. Morning Yoga"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer"
+                      className="w-full bg-[#f8fafc] dark:bg-[#0b1628] text-[#0f172a] dark:text-white font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer"
                     />
                   </div>
                 </div>
 
                 {/* Tracking Type Grid */}
                 <div className="space-y-3">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Tracking Type</label>
+                  <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tracking Type</label>
                   <div className="grid grid-cols-2 gap-3">
                     {trackingTypes.map((type) => {
                       const isSelected = trackingType === type.id;
@@ -158,8 +158,8 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                           onClick={() => setTrackingType(type.id)}
                           className={`relative flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all ${
                             isSelected 
-                              ? 'border-[#1a73e8] bg-[#f0f7ff]' 
-                              : 'border-gray-100 bg-white hover:border-gray-200'
+                              ? 'border-[#1a73e8] bg-[#f0f7ff] dark:bg-[#1e293b]' 
+                              : 'border-gray-100 dark:border-slate-800 bg-white dark:bg-[#0f172a] hover:border-gray-200 dark:border-slate-700'
                           }`}
                         >
                           {isSelected && (
@@ -170,7 +170,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                             </div>
                           )}
                           {type.icon}
-                          <span className={`text-[14px] font-bold ${isSelected ? 'text-[#0f172a]' : 'text-gray-500'}`}>
+                          <span className={`text-[14px] font-bold ${isSelected ? 'text-[#0f172a] dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
                             {type.id}
                           </span>
                         </button>
@@ -182,7 +182,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                 {/* Target Input */}
                 {trackingType.toLowerCase() !== 'yes/no' && (
                   <div className="space-y-2">
-                    <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Target</label>
+                    <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Target</label>
                     <div className="flex gap-2">
                       <div className="relative flex-grow flex items-center">
                         <span className="absolute left-4 text-gray-400">
@@ -200,7 +200,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                           }
                           value={target}
                           onChange={(e) => setTarget(e.target.value)}
-                          className="w-full bg-[#f8fafc] text-[#0f172a] font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer font-mono"
+                          className="w-full bg-[#f8fafc] dark:bg-[#0b1628] text-[#0f172a] dark:text-white font-medium text-[15px] rounded-2xl py-4 pl-12 pr-4 outline-none border border-transparent focus:border-blue-100 placeholder-gray-400 transition-all cursor-pointer font-mono"
                         />
                       </div>
                     </div>
@@ -209,9 +209,9 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
 
                 {/* Visibility Options */}
                 <div className="space-y-3">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                  <label className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                     Visibility
-                    <div className="group relative flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] cursor-help">
+                    <div className="group relative flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 text-[10px] cursor-help">
                       ?
                       <div className="absolute bottom-full mb-2 w-48 p-2 bg-bg-[#0f172a] text-white text-[10px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all shadow-lg text-center z-50 normal-case font-medium">
                         Private activities are unlisted and hidden from your mentor completely.
@@ -223,8 +223,8 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                       onClick={() => setStatus('0')}
                       className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
                         status === '0' 
-                          ? 'border-[#1a73e8] bg-[#eff6ff] text-[#1a73e8]' 
-                          : 'border-transparent bg-[#f8fafc] text-gray-500 hover:bg-gray-100'
+                          ? 'border-[#1a73e8] bg-[#eff6ff] dark:bg-[#1e293b] text-[#1a73e8] dark:text-[#60a5fa]' 
+                          : 'border-transparent bg-[#f8fafc] dark:bg-[#0b1628] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                       }`}
                     >
                       <svg className="w-5 h-5 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -236,8 +236,8 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                       onClick={() => setStatus('1')}
                       className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${
                         status === '1' 
-                          ? 'border-[#f59e0b] bg-[#fffbeb] text-[#f59e0b]' 
-                          : 'border-transparent bg-[#f8fafc] text-gray-500 hover:bg-gray-100'
+                          ? 'border-[#f59e0b] bg-[#fffbeb] dark:bg-[#1e293b] text-[#f59e0b] dark:text-[#fbbf24]' 
+                          : 'border-transparent bg-[#f8fafc] dark:bg-[#0b1628] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
                       }`}
                     >
                       <svg className="w-5 h-5 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
@@ -252,7 +252,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
                   <button 
                     onClick={onClose}
                     disabled={isSubmitting}
-                    className="flex-1 py-4 text-[15px] font-bold text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+                    className="flex-1 py-4 text-[15px] font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-slate-200 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -271,7 +271,7 @@ const EditActivityModal = ({ isOpen, onClose, onSave, onDelete, activityToEdit }
               </div>
 
               {/* Bottom Delete Button */}
-              <div className="w-full pt-4 mt-2 mb-2 flex justify-center border-t border-gray-100">
+              <div className="w-full pt-4 mt-2 mb-2 flex justify-center border-t border-gray-100 dark:border-slate-800">
                 <button 
                   onClick={() => {
                     if (onDelete) onDelete(activityToEdit?.id);

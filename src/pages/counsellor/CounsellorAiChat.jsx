@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -88,7 +89,7 @@ const MarkdownMessage = ({ text }) => {
       const num = line.match(/^(\d+)\./)[1];
       const content = line.replace(/^\d+\.\s+/, '');
       return (
-        <div key={idx} className="bg-white border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
+        <div key={idx} className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border border-gray-100 rounded-[20px] p-4 my-3 shadow-sm flex items-start gap-3">
           <span className="w-6 h-6 rounded-lg bg-[#1a73e8] text-white text-[11px] font-black flex items-center justify-center shrink-0">
             {num}
           </span>
@@ -134,20 +135,20 @@ const MarkdownMessage = ({ text }) => {
     return (
       <div key={`table-${blockIdx}`} className="overflow-x-auto w-full my-6 rounded-xl border border-gray-200 hide-scrollbar shadow-sm">
         <div className="flex justify-end bg-gray-50 p-2 border-b border-gray-200">
-          <button onClick={() => exportToCSV(tableData, blockIdx)} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 hover:text-gray-900 transition-all active:scale-95">
+          <button onClick={() => exportToCSV(tableData, blockIdx)} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-600 bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 hover:text-gray-900 transition-all active:scale-95">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             Download CSV
           </button>
         </div>
         <table className="w-full text-left border-collapse text-[13px] whitespace-nowrap min-w-full">
-          <thead className="bg-[#f8fafc] text-gray-500 uppercase tracking-wider text-[11px] font-bold">
+          <thead className="bg-[#f8fafc] dark:bg-[#0b1628] text-gray-500 uppercase tracking-wider text-[11px] font-bold">
             <tr>
               {headRow.map((h, i) => <th key={i} className="px-4 py-3.5 border-b border-gray-200 font-extrabold">{renderInline(h)}</th>)}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody className="bg-white dark:bg-[#0f172a] divide-y divide-gray-100">
             {bodyRows.map((row, i) => (
-              <tr key={i} className="hover:bg-[#f8fafc]/50 transition-colors">
+              <tr key={i} className="hover:bg-[#f8fafc] dark:bg-[#0b1628]/50 transition-colors">
                 {row.map((cell, j) => (
                   <td key={j} className="px-4 py-3.5 text-[#334155] whitespace-normal min-w-[120px] align-top font-medium leading-relaxed">
                     {renderInline(cell)}
@@ -412,11 +413,11 @@ const CounsellorAiChat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans pb-32">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b1628] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans pb-32">
       <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto transition-all duration-300">
         
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-6 py-4 max-w-md md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto transition-all duration-300">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#0f172a]/80 dark:bg-[#112240]/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 flex items-center justify-between px-6 py-4 max-w-md md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto transition-all duration-300">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)}
@@ -425,9 +426,12 @@ const CounsellorAiChat = () => {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <div>
-              <h1 className="text-[18px] font-black text-[#0f172a] leading-none tracking-tight">Mentee Analysis</h1>
+              <h1 className="text-[18px] font-black text-[#0f172a] dark:text-white leading-none tracking-tight">Mentee Analysis</h1>
               <p className="text-[12px] font-bold text-[#1a73e8] mt-1">AI Assistant</p>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
           </div>
         </header>
 
@@ -446,7 +450,7 @@ const CounsellorAiChat = () => {
                 <div className="w-10 h-10 rounded-xl bg-[#eff6ff] flex items-center justify-center text-[#1a73e8] shrink-0">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
                 </div>
-                <div className="bg-white rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1 overflow-hidden">
+                <div className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[24px] rounded-tl-none p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-50 flex-1 overflow-hidden">
                     {msg.role === 'ai' && msg.category !== 'Status' && msg.category !== 'Error' && msg.category !== 'System' ? (
                        <MarkdownMessage text={msg.text} />
                     ) : (
@@ -484,7 +488,7 @@ const CounsellorAiChat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="w-full bg-white border-2 border-gray-100 rounded-full py-4 pl-6 pr-14 text-[15px] font-bold text-[#0f172a] shadow-xl shadow-gray-200/50 outline-none focus:border-[#1a73e8]/20 transition-all placeholder:text-gray-300"
+              className="w-full bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 border-2 border-gray-100 rounded-full py-4 pl-6 pr-14 text-[15px] font-bold text-[#0f172a] dark:text-white shadow-xl shadow-gray-200/50 outline-none focus:border-[#1a73e8]/20 transition-all placeholder:text-gray-300"
             />
             <button 
               onClick={handleSendMessage}

@@ -1,3 +1,4 @@
+import ThemeToggle from '../../components/shared/ThemeToggle';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,7 +88,7 @@ const CounsellorSubCounsellors = () => {
   const selectedSCName = subCounsellorList.find(sc => sc.user_id === selectedSubCounsellor)?.name || '';
 
   return (
-    <div className="min-h-screen bg-white font-sans relative">
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-300 text-[#0f172a] dark:text-white font-sans relative">
 
       {/* Toast */}
       <AnimatePresence>
@@ -107,9 +108,12 @@ const CounsellorSubCounsellors = () => {
 
       <div className="w-full max-w-md mx-auto pb-[100px]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white z-20 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 pt-10 pb-4 sticky top-0 bg-white dark:bg-[#0f172a] z-20 border-b border-gray-100">
           <button onClick={() => navigate(-1)} className="text-[#64748b] font-bold text-[16px]">Back</button>
-          <h1 className="text-[18px] font-extrabold text-[#0f172a]">Sub Counsellors</h1>
+          <h1 className="text-[18px] font-extrabold text-[#0f172a] dark:text-white">Sub Counsellors</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
           <div className="w-10" />
         </div>
 
@@ -120,7 +124,7 @@ const CounsellorSubCounsellors = () => {
             placeholder="Search by group name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#f8fafc] rounded-full py-3.5 px-6 text-[15px] font-medium text-[#0f172a] placeholder:text-[#94a3b8] outline-none"
+            className="w-full bg-[#f8fafc] dark:bg-slate-800/50 dark:text-slate-200 rounded-full py-3.5 px-6 text-[15px] font-medium text-[#0f172a] dark:text-white placeholder:text-[#94a3b8] outline-none"
           />
         </div>
 
@@ -131,7 +135,7 @@ const CounsellorSubCounsellors = () => {
               value={selectedSubCounsellor}
               onChange={(e) => setSelectedSubCounsellor(e.target.value)}
               className={`w-full appearance-none font-bold text-[14px] rounded-2xl py-4 pl-5 pr-10 border-2 outline-none transition-all cursor-pointer ${
-                selectedSubCounsellor ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] border-transparent text-[#0f172a]'
+                selectedSubCounsellor ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg shadow-blue-500/20' : 'bg-[#f1f5f9] border-transparent text-[#0f172a] dark:text-white'
               }`}
             >
               <option value="">All Sub-Counsellors</option>
@@ -200,7 +204,7 @@ const CounsellorSubCounsellors = () => {
 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-[16px] text-[#0f172a] truncate">{g.name || g.center_name || '—'}</h3>
+                  <h3 className="font-extrabold text-[16px] text-[#0f172a] dark:text-white truncate">{g.name || g.center_name || '—'}</h3>
                   <div className="flex gap-2 mt-1.5 flex-wrap">
                     <span className="text-[12px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-xl flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
