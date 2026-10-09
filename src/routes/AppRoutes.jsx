@@ -10,6 +10,7 @@ import UnderConstruction from '../pages/UnderConstruction';
 
 import Analytics from '../pages/student/Analytics';
 import Inspiration from '../pages/student/Inspiration';
+import ReadingLecturePage from '../reading-lecture-feature/ReadingLecturePage';
 import Profile from '../pages/student/Profile';
 import AIChat from '../pages/student/AIChat';
 import AIChatLegacy from '../pages/student/AIChatLegacy';
@@ -88,6 +89,7 @@ const AppRoutes = () => {
           {/* <Route path="/counsellor/sub-counsellors" element={<UnderConstruction />} /> */}
           <Route path="/student/analytics" element={<Analytics />} />
           <Route path="/student/inspiration" element={<Inspiration />} />
+          <Route path="/student/reading-preview" element={<ReadingLecturePage />} />
 
           <Route path="/student/ai-chat" element={<AIChat />} />
           <Route path="/student/ai-chat-legacy" element={<AIChatLegacy />} />

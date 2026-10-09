@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📖 [Reading Lecture Feature] - 2026-10-09, 04:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: First look at the STUDENT screens for books and lectures, using sample data only (nothing is saved and nothing talks to the server or database). Open it by typing the address `/student/reading-preview` (not linked from any menu yet, so no student sees it). Two tabs: Reading (summary card with books completed and progress bar, levels that open and close with the current level open, tap a status chip to go Not started -> Ongoing -> Completed with a short Undo, a menu to Skip / Bring back a book, "My other books" with "+ Add a book I am reading" (author starts as Srila Prabhupada), a skipped-books list, a NEW badge on recently added books) and Lectures (recommended list with a tick for "heard", NEW badge, "Lectures I heard" log, "+ Add a lecture I heard" with title, speaker, link and date). A button switches book and level names between English and Hindi.
+- **Files touched**: `src/reading-lecture-feature/` (new: `ReadingLecturePage.jsx`, `useMockStore.js`, `data/mockData.js`, `components/ReadingTab.jsx`, `components/LecturesTab.jsx`, `components/ui.jsx`), `src/routes/AppRoutes.jsx` (one new route), `CHANGELOG.md`
+- **Tested**: the website builds, lint is clean for the new folder; I opened the screens in a browser at phone size and tried the taps (status chip, add book, add lecture, Hindi switch): no errors. NOT tested: on a real phone, with real data, or in the dark theme (the page is light only, like the Inspiration page). The sample lectures are made-up titles with no links.
+- **Backend**: nothing yet (a later step will connect this to the new tables).
+
 ## 📚 [Reading Lecture Feature] - 2026-10-09, 02:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
