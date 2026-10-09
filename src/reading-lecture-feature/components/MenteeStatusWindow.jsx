@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { FullWindow, StatusChip } from './ui';
-import { MOCK_LEVELS, STATUS_LABEL } from '../data/mockData';
-import { menteesInScope } from '../data/mockCounsellor';
+import { STATUS_LABEL } from '../data/mockData';
 
-const allBooks = MOCK_LEVELS.flatMap((l) => l.books);
 const doneCount = (m) => Object.values(m.status).filter((s) => s === 'completed').length + m.own.filter((o) => o.status === 'completed').length;
-const nowReading = (m) => { const id = Object.keys(m.status).find((k) => m.status[k] === 'ongoing'); return allBooks.find((b) => String(b.id) === id); };
+const nowReading = (m, books) => { const id = Object.keys(m.status).find((k) => m.status[k] === 'ongoing'); return books.find((b) => String(b.id) === id); };
 const staleDays = (m) => Math.max(0, ...Object.values(m.ongoingDays));
 
-/** Counsellor: books completed and status for each mentee (or for each book). */
-const MenteeStatusWindow = ({ scope, scopeName, onClose }) => {
+/**
+ * Counsellor: books completed and status for each mentee (or for each book).
+ * mentees = [{ id, name, status: { bookId: status }, ongoingDays: { bookId: days }, own: [{ title, status }] }], books = [{ id, title }]
+ */
+const MenteeStatusWindow = ({ mentees, books: allBooks, scopeName, onClose }) => {
   const [view, setView] = useState('mentee');
   const [filter, setFilter] = useState('all');
   const [open, setOpen] = useState(null);
-  const mentees = menteesInScope(scope);
   const shown = mentees.filter((m) => {
-    if (filter === 'ongoing') return !!nowReading(m);
-    if (filter === 'none') return doneCount(m) === 0 && !nowReading(m);
+    if (filter === 'ongoing') return !!nowReading(m, allBooks);
+    if (filter === 'none') return doneCount(m) === 0 && !nowReading(m, allBooks);
     if (filter === 'stale') return staleDays(m) >= 30;
     return true;
   });
@@ -40,12 +40,12 @@ const MenteeStatusWindow = ({ scope, scopeName, onClose }) => {
           {shown.length === 0 && <p className="text-center text-gray-400 py-10 text-[14px]">No mentees match.</p>}
           <div className="space-y-3">
             {shown.map((m) => {
-              const nr = nowReading(m);
+              const nr = nowReading(m, allBooks);
               const isOpen = open === m.id;
               return (
                 <div key={m.id} className="bg-white rounded-[22px] border border-gray-100 shadow-[0_8px_24px_rgba(0,0,0,0.03)]">
                   <button type="button" onClick={() => setOpen(isOpen ? null : m.id)} className="w-full text-left px-4 py-3.5 flex items-center gap-3">
-                    <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 text-white font-bold flex items-center justify-center">{m.name.slice(-1)}</div>
+                    <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 text-white font-bold flex items-center justify-center">{m.name.trim().charAt(0).toUpperCase()}</div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-[15px] font-bold text-[#1e293b] truncate">{m.name}</h4>
                       <p className="text-[12px] font-medium text-gray-400 truncate">{doneCount(m)} completed{nr ? ` · reading ${nr.title}` : ''}</p>

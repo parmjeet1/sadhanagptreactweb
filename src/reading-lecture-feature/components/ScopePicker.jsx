@@ -1,10 +1,9 @@
 import React from 'react';
-import { MOCK_GROUPS } from '../data/mockCounsellor';
 import { inputCls } from './ui';
 
-/** Choose All groups / one group / one sub-group. */
-const ScopePicker = ({ scope, onChange }) => {
-  const group = MOCK_GROUPS.find((g) => g.id === scope.groupId);
+/** Choose All groups / one group / one sub-group. groups = [{ id, name, subgroups: [{ id, name }] }] */
+const ScopePicker = ({ scope, onChange, groups = [] }) => {
+  const group = groups.find((g) => g.id === scope.groupId);
   return (
     <div className="grid grid-cols-2 gap-3">
       <select
@@ -14,7 +13,7 @@ const ScopePicker = ({ scope, onChange }) => {
         aria-label="Group"
       >
         <option value="all">All groups</option>
-        {MOCK_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
       </select>
       <select
         className={`${inputCls} !py-2.5 !px-3 !text-[13px] disabled:bg-gray-50 disabled:text-gray-300`}

@@ -12,4 +12,8 @@ Rules for this folder:
 - If an API changes on the backend, the website folder needs the matching change, and the other way round (see CLAUDE.md, rule 8).
 - Do not put keys, passwords or real student data in this folder.
 
-Status: folder created, nothing built yet.
+Status: built and connected to the backend (needs the backend deployed and the database scripts run first).
+
+- Preview screens with sample data (nothing saved): `/student/reading-preview`, `/counsellor/reading-preview`. The sample list is the real 54 books.
+- Live screens with real data: `/student/reading`, `/counsellor/reading` (typed in the address bar; not linked from any menu yet).
+- `api.js` talks to the 18 backend endpoints; `mappers.js` converts server data to what the screens use; `useReadingLectureStore.js` / `useCounsellorTools.js` are the real data sources, `useMockStore.js` / `useMockCounsellorTools.js` are the sample ones. The screens themselves are shared (`*PageView.jsx`).

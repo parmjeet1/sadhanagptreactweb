@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🔌 [Reading Lecture Feature] - 2026-10-09, 06:46 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The books and lectures screens can now use REAL data from the server. New live pages: `/student/reading` (a person's own reading list and lectures: tap a status, add own book, tick a lecture, add own lecture, Hindi/English) and `/counsellor/reading` (pick group / sub-group, change order and save, reset to default, mentee status, edit lecture list incl. Excel upload, mentee lectures). Both are opened by typing the address (not in any menu yet). The old preview pages still work with sample data, and the sample list now shows the real 54 books with Hindi names instead of 7 placeholder books. The screens are shared between preview and live, only the data source differs.
+- **Files touched**: `src/reading-lecture-feature/` (new: `api.js`, `mappers.js`, `useReadingLectureStore.js`, `useCounsellorTools.js`, `useMockCounsellorTools.js`, `ReadingLecturePageView.jsx`, `ReadingLectureLivePage.jsx`, `CounsellorReadingLecturePageView.jsx`, `CounsellorReadingLivePage.jsx`; changed: `ReadingLecturePage.jsx`, `CounsellorReadingLecturePage.jsx`, `data/mockData.js`, `README.md`, and the windows in `components/`), `src/routes/AppRoutes.jsx` (two new routes), `CHANGELOG.md`. No new packages.
+- **Tested**: build passes, lint clean for the feature. In a real browser (phone size) against the real backend code on a throwaway local database: student page (status change saved with dates, own book, lecture tick, typed lecture, Hindi) and counsellor page (group pick, add book + save as custom list, mentee status, Excel upload of 3 lectures + save, mentee lectures window) all worked with no page errors. NOT tested: on the real test site, with real logins, on a real phone.
+- **Backend**: needs the 14 new routes deployed and the two SQL scripts run (see the backend `README.md` in `SadhanaGPT/reading-lecture-feature`).
+
 ## 🧑‍🏫 [Reading Lecture Feature] - 2026-10-09, 04:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

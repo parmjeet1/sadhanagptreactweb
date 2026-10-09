@@ -45,6 +45,8 @@ const downloadSample = async () => {
 const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onClose }) => {
   const [list, setList] = useState(initial);
   const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const run = async (fn) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
   const [sheet, setSheet] = useState(false);
   const [form, setForm] = useState({ title: '', speaker: DEFAULT_AUTHOR, link: '' });
   const [error, setError] = useState('');
@@ -75,7 +77,7 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
       footer={(
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-600 font-extrabold text-[14px]">Cancel</button>
-          <button type="button" disabled={!dirty} onClick={() => onSave(list)} className="flex-[2] py-3 rounded-2xl bg-[#1e293b] text-white font-extrabold text-[14px] disabled:opacity-40">Save for mentees</button>
+          <button type="button" disabled={!dirty || busy} onClick={() => run(() => onSave(list))} className="flex-[2] py-3 rounded-2xl bg-[#1e293b] text-white font-extrabold text-[14px] disabled:opacity-40">Save for mentees</button>
         </div>
       )}
     >
@@ -118,7 +120,7 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
           </div>
         ))}
       </div>
-      <button type="button" onClick={onReset} className="mt-4 w-full py-3 text-[13px] font-bold text-gray-400">Reset to default list</button>
+      <button type="button" disabled={busy} onClick={() => run(() => onReset())} className="mt-4 w-full py-3 text-[13px] font-bold text-gray-400 disabled:opacity-40">Reset to default list</button>
 
       <BottomSheet open={sheet} title="Add a lecture" onClose={() => setSheet(false)}>
         <Field label="Title"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Lecture title" /></Field>

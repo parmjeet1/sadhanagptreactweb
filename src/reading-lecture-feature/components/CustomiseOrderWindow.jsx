@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FullWindow, BottomSheet, Field, inputCls } from './ui';
-import { DEFAULT_AUTHOR, MOCK_LEVELS } from '../data/mockData';
+import { DEFAULT_AUTHOR } from '../data/mockData';
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
@@ -8,7 +8,7 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
  * Counsellor window: drag (or use arrows) to re-order books, "+" to add a book to a level,
  * add / rename levels, remove books, reset to the default list. Works on a COPY until Save.
  */
-const CustomiseOrderWindow = ({ scopeName, initialLevels, isCustom, onSave, onReset, onClose }) => {
+const CustomiseOrderWindow = ({ scopeName, initialLevels, library: allBooks = [], isCustom, onSave, onReset, onClose }) => {
   const [levels, setLevels] = useState(() => clone(initialLevels));
   const [drag, setDrag] = useState(null);
   const [addFor, setAddFor] = useState(null); // level id
@@ -17,6 +17,9 @@ const CustomiseOrderWindow = ({ scopeName, initialLevels, isCustom, onSave, onRe
   const [error, setError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+  // onSave / onReset may be slow (they talk to the server): disable the buttons meanwhile
+  const run = async (fn) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
 
   const change = (fn) => { setLevels((lv) => fn(clone(lv))); setDirty(true); };
 
@@ -53,7 +56,7 @@ const CustomiseOrderWindow = ({ scopeName, initialLevels, isCustom, onSave, onRe
   const removeLevel = (lvId) => change((lv) => lv.filter((l) => l.id !== lvId));
 
   const inList = new Set(levels.flatMap((l) => l.books.map((b) => b.id)));
-  const library = MOCK_LEVELS.flatMap((l) => l.books).filter((b) => !inList.has(b.id));
+  const library = allBooks.filter((b) => !inList.has(b.id));
 
   const submitAdd = () => {
     let book;
@@ -74,7 +77,7 @@ const CustomiseOrderWindow = ({ scopeName, initialLevels, isCustom, onSave, onRe
       footer={(
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-600 font-extrabold text-[14px]">Cancel</button>
-          <button type="button" disabled={!dirty} onClick={() => onSave(levels)} className="flex-[2] py-3 rounded-2xl bg-[#1e293b] text-white font-extrabold text-[14px] disabled:opacity-40">Save for mentees</button>
+          <button type="button" disabled={!dirty || busy} onClick={() => run(() => onSave(levels))} className="flex-[2] py-3 rounded-2xl bg-[#1e293b] text-white font-extrabold text-[14px] disabled:opacity-40">Save for mentees</button>
         </div>
       )}
     >
@@ -143,7 +146,7 @@ const CustomiseOrderWindow = ({ scopeName, initialLevels, isCustom, onSave, onRe
         <p className="text-[14px] font-medium text-gray-500 mb-5">Your custom order for {scopeName} will be removed and mentees will see the default list again. Their progress is kept.</p>
         <div className="flex gap-3">
           <button type="button" onClick={() => setConfirmReset(false)} className="flex-1 py-3 rounded-2xl border border-gray-200 font-extrabold text-gray-600">Keep mine</button>
-          <button type="button" onClick={() => { onReset(); }} className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-extrabold">Reset</button>
+          <button type="button" disabled={busy} onClick={() => run(() => onReset())} className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-extrabold disabled:opacity-40">Reset</button>
         </div>
       </BottomSheet>
     </FullWindow>

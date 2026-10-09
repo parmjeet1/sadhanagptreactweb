@@ -12,6 +12,8 @@ import Analytics from '../pages/student/Analytics';
 import Inspiration from '../pages/student/Inspiration';
 import ReadingLecturePage from '../reading-lecture-feature/ReadingLecturePage';
 import CounsellorReadingLecturePage from '../reading-lecture-feature/CounsellorReadingLecturePage';
+import ReadingLectureLivePage from '../reading-lecture-feature/ReadingLectureLivePage';
+import CounsellorReadingLivePage from '../reading-lecture-feature/CounsellorReadingLivePage';
 import Profile from '../pages/student/Profile';
 import AIChat from '../pages/student/AIChat';
 import AIChatLegacy from '../pages/student/AIChatLegacy';
@@ -81,6 +83,7 @@ const AppRoutes = () => {
           <Route path="/counsellor/mentee/:id/conversation" element={<MenteeConversation />} />
           <Route path="/counsellor/add-content" element={<CounsellorAddContent />} />
           <Route path="/counsellor/reading-preview" element={<CounsellorReadingLecturePage />} />
+          <Route path="/counsellor/reading" element={<CounsellorReadingLivePage />} />
           <Route path="/counsellor/ai-chat" element={<CounsellorAiChat />} />
           <Route path="/counsellor/group-mentees" element={<GroupMenteesList />} />
           <Route path="/counsellor/ungrouped" element={<UngroupedMentees />} />
@@ -92,6 +95,7 @@ const AppRoutes = () => {
           <Route path="/student/analytics" element={<Analytics />} />
           <Route path="/student/inspiration" element={<Inspiration />} />
           <Route path="/student/reading-preview" element={<ReadingLecturePage />} />
+          <Route path="/student/reading" element={<ReadingLectureLivePage />} />
 
           <Route path="/student/ai-chat" element={<AIChat />} />
           <Route path="/student/ai-chat-legacy" element={<AIChatLegacy />} />

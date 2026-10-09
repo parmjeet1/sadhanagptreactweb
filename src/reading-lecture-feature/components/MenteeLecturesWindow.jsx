@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { FullWindow } from './ui';
-import { menteesInScope } from '../data/mockCounsellor';
 
-/** Counsellor: lectures each mentee says they heard. */
-const MenteeLecturesWindow = ({ scope, scopeName, onClose }) => {
+/** Counsellor: lectures each mentee says they heard. mentees = [{ id, name, lectures: [{ title, speaker, heardOn }] }] */
+const MenteeLecturesWindow = ({ mentees, scopeName, onClose }) => {
   const [open, setOpen] = useState(null);
-  const mentees = menteesInScope(scope);
   return (
     <FullWindow title="Mentees' lectures" subtitle={`${scopeName} · ${mentees.length} mentees`} onClose={onClose}>
       <div className="space-y-3">
