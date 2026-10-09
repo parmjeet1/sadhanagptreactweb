@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📚 [Reading Lecture Feature] - 2026-10-09, 02:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Created a new folder `src/reading-lecture-feature/` (with a short README) where all new work for the reading-lecture feature will go. Nothing is built yet and no existing behaviour changes. A matching folder was made in the other repo (backend `SadhanaGPT/reading-lecture-feature/`).
+- **Files touched**: `src/reading-lecture-feature/README.md` (new), `CHANGELOG.md`
+- **Tested**: not needed (no code); the folder is not used by anything yet.
+- **Backend**: no change needed.
+
 ## 📱 [Counsellor Dashboard] - 2026-10-08, 01:40 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
