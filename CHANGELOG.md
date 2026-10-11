@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Reading Lecture Feature] - 2026-10-11, 09:15 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Real fix for "Mentee not found" when tapping a mentee in the Mentees Report. The server's login step replaces `user_id` in every request with the logged-in person's id, so the counsellor's own id arrived instead of the mentee's. The website now sends the mentee as `mentee_id`.
+- **Files touched**: `src/reading-lecture-feature/api.js`, `CHANGELOG.md`.
+- **Tested**: build passes, lint clean for the feature folder. In a browser against the real backend code on a throwaway local database whose test server now replaces `user_id` with the logged-in user's id (like the real login step): tapping a mentee opens the window. NOT tested on the test site.
+- **Backend**: needs the matching backend commit deployed (the call is now `mentee_id`); deploy both together.
+
 ## 🛠️ [Reading Lecture Feature] - 2026-10-11, 08:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

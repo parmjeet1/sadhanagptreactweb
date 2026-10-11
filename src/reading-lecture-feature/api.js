@@ -43,4 +43,4 @@ export const fetchMenteesLectures = (scope) => get('/lectures/counsellor/mentees
 
 // ---- Mentees Report tab (counsellors only) ----
 export const fetchMenteesReportList = (scope) => get('/mentees-report/list', scopeParams(scope));
-export const fetchMenteeReport = (userId) => get('/mentees-report/mentee', { user_id: userId });
+export const fetchMenteeReport = (userId) => get('/mentees-report/mentee', { mentee_id: userId }) // NOT user_id: the server's login step replaces user_id with the logged-in user;
