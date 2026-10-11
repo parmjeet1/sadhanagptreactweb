@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🟢 [Reading Lecture Feature] - 2026-10-11, 09:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Mentees Report list: a coloured dot before "Last week heard" on every mentee. Green = 3 or more lectures heard in the last 7 days, amber = 1 or 2, red = none. A small key under the group selector explains the colours. (The cut-offs 3 / 1-2 / 0 were my suggestion and can be changed.)
+- **Files touched**: `src/reading-lecture-feature/components/MenteesReportTab.jsx`, `CHANGELOG.md`.
+- **Tested**: build passes, lint clean for the feature folder; in a browser at phone size the three dot colours show correctly with no page errors. NOT tested on the test site.
+- **Backend**: nothing.
+
 ## 🐛 [Reading Lecture Feature] - 2026-10-11, 09:15 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

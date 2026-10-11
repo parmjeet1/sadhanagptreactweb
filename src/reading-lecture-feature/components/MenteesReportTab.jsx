@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ScopePicker from './ScopePicker';
 import MenteeWindow from './MenteeWindow';
 
+// Dot colour from the lectures heard in the last 7 days: 3 or more green, 1-2 amber, none red
+const dotOf = (n) => (n >= 3 ? { cls: 'bg-emerald-500', label: 'Heard 3 or more last week' } : n >= 1 ? { cls: 'bg-amber-500', label: 'Heard 1 or 2 last week' } : { cls: 'bg-red-500', label: 'Heard none last week' });
+
 /**
  * Counsellor: the Mentees Report. Group / sub-group selectors on top, then the mentees arranged
  * group -> sub-group (Ungrouped last), most heard in the last 7 days first. Tap a mentee for his window.
@@ -41,6 +44,11 @@ const MenteesReportTab = ({ tools }) => {
         <p className="text-[12px] font-medium text-gray-400 mb-3">Who heard lectures last week, and what each one is reading.</p>
         <ScopePicker scope={scope} onChange={setScope} groups={tools.groups} />
         {data && <p className="text-[12px] font-bold text-gray-500 mt-3">{data.count} mentees · {data.last7Total} lectures heard in the last 7 days</p>}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] font-bold text-gray-500">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />3 or more</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" />1 or 2</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" />None</span>
+        </div>
       </div>
 
       {note && <p className="text-[13px] font-semibold text-red-500 px-1">{note}</p>}
@@ -64,7 +72,10 @@ const MenteesReportTab = ({ tools }) => {
                     <div className="w-10 h-10 shrink-0 rounded-full bg-indigo-50 text-indigo-600 font-black flex items-center justify-center">{String(m.name).trim().charAt(0).toUpperCase()}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-bold text-[#1e293b] truncate">{m.name}</p>
-                      <p className="text-[12px] font-semibold text-gray-500">Last week heard: {m.last7} · Total: {m.total}</p>
+                      <p className="text-[12px] font-semibold text-gray-500 flex items-center gap-1.5">
+                        <span role="img" aria-label={dotOf(m.last7).label} title={dotOf(m.last7).label} className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotOf(m.last7).cls}`} />
+                        Last week heard: {m.last7} · Total: {m.total}
+                      </p>
                       <p className="text-[12px] font-medium text-gray-400 truncate">Reading: {m.reading.length ? m.reading.join(', ') : 'none now'}</p>
                     </div>
                     <span className="text-gray-300 font-black">{opening === m.id ? '…' : '›'}</span>
