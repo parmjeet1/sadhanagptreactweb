@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎤 [Assistant] - 2026-10-11, 10:05 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The orange mic (chatbot) button now shows only on the first screen, the Dashboard (students and counsellors), next to the marks circle and, for counsellors, the bird's-eye button. It no longer shows on other screens (Analytics, Inspiration, Profile, etc.). The chat itself is unchanged, and opening the installed app straight into the chat still works.
+- **Files touched**: `src/components/student/SadhnaAssistantLauncher.jsx` (shared by the student and counsellor bottom bars), `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same 2 older problems in that file as before. In a browser at phone size: the mic shows on `/student/dashboard` and `/counsellor/dashboard` and not on analytics or inspiration for either role; no page errors. NOT tested on the test site or a real phone.
+- **Backend**: nothing.
+
 ## 🟢 [Reading Lecture Feature] - 2026-10-11, 09:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

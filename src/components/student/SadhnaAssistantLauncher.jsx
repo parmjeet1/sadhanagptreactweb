@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mic } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import SadhnaAssistant from '../../sadhna-assistant/SadhnaAssistant';
 import { RealSadhnaGptAdapter } from '../../sadhna-assistant/adapters/RealSadhnaGptAdapter';
 import { emitSadhnaActivityUpdated } from '../../utils/sadhnaEvents';
@@ -12,12 +13,18 @@ import DraggableFloating from '../shared/DraggableFloating';
  * assistant in a slide-up panel. It sits
  * above the bottom navigation bar AND above DailyScoreIndicator's marks
  * bubble (fixed at bottom-[100px] right-6 — see components/shared/
- * DailyScoreIndicator.jsx) on every student page, since it's rendered from
- * BottomNavigation.jsx. The widget itself (src/sadhna-assistant) is
+ * DailyScoreIndicator.jsx). It is mounted from the bottom navigation bars but
+ * only SHOWS on the dashboards (see MIC_SCREENS). The widget itself (src/sadhna-assistant) is
  * unchanged; this component only supplies the real backend adapter and the
  * open/close chrome around it.
  */
+// The mic button is shown only on the first screen (the dashboards), where the marks circle (and, for
+// counsellors, the bird's-eye button) are. Other screens (Analytics, Inspiration, Profile...) stay clear.
+const MIC_SCREENS = ['/student/dashboard', '/counsellor/dashboard'];
+
 const SadhnaAssistantLauncher = () => {
+  const { pathname } = useLocation();
+  const showMic = MIC_SCREENS.includes(pathname.replace(/\/+$/, ''));
   const [isOpen, setIsOpen] = useState(false);
   // Created once and reused for the lifetime of this component so the chat
   // doesn't lose its adapter identity (and re-fetch everything) on re-render.
@@ -45,7 +52,7 @@ const SadhnaAssistantLauncher = () => {
 
   return (
     <>
-      <DraggableFloating storageKey="sadhna-mic" className="fixed z-40 bottom-[188px] right-6 lg:right-10">
+      {showMic && <DraggableFloating storageKey="sadhna-mic" className="fixed z-40 bottom-[188px] right-6 lg:right-10">
         {/* Blinking ring behind the button — keeps it prominent without a person needing to notice a static icon. */}
         <span className="absolute inset-0 rounded-full bg-[#dd7f22] animate-ping opacity-60" />
         <motion.button
@@ -57,7 +64,7 @@ const SadhnaAssistantLauncher = () => {
         >
           <Mic className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={2.25} />
         </motion.button>
-      </DraggableFloating>
+      </DraggableFloating>}
 
       <AnimatePresence>
         {isOpen && (
