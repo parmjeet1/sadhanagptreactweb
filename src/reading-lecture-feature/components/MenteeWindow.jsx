@@ -24,7 +24,7 @@ const Section = ({ title, hint, open, onToggle, children }) => (
  * `report` is the result of mapMenteeReport.
  */
 const MenteeWindow = ({ report, onClose }) => {
-  const [open, setOpen] = useState({ books: true, lectures: true });
+  const [open, setOpen] = useState({ books: false, lectures: false });
   const { mentee, books, lectures } = report;
   const toggle = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const days = groupByDate(lectures.items);

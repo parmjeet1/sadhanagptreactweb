@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StatusChip, NewBadge, BottomSheet, Field, inputCls } from './ui';
 import { DEFAULT_AUTHOR } from '../data/mockData';
+import Ring from './Ring';
 
 
 const BookRow = ({ book, status, lang, onCycle, onSkip, onRemove, own }) => {
@@ -42,9 +43,7 @@ const ReadingTab = ({ store, lang }) => {
   const [form, setForm] = useState({ title: '', author: DEFAULT_AUTHOR, status: 'ongoing' });
   const [error, setError] = useState('');
 
-  // current level = first level that still has an unfinished, un-skipped book
-  const currentLevelId = (levels.find((lv) => lv.books.some((b) => !['completed', 'skipped'].includes(statusOf(b.id)))) || levels[0])?.id;
-  const isOpen = (lv) => (openLevels[lv.id] === undefined ? lv.id === currentLevelId : openLevels[lv.id]);
+  const isOpen = (lv) => !!openLevels[lv.id]; // every level starts collapsed
   const skipped = levels.flatMap((lv) => lv.books).filter((b) => statusOf(b.id) === 'skipped');
   const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
   const ongoingBook = levels.flatMap((lv) => lv.books).find((b) => statusOf(b.id) === 'ongoing');
@@ -63,12 +62,16 @@ const ReadingTab = ({ store, lang }) => {
       <div className="bg-gradient-to-br from-teal-500 to-blue-600 rounded-[24px] p-5 text-white shadow-xl relative overflow-hidden">
         <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl" />
         <p className="text-teal-100 font-semibold text-[12px] uppercase tracking-wider mb-1">My Reading</p>
-        <div className="flex items-end gap-2">
-          <h2 className="text-4xl font-black">{progress.done}<span className="text-xl font-bold text-teal-100"> / {progress.total}</span></h2>
-          <span className="text-teal-100 font-medium pb-1.5 text-[13px]">books completed</span>
+        <div className="flex items-center gap-5">
+          <Ring size={96} stroke={10} max={progress.total} track="rgba(255,255,255,0.25)" segments={[{ value: progress.done, color: '#ffffff' }]}>
+            <span className="text-[24px] font-black">{progress.done}<span className="text-[13px] font-bold text-teal-100">/{progress.total}</span></span>
+          </Ring>
+          <div className="min-w-0">
+            <p className="text-[18px] font-extrabold leading-tight">Books completed</p>
+            <p className="text-[13px] text-teal-100 font-semibold">{pct}% of your list</p>
+            {ongoingBook && <p className="mt-2 text-[13px] text-teal-50 font-medium">Now reading: <span className="font-bold text-white">{lang === 'hi' && ongoingBook.title_hi ? ongoingBook.title_hi : ongoingBook.title}</span></p>}
+          </div>
         </div>
-        <div className="mt-3 h-2 rounded-full bg-white/25 overflow-hidden"><div className="h-full bg-white rounded-full transition-all" style={{ width: `${pct}%` }} /></div>
-        {ongoingBook && <p className="mt-3 text-[13px] text-teal-50 font-medium">Now reading: <span className="font-bold text-white">{lang === 'hi' && ongoingBook.title_hi ? ongoingBook.title_hi : ongoingBook.title}</span></p>}
       </div>
 
       {/* Levels */}

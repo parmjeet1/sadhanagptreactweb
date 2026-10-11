@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🛠️ [Reading Lecture Feature] - 2026-10-11, 08:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Five corrections. (1) Reading tab now has a circle showing books completed (done / total). (2) Every list starts collapsed: the Level 1/2/3 lists, the Recommended lectures and Lectures I heard lists (each header shows the counts), and Reading Books / Lectures in the mentee window. (3) For counsellors, the box that shows DEFAULT / CUSTOM list and the Change order / Edit lecture list button is now BELOW the collapsed lists, not above. (4) Tapping a mentee in the Mentees Report no longer says "Mentee not found" (backend fix, see backend changelog). (5) The tabs (Library, Reading, Hearing, Mentees Report, Post) now wrap onto two lines so all of them show on a phone, instead of scrolling sideways.
+- **Files touched**: `src/reading-lecture-feature/components/ReadingTab.jsx`, `LecturesTab.jsx`, `MenteeWindow.jsx`, `Areas.jsx`, `CHANGELOG.md`.
+- **Tested**: build passes, lint clean for the feature folder. In a browser at phone size on a throwaway local database: student tabs, collapsed levels and the circle, counsellor tabs on two lines, Mentees Report list, mentee window opens with both lists collapsed: no page errors. NOT tested on the test site or a real phone.
+- **Backend**: needs the new backend commit (the "Mentee not found" fix) deployed.
+
 ## 🎧 [Reading Lecture Feature] - 2026-10-11, 08:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

@@ -44,7 +44,6 @@ export const CounsellorArea = ({ store, tools, section }) => {
     <div className="space-y-6">
       {section === 'mentees' ? <MenteesReportTab tools={tools} /> : (
         <>
-          <CounsellorListsBox kind={section === 'reading' ? 'reading' : 'lecture'} tools={tools} flash={flash} />
           <div>
             <h2 className="text-[13px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">My own {section === 'reading' ? 'reading' : 'hearing'}</h2>
             {wait ? <Loading store={store} /> : (
@@ -54,6 +53,8 @@ export const CounsellorArea = ({ store, tools, section }) => {
               </>
             )}
           </div>
+          {/* who sees which list (default / custom) and the buttons to change it: below the collapsed lists */}
+          <CounsellorListsBox kind={section === 'reading' ? 'reading' : 'lecture'} tools={tools} flash={flash} />
         </>
       )}
       <Toast toast={note || store.toast} onUndo={() => store.toast?.undo?.()} />
@@ -61,9 +62,9 @@ export const CounsellorArea = ({ store, tools, section }) => {
   );
 };
 
-/** Scrollable tab bar: tabs = [[key, label]] */
+/** Tab bar: tabs = [[key, label]]. The tabs wrap onto a second line so all of them show on a phone. */
 export const TabBar = ({ tabs, value, onChange }) => (
-  <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} role="tablist">
+  <div className="flex flex-wrap gap-2" role="tablist">
     {tabs.map(([k, l]) => (
       <button key={k} type="button" role="tab" aria-selected={value === k} onClick={() => onChange(k)}
         className={`px-4 py-2 rounded-full text-[13px] font-extrabold whitespace-nowrap border transition-all ${value === k ? 'bg-[#1e293b] text-white border-[#1e293b] shadow' : 'bg-white text-gray-500 border-gray-100'}`}>{l}</button>
