@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as api from './api';
 import {
   mapScopes, scopeInfoOf, mapLevels, mapBook, mapLecture, levelsToPayload, lecturesToPayload,
-  mapMenteesReading, mapMenteesLectures,
+  mapMenteesReading, mapMenteesLectures, mapReportList, mapMenteeReport,
 } from './mappers';
 
 /**
@@ -60,6 +60,14 @@ export default function useCounsellorTools() {
     loadMenteesLectures: async (scope) => {
       const r = await api.fetchMenteesLectures(scope);
       return r.ok ? { ok: true, ...mapMenteesLectures(r.data) } : r;
+    },
+    loadMenteesReportList: async (scope) => {
+      const r = await api.fetchMenteesReportList(scope);
+      return r.ok ? { ok: true, ...mapReportList(r.data) } : r;
+    },
+    loadMenteeReport: async (userId) => {
+      const r = await api.fetchMenteeReport(userId);
+      return r.ok ? { ok: true, ...mapMenteeReport(r.data) } : r;
     },
   };
 }

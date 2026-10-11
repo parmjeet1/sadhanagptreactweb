@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MOCK_LEVELS, MOCK_LECTURES } from './data/mockData';
-import { MOCK_GROUPS, MOCK_MENTEES, scopeKey, scopeLabel, menteesInScope } from './data/mockCounsellor';
+import { MOCK_GROUPS, MOCK_MENTEES, scopeKey, scopeLabel, menteesInScope, mockReportList, mockMenteeReport } from './data/mockCounsellor';
 
 const allBooks = MOCK_LEVELS.flatMap((l) => l.books);
 const done = (extra = {}) => Promise.resolve({ ok: true, ...extra });
@@ -33,6 +33,8 @@ export default function useMockCounsellorTools() {
     resetLectures: (scope) => { setCustomLectures((c) => without(c, scopeKey(scope))); return done(); },
     loadMenteesReading: (scope) => done({ books: allBooks, mentees: menteesInScope(scope) }),
     loadMenteesLectures: (scope) => done({ mentees: menteesInScope(scope) }),
+    loadMenteesReportList: (scope) => done(mockReportList(scope)),
+    loadMenteeReport: (id) => { const r = mockMenteeReport(id); return r ? done(r) : Promise.resolve({ ok: false, message: 'Mentee not found.' }); },
   };
 }
 
