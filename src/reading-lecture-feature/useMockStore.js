@@ -1,4 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { speakerKind } from './kinds';
+import { localToday } from './dates';
 import { MOCK_LEVELS, MOCK_STATUS, MOCK_LECTURES, MOCK_HEARD_START } from './data/mockData';
 
 const NEXT = { not_started: 'ongoing', ongoing: 'completed', completed: 'not_started', skipped: 'not_started' };
@@ -10,12 +12,12 @@ const NEXT = { not_started: 'ongoing', ongoing: 'completed', completed: 'not_sta
 export default function useMockStore() {
   const [status, setStatus] = useState(MOCK_STATUS);
   const [myBooks, setMyBooks] = useState([]);
-  const [heard, setHeard] = useState(MOCK_HEARD_START);
+  const [heard, setHeard] = useState(() => MOCK_HEARD_START.map((h) => ({ ...h, kind: speakerKind(h.speaker) })));
   const [toast, setToast] = useState(null);
   const timer = useRef(null);
 
   const levels = MOCK_LEVELS;
-  const lectures = MOCK_LECTURES;
+  const lectures = useMemo(() => MOCK_LECTURES.map((l) => ({ ...l, kind: speakerKind(l.speaker) })), []);
   const statusOf = useCallback((id) => status[id] || 'not_started', [status]);
 
   const flash = (message, undo) => {
@@ -46,9 +48,9 @@ export default function useMockStore() {
   const removeMyBook = (id) => { setMyBooks((b) => b.filter((x) => x.id !== id)); flash('Book removed'); };
 
   const heardIds = useMemo(() => new Set(heard.filter((h) => h.lectureId).map((h) => h.lectureId)), [heard]);
-  const markHeard = (l) => setHeard((h) => [{ id: `h${Date.now()}`, lectureId: l.id, title: l.title, speaker: l.speaker, link: l.link, heardOn: new Date().toISOString().slice(0, 10) }, ...h]);
+  const markHeard = (l) => setHeard((h) => [{ id: `h${Date.now()}`, lectureId: l.id, title: l.title, speaker: l.speaker, link: l.link, kind: speakerKind(l.speaker), heardOn: localToday() }, ...h]);
   const unmarkHeard = (lectureId) => setHeard((h) => h.filter((x) => x.lectureId !== lectureId));
-  const addHeard = ({ title, speaker, link, heardOn }) => { setHeard((h) => [{ id: `h${Date.now()}`, lectureId: null, title, speaker, link, heardOn }, ...h]); flash('Lecture added'); };
+  const addHeard = ({ title, speaker, link, heardOn }) => { setHeard((h) => [{ id: `h${Date.now()}`, lectureId: null, title, speaker, link, kind: speakerKind(speaker), heardOn }, ...h]); flash('Lecture added'); };
   const removeHeard = (id) => setHeard((h) => h.filter((x) => x.id !== id));
 
   const progress = useMemo(() => {

@@ -40,3 +40,7 @@ export const fetchLectureEditor = (scope) => get('/lectures/counsellor/plan', sc
 export const saveLecturePlan = (scope, lectures) => post('/lectures/counsellor/save-plan', { ...scopeParams(scope), lectures });
 export const resetLecturePlan = (scope) => post('/lectures/counsellor/reset-plan', scopeParams(scope));
 export const fetchMenteesLectures = (scope) => get('/lectures/counsellor/mentees-lectures', scopeParams(scope));
+
+// ---- Mentees Report tab (counsellors only) ----
+export const fetchMenteesReportList = (scope) => get('/mentees-report/list', scopeParams(scope));
+export const fetchMenteeReport = (userId) => get('/mentees-report/mentee', { user_id: userId });

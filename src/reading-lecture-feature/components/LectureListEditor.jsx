@@ -1,6 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { FullWindow, BottomSheet, Field, inputCls } from './ui';
 import { DEFAULT_AUTHOR } from '../data/mockData';
+import { SPEAKER_OPTIONS, speakerKind, speakerFromChoice } from '../kinds';
+
+/** Excel speaker text -> the same choices as the drop-down (Srila Prabhupada / Guru Maharaj / other name) */
+const normaliseSpeaker = (text) => {
+  const t = String(text || '').trim();
+  if (!t) return DEFAULT_AUTHOR;
+  const k = speakerKind(t);
+  return k === 'prabhupada' ? 'Srila Prabhupada' : k === 'guru' ? 'Guru Maharaj' : t;
+};
 
 const isUrl = (v) => !v || /^https?:\/\/\S+\.\S+/i.test(String(v).trim());
 const cellText = (v) => {
@@ -23,7 +32,7 @@ const parseLectureSheet = async (file) => {
     if (!title && !speaker && !link) return;
     if (!title) { invalid.push({ line: n, reason: 'Title is missing' }); return; }
     if (!isUrl(link)) { invalid.push({ line: n, reason: 'Link must start with http:// or https://' }); return; }
-    rows.push({ title, speaker: speaker || DEFAULT_AUTHOR, link });
+    rows.push({ title, speaker: normaliseSpeaker(speaker), link });
   });
   return { rows, invalid };
 };
@@ -48,7 +57,7 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
   const [busy, setBusy] = useState(false);
   const run = async (fn) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
   const [sheet, setSheet] = useState(false);
-  const [form, setForm] = useState({ title: '', speaker: DEFAULT_AUTHOR, link: '' });
+  const [form, setForm] = useState({ title: '', option: 'Srila Prabhupada', other: '', link: '' });
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   const fileRef = useRef(null);
@@ -60,8 +69,8 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
   const submit = () => {
     if (!form.title.trim()) { setError('Please enter the lecture title.'); return; }
     if (!isUrl(form.link)) { setError('The link should start with http:// or https://'); return; }
-    add([{ title: form.title.trim(), speaker: form.speaker.trim() || DEFAULT_AUTHOR, link: form.link.trim() }]);
-    setForm({ title: '', speaker: DEFAULT_AUTHOR, link: '' }); setError(''); setSheet(false);
+    add([{ title: form.title.trim(), speaker: speakerFromChoice(form.option, form.other), link: form.link.trim() }]);
+    setForm({ title: '', option: 'Srila Prabhupada', other: '', link: '' }); setError(''); setSheet(false);
   };
 
   const onFile = async (e) => {
@@ -124,7 +133,12 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
 
       <BottomSheet open={sheet} title="Add a lecture" onClose={() => setSheet(false)}>
         <Field label="Title"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Lecture title" /></Field>
-        <Field label="Speaker"><input className={inputCls} value={form.speaker} onChange={(e) => setForm({ ...form, speaker: e.target.value })} /></Field>
+        <Field label="Speaker">
+          <select className={inputCls} value={form.option} onChange={(e) => setForm({ ...form, option: e.target.value })}>
+            {SPEAKER_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
+        {form.option === 'Others' && <Field label="Speaker name (optional)"><input className={inputCls} value={form.other} onChange={(e) => setForm({ ...form, other: e.target.value })} placeholder="Name" /></Field>}
         <Field label="Link (optional)"><input className={inputCls} value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://..." inputMode="url" /></Field>
         {error && <p className="text-[13px] font-semibold text-red-500 mb-3">{error}</p>}
         <button type="button" onClick={submit} className="w-full py-3.5 rounded-2xl bg-[#1e293b] text-white font-extrabold text-[15px]">Add lecture</button>

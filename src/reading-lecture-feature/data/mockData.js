@@ -82,11 +82,14 @@ export const MOCK_STATUS = { 101: 'completed', 102: 'ongoing', 123: 'skipped' };
 export const MOCK_LECTURES = [
   { id: 201, title: 'Sample recommended lecture 1', title_hi: '', speaker: DEFAULT_AUTHOR, link: '', addedDaysAgo: 60 },
   { id: 202, title: 'Sample recommended lecture 2', title_hi: '', speaker: DEFAULT_AUTHOR, link: '', addedDaysAgo: 60 },
-  { id: 203, title: 'Sample lecture added by your counsellor', title_hi: '', speaker: 'Counsellor choice', link: '', addedDaysAgo: 1 },
+  { id: 203, title: 'Sample lecture added by your counsellor', title_hi: '', speaker: 'Guru Maharaj', link: 'https://example.com/sample-lecture', addedDaysAgo: 1 },
 ];
 
+const ago = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const MOCK_HEARD_START = [
-  { id: 'h1', lectureId: 201, title: 'Sample recommended lecture 1', speaker: DEFAULT_AUTHOR, link: '', heardOn: '2026-10-05' },
+  { id: 'h1', lectureId: 201, title: 'Sample recommended lecture 1', speaker: DEFAULT_AUTHOR, link: '', heardOn: ago(0) },
+  { id: 'h2', lectureId: null, title: 'Sample lecture by a senior devotee', speaker: 'Others', link: 'https://example.com/other', heardOn: ago(1) },
+  { id: 'h3', lectureId: null, title: 'Sample Guru Maharaj lecture', speaker: 'Guru Maharaj', link: '', heardOn: ago(3) },
 ];
 
 export const STATUS_LABEL = {
