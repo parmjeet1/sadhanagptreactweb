@@ -10,8 +10,8 @@ import { TabBar } from '../../reading-lecture-feature/components/Areas';
 const CounsellorAddContent = () => {
   const navigate = useNavigate();
   const { userDetails } = useOutletContext();
-  const [activeTab, setActiveTab] = useState('View'); // 'Add' (Post) or 'View' (Library)
-  const [section, setSection] = useState('library'); // 'library' | 'reading' | 'hearing' | 'mentees' | 'post'
+  const [activeTab, setActiveTab] = useState('Add'); // 'Add' (Post) or 'View' (Library); only used when one of those tabs is open
+  const [section, setSection] = useState('reading'); // 'reading' | 'hearing' | 'mentees' | 'library' | 'post'
   const isArea = ['reading', 'hearing', 'mentees'].includes(section);
   const pickSection = (k) => {
     setSection(k);
@@ -239,7 +239,7 @@ const CounsellorAddContent = () => {
           <h1 className="text-[24px] font-black text-[#0f172a] tracking-tight mb-4">Inspiration</h1>
           <div className="mb-4">
             <TabBar
-              tabs={[['library', '📚 Library'], ['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['mentees', '👥 Mentees Report'], ['post', '✍️ Post']]}
+              tabs={[['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['mentees', '👥 Mentees Report'], ['library', '📚 Library'], ['post', '✍️ Post']]}
               value={section}
               onChange={pickSection}
             />

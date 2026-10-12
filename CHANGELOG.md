@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🔀 [Reading Lecture Feature] - 2026-10-12, 09:55 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Inspiration tab order and default. Reading now opens first (it is the default tab) and Library moves back. Students: Reading | Hearing | Library. Counsellors: Reading | Hearing | Mentees Report | Library | Post.
+- **Files touched**: `src/pages/student/Inspiration.jsx`, `src/pages/counsellor/CounsellorAddContent.jsx`, `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same older problems in these two pages as before (none new). In a browser at phone size for both roles: tab order is as above, Reading is selected and shows on opening, and Library still opens with its list/filters; no page errors. NOT tested on the test site.
+- **Backend**: nothing.
+
 ## 🎤 [Assistant] - 2026-10-11, 10:05 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
