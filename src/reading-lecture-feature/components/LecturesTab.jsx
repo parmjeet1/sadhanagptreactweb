@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { NewBadge, BottomSheet, Field, inputCls } from './ui';
 import Ring from './Ring';
+import LinkLine from './LinkLine';
+import { openLink, safeLink } from '../links';
 import { KINDS, KIND_ORDER, SPEAKER_OPTIONS, speakerFromChoice } from '../kinds';
 import { groupByDate, localToday } from '../dates';
 import { summarizeHearing } from '../mappers';
 
 const looksLikeUrl = (v) => !v || /^https?:\/\/\S+\.\S+/i.test(v.trim());
 const blank = () => ({ title: '', option: 'Srila Prabhupada', other: '', link: '', heardOn: localToday() });
-
-/** Opens the lecture link in a new tab when there is one */
-const openLink = (link) => { if (link) window.open(link, '_blank', 'noopener,noreferrer'); };
 
 /** The Hearing tab: circles, lectures recommended by the counsellor, and the date-wise history. */
 const LecturesTab = ({ store, lang }) => {
@@ -44,14 +43,14 @@ const LecturesTab = ({ store, lang }) => {
             <span className="text-[11px] font-bold text-indigo-100">Srila Prabhupada</span>
           </div>
           <div className="flex flex-col items-center gap-1.5">
-            <Ring size={92} stroke={10} max={s.recommended} track="rgba(255,255,255,0.25)" segments={[{ value: s.recommendedHeard, color: '#34d399' }]}>
-              <span className="text-[22px] font-black">{s.recommendedHeard}<span className="text-[14px] font-bold text-indigo-100">/{s.recommended}</span></span>
+            <Ring size={92} stroke={10} max={s.total} track="rgba(255,255,255,0.25)" segments={KIND_ORDER.map((k) => ({ value: s.byKind[k], color: KINDS[k].hex }))}>
+              <span className="text-[26px] font-black">{s.total}</span>
             </Ring>
-            <span className="text-[11px] font-bold text-indigo-100">Recommended heard</span>
+            <span className="text-[11px] font-bold text-indigo-100">Total heard</span>
+            <span className="text-[10px] font-semibold text-indigo-200 -mt-1">{s.recommendedHeard} of {s.recommended} recommended</span>
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between text-[12px] font-semibold text-indigo-50">
-          <span>{s.total} heard in all</span>
           <span>{s.last7} in the last 7 days</span>
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -72,7 +71,7 @@ const LecturesTab = ({ store, lang }) => {
           </span>
           <span className={`text-gray-400 transition-transform ${open.rec ? 'rotate-180' : ''}`}>⌄</span>
         </button>
-        {open.rec && <p className="text-[12px] font-medium text-gray-400 mt-1">Tick a lecture when you have heard it. Tap the name to listen.</p>}
+        {open.rec && <p className="text-[12px] font-medium text-gray-400 mt-1">Tick a lecture when you have heard it. Tap the name or the link to listen.</p>}
         {open.rec && <div className="divide-y divide-gray-50">
           {lectures.length === 0 && <p className="text-[13px] text-gray-400 py-3">No lectures recommended yet.</p>}
           {lectures.map((l) => {
@@ -87,14 +86,15 @@ const LecturesTab = ({ store, lang }) => {
                   className={`w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center text-[14px] font-black transition-all active:scale-90 ${done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-300 text-transparent'}`}
                 >✓</button>
                 <span className={`w-1 self-stretch rounded-full ${k.bar}`} />
-                <button type="button" disabled={!l.link} onClick={() => openLink(l.link)} className="flex-1 min-w-0 text-left">
+                <div onClick={() => openLink(l.link)} className={`flex-1 min-w-0 text-left ${safeLink(l.link) ? 'cursor-pointer' : ''}`}>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className={`text-[15px] font-bold leading-snug ${done ? 'text-gray-400' : 'text-[#1e293b]'}`}>{lang === 'hi' && l.title_hi ? l.title_hi : l.title}</h4>
                     {l.addedDaysAgo <= 7 && <NewBadge />}
                   </div>
                   <p className="text-[12px] font-medium text-gray-400 truncate">{l.speaker}</p>
-                </button>
-                {l.link ? <span className="text-blue-500 font-bold text-[13px]">Listen</span> : <span className="text-[11px] text-gray-300 font-semibold">no link</span>}
+                  <LinkLine link={l.link} />
+                </div>
+                {!safeLink(l.link) && <span className="text-[11px] text-gray-300 font-semibold">no link</span>}
               </div>
             );
           })}
@@ -120,10 +120,12 @@ const LecturesTab = ({ store, lang }) => {
                 return (
                   <div key={h.id} className="flex items-center gap-3 py-2.5">
                     <span className={`w-1 self-stretch rounded-full ${k.bar}`} />
-                    <button type="button" disabled={!h.link} onClick={() => openLink(h.link)} className="flex-1 min-w-0 text-left">
+                    <div onClick={() => openLink(h.link)} className={`flex-1 min-w-0 text-left ${safeLink(h.link) ? 'cursor-pointer' : ''}`}>
                       <h4 className="text-[15px] font-bold text-[#1e293b] leading-snug">{h.title}</h4>
-                      <p className="text-[12px] font-medium text-gray-400 truncate">{h.speaker}{h.link ? ' · tap to open' : ''}</p>
-                    </button>
+                      <p className="text-[12px] font-medium text-gray-400 truncate">{h.speaker}</p>
+                      <LinkLine link={h.link} />
+                      {h.lectureId !== null && h.lectureId !== undefined && <p className="text-[9px] font-semibold text-gray-400 leading-tight">From the recommended list</p>}
+                    </div>
                     <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${k.chip}`}>{k.label}</span>
                     <button type="button" onClick={() => removeHeard(h.id)} aria-label="Remove" className="w-8 h-8 rounded-full text-gray-300 font-black active:bg-gray-100">×</button>
                   </div>

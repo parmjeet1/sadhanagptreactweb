@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { FullWindow, BottomSheet, Field, inputCls } from './ui';
 import { DEFAULT_AUTHOR } from '../data/mockData';
+import LinkLine from './LinkLine';
 import { SPEAKER_OPTIONS, speakerKind, speakerFromChoice } from '../kinds';
 
 /** Excel speaker text -> the same choices as the drop-down (Srila Prabhupada / Guru Maharaj / other name) */
@@ -121,7 +122,8 @@ const LectureListEditor = ({ scopeName, initial, isCustom, onSave, onReset, onCl
           <div key={l.id} className="flex items-center gap-2 py-3">
             <div className="flex-1 min-w-0">
               <h4 className="text-[14px] font-bold text-[#1e293b] leading-snug">{l.title}</h4>
-              <p className="text-[11px] font-medium text-gray-400 truncate">{l.speaker}{l.link ? ' · link added' : ' · no link'}</p>
+              <p className="text-[11px] font-medium text-gray-400 truncate">{l.speaker}{l.link ? '' : ' · no link'}</p>
+              <LinkLine link={l.link} />
             </div>
             <button type="button" onClick={() => move(i, -1)} aria-label="Move up" disabled={i === 0} className="w-8 h-8 rounded-full text-gray-400 font-black disabled:opacity-20">↑</button>
             <button type="button" onClick={() => move(i, 1)} aria-label="Move down" disabled={i === list.length - 1} className="w-8 h-8 rounded-full text-gray-400 font-black disabled:opacity-20">↓</button>

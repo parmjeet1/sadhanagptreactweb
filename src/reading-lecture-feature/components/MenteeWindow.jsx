@@ -3,6 +3,8 @@ import { FullWindow } from './ui';
 import Ring from './Ring';
 import { KINDS, KIND_ORDER } from '../kinds';
 import { groupByDate } from '../dates';
+import LinkLine from './LinkLine';
+import { openLink, safeLink } from '../links';
 
 const BOOK_DOT = { completed: 'bg-emerald-500', ongoing: 'bg-blue-500', skipped: 'bg-gray-300', not_started: 'bg-gray-200' };
 const BOOK_TEXT = { completed: 'Completed', ongoing: 'Ongoing', skipped: 'Skipped', not_started: 'Not started' };
@@ -48,7 +50,8 @@ const MenteeWindow = ({ report, onClose }) => {
             <span className="text-[22px] font-black text-[#1e293b]">{lectures.last7}</span>
           </Ring>
           <p className="text-[12px] font-extrabold text-[#1e293b]">Lectures, last 7 days</p>
-          <p className="text-[10px] font-bold text-gray-400 -mt-1.5">{lectures.total} in all</p>
+          <p className="text-[10px] font-bold text-gray-400 -mt-1.5">{lectures.total} heard in all</p>
+          <p className="text-[10px] font-semibold text-gray-400 -mt-2">{lectures.recommendedHeard} of {lectures.recommendedTotal} recommended</p>
         </div>
       </div>
 
@@ -83,7 +86,7 @@ const MenteeWindow = ({ report, onClose }) => {
         )}
       </Section>
 
-      <Section title="Lectures" hint={`${lectures.recommendedHeard}/${lectures.recommendedTotal} recommended`} open={open.lectures} onToggle={() => toggle('lectures')}>
+      <Section title="Lectures" hint={open.lectures ? `${lectures.total} heard · ${lectures.recommendedHeard}/${lectures.recommendedTotal} recommended` : `${lectures.total} heard`} open={open.lectures} onToggle={() => toggle('lectures')}>
         <div className="flex flex-wrap gap-2 mb-2">
           {KIND_ORDER.map((k) => (
             <span key={k} className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${KINDS[k].chip}`}>
@@ -100,11 +103,12 @@ const MenteeWindow = ({ report, onClose }) => {
               return (
                 <div key={l.id} className={`flex items-center gap-3 rounded-xl px-3 py-2 mb-1.5 ${k.soft}`}>
                   <span className={`w-1 self-stretch rounded-full ${k.bar}`} />
-                  <button type="button" disabled={!l.link} onClick={() => window.open(l.link, '_blank', 'noopener,noreferrer')} className="flex-1 min-w-0 text-left">
+                  <div onClick={() => openLink(l.link)} className={`flex-1 min-w-0 text-left ${safeLink(l.link) ? 'cursor-pointer' : ''}`}>
                     <p className="text-[13px] font-bold text-[#1e293b] leading-snug">{l.title}</p>
-                    <p className="text-[11px] font-medium text-gray-500 truncate">{l.speaker}{l.link ? ' · tap to open' : ''}</p>
-                  </button>
-                  {l.recommended && <span className="text-[10px] font-extrabold text-emerald-600 bg-white rounded-full px-2 py-0.5 border border-emerald-100">Recommended</span>}
+                    <p className="text-[11px] font-medium text-gray-500 truncate">{l.speaker}</p>
+                    <LinkLine link={l.link} />
+                    {l.recommended && <p className="text-[9px] font-semibold text-gray-500 leading-tight">From the recommended list</p>}
+                  </div>
                 </div>
               );
             })}

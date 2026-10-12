@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🔗 [Reading Lecture Feature] - 2026-10-12, 03:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: (1) Lectures with a link now show a small clickable link line (🔗 example.com/...) under the lecture, for students and counsellors: recommended list, history, the mentee window and the counsellor's lecture-list editor. Only real http/https links are shown or opened. (2) Mentees Report: the three colour buttons (3 or more / 1 or 2 / None, each with a count) are now tappable filters. Tapping one shows only those mentees, A to Z, whatever their group or sub-group (the group / sub-group is written under each name); tap again to go back to the group view. (3) Hearing tab (student and counsellor): the second circle now shows TOTAL lectures heard (coloured by Srila Prabhupada / Guru Maharaj / Others) with "x of y recommended" under it. (4) Mentee window: under the lectures circle it shows "N heard in all" and "x of y recommended". (5) Mentee window, Lectures section: collapsed it shows only the total ("N heard"); opened it also shows the recommended count at the end ("N heard · 2/23 recommended"). (6) A lecture that came from the recommended list has a very small "From the recommended list" line under it (history and mentee window), replacing the old green badge.
+- **Files touched**: new `src/reading-lecture-feature/links.js`, `components/LinkLine.jsx`; changed `components/LecturesTab.jsx`, `MenteeWindow.jsx`, `MenteesReportTab.jsx`, `LectureListEditor.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes, lint clean for the feature folder. In a browser at phone size against the real backend code on a throwaway database: links show and have the right addresses; the 3 colour filters give the right people in A-Z order and switch off again; hero circles, collapsed/open Lectures header, and the small "recommended" note after ticking a recommended lecture all show; no page errors. NOT tested on the test site or a real phone.
+- **Backend**: nothing.
+
 ## 🔀 [Reading Lecture Feature] - 2026-10-12, 09:55 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
