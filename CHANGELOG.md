@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎂 [Profile] - 2026-10-13, 04:35 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix for profile saves failing with "Incorrect date value ... for column 'birthday'". The Edit Personal Info window (used on the student and counsellor profile) kept the birthday as the full timestamp it received from the server (`2014-06-15T00:00:00.000Z`) and sent it back unchanged when only the name or mobile was edited. It now converts the birthday to a plain `YYYY-MM-DD` when it opens and again when saving.
+- **Files touched**: new `src/utils/dateOnly.js`; `src/components/shared/EditPersonalInfoModal.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same 2 older problems in that file as before. In a browser at phone size with the profile data faked to return `2014-06-15T00:00:00.000Z`: the date box shows 2014-06-15 and saving only the name sends `"dob":"2014-06-15"`; no page errors. NOT tested against the real server or on a real phone.
+- **Backend**: matching server fix `e18a1a6` (the server now also accepts the timestamp form). Either side alone stops the error; deploy both.
+
 ## 🔗 [Reading Lecture Feature] - 2026-10-12, 03:50 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
