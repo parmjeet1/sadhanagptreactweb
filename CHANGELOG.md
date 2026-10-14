@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📖 [Reading Lecture Feature] - 2026-10-15, 05:30 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: New small optional cards on the main sadhana screen (student and counsellor dashboards), shown right under the Reading activity and the Hearing/Lecture activity. Reading card: "Presently reading" (all books being read, one or many) with an **Update** button, and "Next recommended" with a **Start** button. The Update window lets the person mark books Done or Stop, start more recommended books (several at once is fine), or add their own book. Hearing card: last lecture heard (and how many today) with a **Fill** button; its window lets the person tick recommended lectures or add their own (speaker drop-down, optional link, date). When the person has filled minutes for that activity, the card gets a soft yellow "Which book did you read?" / "Which lecture did you hear?" line with "Not now"; it is never compulsory and does not block saving. The cards refresh when the Sadhna bot saves something. If the lists cannot load, the cards simply stay hidden.
+- **Files touched**: new `src/reading-lecture-feature/components/QuickCards.jsx`, `src/reading-lecture-feature/quickHelpers.js`; changed `src/reading-lecture-feature/useReadingLectureStore.js` (a direct "set book status" action), `src/pages/student/StudentDashboard.jsx`, `src/pages/counsellor/CounsellorDashboard.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint on the new files is clean and the two dashboards show the same older problems as before. In a browser at phone size against the real backend code on a throwaway database (cards shown in a small test page with made-up activities, not the full dashboard): prompt line, Start, Update with several books, adding an own book, ticking a recommended lecture, adding an own lecture, closing windows; no page errors. NOT tested on the full dashboard with real logins, on the test site, or on a real phone.
+- **Backend**: no change needed (uses the existing reading and lecture routes). Sadhna bot choices for book/lecture are not part of this change yet.
+
 ## 🎂 [Profile] - 2026-10-13, 04:35 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

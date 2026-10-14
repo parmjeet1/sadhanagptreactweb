@@ -80,6 +80,8 @@ export default function useReadingLectureStore() {
     const next = NEXT[prev];
     changeStatus(id, next, prev, next === 'completed' ? 'Marked as completed' : null);
   };
+  /** Set a book to a chosen status directly (used by the quick cards on the sadhana screen). */
+  const setBookStatus = (id, next, okMessage) => changeStatus(id, next, statusOf(id), okMessage);
   const toggleSkip = (id) => {
     const prev = statusOf(id);
     const wasSkipped = prev === 'skipped';
@@ -133,7 +135,7 @@ export default function useReadingLectureStore() {
   }, [status, myBooks, levels]);
 
   return {
-    levels, lectures, myBooks, heard, heardIds, toast, setToast, statusOf, cycleStatus, toggleSkip,
+    levels, lectures, myBooks, heard, heardIds, toast, setToast, statusOf, cycleStatus, toggleSkip, setBookStatus,
     addMyBook, removeMyBook, markHeard, unmarkHeard, addHeard, removeHeard, progress,
     loading, loadError, reload, flash,
   };
