@@ -6,9 +6,13 @@ import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBo
 import AddMentorModal from '../../components/shared/AddMentorModal';
 import EditPersonalInfoModal from '../../components/shared/EditPersonalInfoModal';
 import DevelopedByTripa from '../../components/shared/DevelopedByTripa';
+import StudentGroupAssignment from '../../components/shared/StudentGroupAssignment';
 import ContributeButton from '../../components/shared/ContributeButton';
+import ProfilePhotoViewer from '../../components/shared/ProfilePhotoViewer';
+import MentorAvatar from '../../components/shared/MentorAvatar';
+import MentorDetailsModal from '../../components/shared/MentorDetailsModal';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
-import { compressImage } from '../../utils/imageCompressor';
+import { compressImage, getProfileImageUrl } from '../../utils/imageCompressor';
 import { buildInviteLink, copyInviteLink, shareInviteLink } from '../../utils/inviteLink';
 import { enablePushNotifications, disablePushNotifications } from '../../utils/pushNotifications';
 
@@ -18,6 +22,7 @@ const CounsellorProfile = () => {
   const { userDetails } = useOutletContext();
   const [isAddMentorOpen, setIsAddMentorOpen] = useState(false);
   const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -27,15 +32,45 @@ const CounsellorProfile = () => {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
   };
 
-  const [userInfo, setUserInfo] = useState({
-    name: '',
-    mobile: '',
-    email: '',
-    dob: '',
-    profile_image: '',
-    reminder_enabled: false,
-    reminder_days: 3
+  const [userInfo, setUserInfo] = useState(() => {
+    const details = userDetails || {};
+    return {
+      name: details.name || '',
+      mobile: details.mobile || details.phone || '',
+      email: details.email || '',
+      dob: details.dob || details.birthday || '',
+      profile_image: details.profile || details.picture || details.profile_image || details.avatar || '',
+      reminder_enabled: false,
+      reminder_days: 3
+    };
   });
+
+  const [imageError, setImageError] = useState(false);
+  const [useProdFallback, setUseProdFallback] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setUseProdFallback(false);
+  }, [userInfo.profile_image]);
+
+  const handleImageError = () => {
+    const prodBase = import.meta.env.VITE_IMAGE_URL || '';
+    if (prodBase && !useProdFallback && userInfo.profile_image && !userInfo.profile_image.startsWith('http')) {
+      setUseProdFallback(true);
+    } else {
+      setImageError(true);
+    }
+  };
+
+  const getActiveProfileImageUrl = (path) => {
+    if (!path) return '';
+    if (useProdFallback) {
+      const prodBase = import.meta.env.VITE_IMAGE_URL || '';
+      return path.startsWith('http') ? path : (path.startsWith('/') ? `${prodBase}${path}` : `${prodBase}/${path}`);
+    }
+    return getProfileImageUrl(path);
+  };
 
   const inviteLink = userDetails?.user_id ? buildInviteLink(userDetails.user_id) : '';
 
@@ -55,9 +90,14 @@ const CounsellorProfile = () => {
   const fileInputRef = useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handleProfileImageChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleUploadProfilePhoto = async (fileOrEvent) => {
+    const file = fileOrEvent?.target?.files ? fileOrEvent.target.files[0] : fileOrEvent;
+    if (!file) return false;
+
+    if (!userDetails?.user_id) {
+      showToast("User session not found", "error");
+      return false;
+    }
 
     try {
       setIsUploadingImage(true);
@@ -71,25 +111,96 @@ const CounsellorProfile = () => {
       formData.append('profile', compressedFile);
 
       // 3. Post to upload API with Multipart Header
-      postRequestWithFile('/upload-profile-image', formData, (response) => {
-        setIsUploadingImage(false);
-        const res = response?.data || response;
-        const newImage = res?.data?.profile_image;
+      const response = await postRequestWithFile('/upload-profile-image', formData);
+      const res = response?.data || response;
+      const newImage = res?.data?.profile_image;
 
-        if (res && (res.code === 200 || res.status === 1 || res.status === "success")) {
-          if (newImage) {
-            setUserInfo(prev => ({ ...prev, profile_image: newImage }));
+      if (res && (res.code === 200 || res.status === 1 || res.status === "success")) {
+        if (newImage) {
+          setUserInfo(prev => ({ ...prev, profile_image: newImage }));
+          setImageError(false);
+          setUseProdFallback(false);
+
+          try {
+            const stored = JSON.parse(localStorage.getItem('user_details')) || {};
+            stored.picture = newImage;
+            stored.profile = newImage;
+            stored.profile_image = newImage;
+            localStorage.setItem('user_details', JSON.stringify(stored));
+          } catch (e) {
+            console.warn("Could not update user_details in localStorage", e);
           }
-          showToast("Profile picture updated!", "success");
-          fetchProfile();
-        } else {
-          showToast("Failed to update profile picture", "error");
         }
-      });
+        showToast("Profile picture updated!", "success");
+        fetchCounsellorProfile();
+        return true;
+      } else {
+        const errorMsg = typeof res?.message === 'object'
+          ? (Array.isArray(res.message) ? res.message[0] : Object.values(res.message)[0])
+          : (res?.message || "Failed to update profile picture");
+        showToast(errorMsg, "error");
+        return false;
+      }
     } catch (err) {
       console.error("Profile image upload error:", err);
+      const res = err?.response?.data;
+      const errorMsg = typeof res?.message === 'object'
+        ? (Array.isArray(res.message) ? res.message[0] : Object.values(res.message)[0])
+        : (res?.message || err.message || "Failed to upload image");
+      showToast(errorMsg, "error");
+      return false;
+    } finally {
       setIsUploadingImage(false);
-      showToast("Failed to upload image", "error");
+    }
+  };
+
+  const handleProfileImageChange = handleUploadProfilePhoto;
+
+  const handleRemoveProfilePhoto = async () => {
+    if (!userDetails?.user_id) {
+      showToast("User session not found", "error");
+      return false;
+    }
+
+    try {
+      const response = await postRequest(`/remove-profile-image?user_id=${userDetails.user_id}`, {
+        user_id: userDetails.user_id
+      });
+      const res = response?.data || response;
+      if (res && (res.code === 200 || res.status === 1 || res.status === "success")) {
+        setUserInfo(prev => ({ ...prev, profile_image: '' }));
+        setImageError(false);
+        setUseProdFallback(false);
+        setIsViewerOpen(false);
+
+        try {
+          const stored = JSON.parse(localStorage.getItem('user_details')) || {};
+          stored.picture = '';
+          stored.profile = '';
+          stored.profile_image = '';
+          localStorage.setItem('user_details', JSON.stringify(stored));
+        } catch (e) {
+          console.warn("Could not update user_details in localStorage", e);
+        }
+
+        showToast("Profile photo removed successfully!", "success");
+        fetchCounsellorProfile();
+        return true;
+      } else {
+        const errorMsg = typeof res?.message === 'object'
+          ? (Array.isArray(res.message) ? res.message[0] : Object.values(res.message)[0])
+          : (res?.message || "Failed to remove profile photo");
+        showToast(errorMsg || "Failed to remove profile photo", "error");
+        return false;
+      }
+    } catch (err) {
+      console.error("Remove profile photo error:", err);
+      const res = err?.response?.data;
+      const errorMsg = typeof res?.message === 'object'
+        ? (Array.isArray(res.message) ? res.message[0] : Object.values(res.message)[0])
+        : (res?.message || err.message || "Failed to remove profile photo");
+      showToast(errorMsg, "error");
+      return false;
     }
   };
 
@@ -201,27 +312,52 @@ const CounsellorProfile = () => {
   console.log("User details in CounsellorProfile:", userDetails);
   const fetchCounsellorProfile = () => {
     if (!userDetails?.user_id) return;
-    setIsLoading(true);
+    if (!userInfo.name && !userInfo.email) {
+      setIsLoading(true);
+    }
     getRequest('/counslor-user-profile', { user_id: userDetails.user_id }, (res) => {
-      const resData = res?.data;
+      const resData = res?.data || res;
       console.log("Counsellor profile response:", resData);
 
-      if (resData && resData.status === 1 && resData.data) {
-        const profile = resData.data.user || {};
-        setUserInfo({
-          name: profile.name || '',
-          mobile: profile.mobile || profile.phone || '',
-          email: profile.email || '',
-          dob: profile.birthday || profile.dob || '',
-          profile_image: profile.profile || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-          reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true || profile.reminder_status === 1 || profile.reminder_status === true,
-          reminder_days: profile.report_frequency_days || profile.reminder_days || 3
-        });
+      if (resData && (resData.status === 1 || resData.status === 'success' || resData.data)) {
+        const dataObj = resData.data || resData;
+        const profile = dataObj.user || dataObj;
+        const newProfileImg = profile.profile || profile.profile_image || profile.picture || profile.avatar || '';
 
-        if (Array.isArray(resData.data.mentors)) setMentors(resData.data.mentors);
+        setUserInfo(prev => ({
+          ...prev,
+          name: profile.name || prev.name || '',
+          mobile: profile.mobile || profile.phone || prev.mobile || '',
+          email: profile.email || prev.email || '',
+          dob: profile.birthday || profile.dob || prev.dob || '',
+          profile_image: newProfileImg || prev.profile_image || '',
+          reminder_enabled: profile.reminder_enabled === 1 || profile.reminder_enabled === true || profile.reminder_status === 1 || profile.reminder_status === true,
+          reminder_days: profile.report_frequency_days || profile.reminder_days || 3,
+          center_name: profile.center_name || prev.center_name || '',
+          label_name: profile.label_name || prev.label_name || ''
+        }));
+
+        if (newProfileImg) {
+          setImageError(false);
+          setUseProdFallback(false);
+          try {
+            const stored = JSON.parse(localStorage.getItem('user_details')) || {};
+            stored.picture = newProfileImg;
+            stored.profile = newProfileImg;
+            stored.profile_image = newProfileImg;
+            localStorage.setItem('user_details', JSON.stringify(stored));
+          } catch (e) {
+            console.warn("Could not update user_details in localStorage", e);
+          }
+        }
+
+        const mentorsList = Array.isArray(dataObj.mentors)
+          ? dataObj.mentors
+          : (Array.isArray(dataObj.mentor) ? dataObj.mentor : []);
+        setMentors(mentorsList);
 
         // Capture db_dependency object from API
-        const depObj = resData.data.dependency || resData.data.db_dependency || resData.data.user?.dependency;
+        const depObj = dataObj.dependency || dataObj.db_dependency || profile.dependency;
         if (depObj && typeof depObj === 'object') {
           setDependencyData(depObj);
         }
@@ -377,12 +513,23 @@ const CounsellorProfile = () => {
             {/* CounsellorProfile Identity */}
             <div className="flex flex-col items-center mb-10">
               <div className="relative group">
-                <div className="w-40 h-40 rounded-full border-4 border-white dark:border-[#0f172a] shadow-xl overflow-hidden bg-white dark:bg-[#0f172a] ring-8 ring-white/50 dark:ring-[#0f172a]/50 relative">
-                  <img
-                    src={userInfo.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop"}
-                    className="w-full h-full object-cover"
-                    alt="CounsellorProfile"
-                  />
+                <div
+                  onClick={() => setIsViewerOpen(true)}
+                  className="w-40 h-40 rounded-full border-4 border-white dark:border-[#0f172a] shadow-xl overflow-hidden bg-white dark:bg-[#1e293b] ring-8 ring-white/50 dark:ring-[#0f172a]/50 relative cursor-pointer group hover:scale-[1.02] transition-transform"
+                  title="Click to view full-size photo"
+                >
+                  {userInfo.profile_image && !imageError ? (
+                    <img
+                      src={getActiveProfileImageUrl(userInfo.profile_image)}
+                      className="w-full h-full object-cover"
+                      alt={userInfo.name || "Counsellor Profile"}
+                      onError={handleImageError}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-5xl select-none">
+                      {userInfo.name?.trim()?.charAt(0)?.toUpperCase() || userDetails?.name?.trim()?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   {isUploadingImage && (
                     <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white backdrop-blur-xs">
                       <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -392,12 +539,15 @@ const CounsellorProfile = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingImage}
-                  className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-orange-600 active:scale-90 transition-all disabled:opacity-50"
-                  title="Change Profile Photo"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsViewerOpen(true);
+                  }}
+                  className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-orange-600 active:scale-90 transition-all cursor-pointer"
+                  title="View profile photo"
+                  aria-label="View profile photo"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -501,6 +651,9 @@ const CounsellorProfile = () => {
               </div>
             </section>
 
+            {/* Student Group Assignment */}
+            <StudentGroupAssignment initialGroup={userInfo.center_name} initialSubgroup={userInfo.label_name} />
+
             {/* Add Mentees (invite link) */}
             <section className="px-8 pb-10">
               <div className="mb-4 px-2">
@@ -550,16 +703,17 @@ const CounsellorProfile = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all"
+                    onClick={() => setSelectedMentor(mentor)}
+                    className="bg-white dark:bg-[#1e293b] dark:border-slate-800 dark:text-slate-100 rounded-[40px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-gray-50 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-4">
-                      <img src={mentor.avatar || mentor.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.name || 'Mentor')}&background=f97316&color=fff`} className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-gray-100" alt="" />
-                      <div>
-                        <h4 className="text-[16px] font-black text-[#1e293b] dark:text-white">{mentor.name}</h4>
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <MentorAvatar mentor={mentor} />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-[16px] font-black text-[#1e293b] dark:text-white truncate">{mentor.name}</h4>
                         {mentor.email && (
                           <div className="flex items-center gap-1.5 text-gray-400 mt-0.5">
                             <svg className="w-3.5 h-3.5 text-[#f97316]" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
-                            <span className="text-[12px] font-bold tracking-tight text-gray-500">{mentor.email}</span>
+                            <span className="text-[12px] font-bold tracking-tight text-gray-500 truncate">{mentor.email}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-300 mt-1">
@@ -792,6 +946,21 @@ const CounsellorProfile = () => {
         onClose={() => setIsEditInfoOpen(false)}
         userInfo={userInfo}
         onSave={handleSaveInfo}
+      />
+
+      <MentorDetailsModal
+        isOpen={!!selectedMentor}
+        onClose={() => setSelectedMentor(null)}
+        mentor={selectedMentor}
+      />
+
+      <ProfilePhotoViewer
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        imageUrl={userInfo.profile_image && !imageError ? getActiveProfileImageUrl(userInfo.profile_image) : ''}
+        name={userInfo.name || userDetails?.name}
+        onRemovePhoto={handleRemoveProfilePhoto}
+        onUploadPhoto={handleUploadProfilePhoto}
       />
 
       <CounsellorBottomNavigation />

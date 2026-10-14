@@ -61,3 +61,35 @@ export const compressImage = (file, maxWidth = 800, quality = 0.75) => {
     reader.onerror = () => resolve(file);
   });
 };
+
+/**
+ * Resolves a profile image URL.
+ * Handles:
+ * 1. Full URLs (http://, https://, data:, blob:)
+ * 2. Relative URLs (/uploads/...) served by backend API server
+ * 3. Derives base URL from VITE_API_BASE_URL (where upload endpoint and static uploads live),
+ *    falling back to VITE_IMAGE_URL.
+ *
+ * @param {string} url - Profile image path or URL
+ * @returns {string} - Full accessible image URL
+ */
+export const getProfileImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url;
+  }
+
+  // Derive backend origin from VITE_API_BASE_URL (where upload endpoint and static uploads live)
+  let backendOrigin = '';
+  try {
+    if (import.meta.env.VITE_API_BASE_URL) {
+      const parsed = new URL(import.meta.env.VITE_API_BASE_URL);
+      backendOrigin = parsed.origin;
+    }
+  } catch (e) {
+    backendOrigin = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/api\/?$/, '');
+  }
+
+  const baseUrl = backendOrigin || import.meta.env.VITE_IMAGE_URL || '';
+  return url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+};
