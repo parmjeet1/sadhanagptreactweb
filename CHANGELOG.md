@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Reading Lecture Feature] - 2026-10-15, 06:10 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: (1) Reading card on the main sadhna screen: when the person has already chosen ongoing books, the yellow line now says "Still reading this? Update if it has changed." with the book names shown below and an **Update** button; **Skip** hides the line for the day (it replaces "Not now"). If no book is chosen it still asks "Which book did you read?". Same Skip wording on the Hearing card. (2) Sadhna bot: when the person tells the bot reading or hearing minutes for today (typed or by voice) and it saves them, the chat shows the same optional card: the presently reading book(s) with Update and Skip, or "Which lecture did you hear?" with Fill and Skip. Skipping only hides that card in the chat.
+- **Files touched**: `src/reading-lecture-feature/components/QuickCards.jsx`; `src/sadhna-assistant/SadhnaChat.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint on QuickCards is clean and on SadhnaChat shows the same 4 older problems as before. In a browser at phone size against the real backend code on a throwaway database (cards in a small test page, bot version included): wording changes after a book is started, Skip works on each card, no page errors. NOT tested inside the real chat window (it needs the assistant backend) or on a real phone.
+- **Not covered**: the bot offers the card after free-text/voice entries for today only, not between questions of the step-by-step menu flow and not for past dates. No backend change.
+
 ## 📖 [Reading Lecture Feature] - 2026-10-15, 05:30 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

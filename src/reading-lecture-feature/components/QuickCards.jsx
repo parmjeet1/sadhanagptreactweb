@@ -32,8 +32,8 @@ const dismissKey = (kind, date) => `rl_quick_dismiss_${kind}_${date}`;
 const readDismissed = (key) => { try { return localStorage.getItem(key) === '1'; } catch { return false; } };
 const writeDismissed = (key) => { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } };
 
-const cardCls = (highlight) =>
-  `mb-4 -mt-2 rounded-2xl border px-4 py-3 ${highlight
+const cardCls = (highlight, inBot) =>
+  `${inBot ? 'my-1 max-w-[340px]' : 'mb-4 -mt-2'} rounded-2xl border px-4 py-3 ${highlight
     ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700'
     : 'border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700'}`;
 const labelCls = 'text-[11px] font-extrabold uppercase tracking-wider text-gray-400';
@@ -41,15 +41,15 @@ const smallBtn = 'shrink-0 px-3.5 py-1.5 rounded-full bg-[#1e293b] text-white te
 const ghostBtn = 'shrink-0 px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 text-[12px] font-extrabold active:bg-gray-100';
 
 /** The card under an activity. Renders nothing for other activities or when the lists could not be loaded. */
-export const QuickCardFor = ({ activity, selectedDate }) => {
+export const QuickCardFor = ({ activity, selectedDate, inBot = false }) => {
   const store = useContext(QuickContext);
   const kind = quickKindOf(activity);
   if (!store || !kind || store.loadError) return null;
   const date = selectedDate || localToday();
   const filled = isFilled(activity);
   return kind === 'reading'
-    ? <ReadingCard store={store} filled={filled} date={date} />
-    : <HearingCard store={store} filled={filled} date={date} />;
+    ? <ReadingCard store={store} filled={filled} date={date} inBot={inBot} />
+    : <HearingCard store={store} filled={filled} date={date} inBot={inBot} />;
 };
 
 // ---------------------------------------------------------------- Reading
@@ -60,11 +60,11 @@ const joinTitles = (books) => {
   return books.length > 2 ? `${shown} +${books.length - 2} more` : shown;
 };
 
-const ReadingCard = ({ store, filled, date }) => {
+const ReadingCard = ({ store, filled, date, inBot }) => {
   const { levels, myBooks, statusOf, setBookStatus, addMyBook } = store;
   const [sheet, setSheet] = useState(false);
   const key = dismissKey('reading', date);
-  const [hidden, setHidden] = useState(() => readDismissed(key));
+  const [hidden, setHidden] = useState(() => (inBot ? false : readDismissed(key)));
   const [showAll, setShowAll] = useState(false);
   const [mine, setMine] = useState({ title: '', author: '' });
   const [error, setError] = useState('');
@@ -73,9 +73,10 @@ const ReadingCard = ({ store, filled, date }) => {
   const ongoing = all.filter((b) => statusOf(b.id) === 'ongoing');
   const waiting = levels.flatMap((l) => l.books).filter((b) => statusOf(b.id) === 'not_started');
   const next = waiting[0];
-  const prompt = filled && !hidden;
+  const prompt = (inBot || filled) && !hidden;
 
-  const closeSheet = () => { setSheet(false); writeDismissed(key); setHidden(true); };
+  const skip = () => { if (!inBot) writeDismissed(key); setHidden(true); };
+  const closeSheet = () => { setSheet(false); skip(); };
   const addOwn = async () => {
     if (!mine.title.trim()) { setError('Please enter the book name.'); return; }
     setError('');
@@ -91,11 +92,13 @@ const ReadingCard = ({ store, filled, date }) => {
   );
 
   return (
-    <div className={cardCls(prompt)}>
+    <div className={cardCls(prompt, inBot)}>
       {prompt && (
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[12px] font-extrabold text-amber-700 dark:text-amber-300">Nice! Which book did you read?</span>
-          <button type="button" onClick={() => { writeDismissed(key); setHidden(true); }} aria-label="Not now" className="text-[12px] font-bold text-amber-700/70">Not now</button>
+          <span className="text-[12px] font-extrabold text-amber-700 dark:text-amber-300">
+            {ongoing.length ? 'Still reading this? Update if it has changed.' : 'Nice! Which book did you read?'}
+          </span>
+          <button type="button" onClick={skip} className="text-[12px] font-bold text-amber-700/70">Skip</button>
         </div>
       )}
       <div className="flex items-center gap-3">
@@ -157,22 +160,23 @@ const ReadingCard = ({ store, filled, date }) => {
 const looksLikeUrl = (v) => !v || /^https?:\/\/\S+\.\S+/i.test(v.trim());
 const blankLecture = () => ({ title: '', option: 'Srila Prabhupada', other: '', link: '', heardOn: localToday() });
 
-const HearingCard = ({ store, filled, date }) => {
+const HearingCard = ({ store, filled, date, inBot }) => {
   const { lectures, heard, heardIds, markHeard, unmarkHeard, addHeard } = store;
   const [sheet, setSheet] = useState(false);
   const key = dismissKey('hearing', date);
-  const [hidden, setHidden] = useState(() => readDismissed(key));
+  const [hidden, setHidden] = useState(() => (inBot ? false : readDismissed(key)));
   const [form, setForm] = useState(blankLecture());
   const [error, setError] = useState('');
 
   const today = localToday();
   const heardToday = heard.filter((h) => h.heardOn === today).length;
   const last = heard[0];
-  const prompt = filled && !hidden;
+  const prompt = (inBot || filled) && !hidden;
   const open = [...lectures].sort((a, b) => Number(heardIds.has(a.id)) - Number(heardIds.has(b.id)));
   const recHeard = lectures.filter((l) => heardIds.has(l.id)).length;
 
-  const closeSheet = () => { setSheet(false); writeDismissed(key); setHidden(true); };
+  const skip = () => { if (!inBot) writeDismissed(key); setHidden(true); };
+  const closeSheet = () => { setSheet(false); skip(); };
   const submit = async () => {
     if (!form.title.trim()) { setError('Please enter the lecture title.'); return; }
     if (!looksLikeUrl(form.link)) { setError('The link should start with http:// or https://'); return; }
@@ -182,11 +186,11 @@ const HearingCard = ({ store, filled, date }) => {
   };
 
   return (
-    <div className={cardCls(prompt)}>
+    <div className={cardCls(prompt, inBot)}>
       {prompt && (
         <div className="flex items-center justify-between mb-2">
           <span className="text-[12px] font-extrabold text-amber-700 dark:text-amber-300">Nice! Which lecture did you hear?</span>
-          <button type="button" onClick={() => { writeDismissed(key); setHidden(true); }} className="text-[12px] font-bold text-amber-700/70">Not now</button>
+          <button type="button" onClick={skip} className="text-[12px] font-bold text-amber-700/70">Skip</button>
         </div>
       )}
       <div className="flex items-center gap-3">
