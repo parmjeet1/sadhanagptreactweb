@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🛠️ [Reading Lecture Feature] - 2026-10-15, 12:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: the Reading and Hearing cards did not appear on the main sadhana screen after the build. The dashboards keep each activity's name in a field called `title`, but the card code only looked at `name`, so it never matched the "Reading" / "Hearing" activities. It now reads `title` first (and `name` for the Sadhna bot).
+- **Files touched**: `src/reading-lecture-feature/quickHelpers.js`; `CHANGELOG.md`.
+- **Tested**: build passes, lint clean on the file. In a browser at phone size with activities shaped exactly like the dashboards build them (`title`, progress "0 / 10"): the Reading card and the Hearing card show under their activities and no card shows under Chanting; no page errors. NOT tested on the full dashboard with real logins or on the test site. If the cards are still missing there, the likely reasons are the activity name (it must contain "Reading", "Lecture" or "Hearing") or the reading/lecture lists failing to load (the cards then stay hidden on purpose).
+- **Why my earlier test missed it**: my test page used `name` instead of the dashboards' `title`. Sorry about that.
+
 ## 🤖 [Reading Lecture Feature] - 2026-10-15, 06:10 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

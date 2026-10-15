@@ -2,7 +2,7 @@
 
 /** 'reading' | 'hearing' | null, from the activity name */
 export const quickKindOf = (activity) => {
-  const name = String(activity?.name || '').toLowerCase();
+  const name = String(activity?.title || activity?.name || '').toLowerCase();
   if (name.includes('reading')) return 'reading';
   if (name.includes('lecture') || name.includes('hearing')) return 'hearing';
   return null;
