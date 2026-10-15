@@ -103,10 +103,20 @@ export function SadhnaChat({ adapter }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [defs, todayRecords] = await Promise.all([
-        adapter.getActivities(),
-        adapter.getTodayActivities(),
-      ]);
+      let defs;
+      let todayRecords;
+      try {
+        [defs, todayRecords] = await Promise.all([
+          adapter.getActivities(),
+          adapter.getTodayActivities(),
+        ]);
+      } catch (err) {
+        // Don't leave the person on "Loading your Sadhna..." forever when the server call fails.
+        if (cancelled) return;
+        pushBot(`🙏 I couldn't load your Sadhna just now (${err?.message || "server not reachable"}). Please close me and open me again in a moment.`);
+        setReady(true);
+        return;
+      }
       if (cancelled) return;
 
       const activeDefs = defs.filter((a) => a.active);

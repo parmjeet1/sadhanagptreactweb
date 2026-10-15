@@ -4,6 +4,13 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🤖 [Sadhna Assistant] - 2026-10-15, 12:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Sadhna bot used to stay on "Loading your Sadhna..." forever if either of its two start-up server calls (the activity list, or today's entries) failed. It now shows a clear message with the reason ("I couldn't load your Sadhna just now (...). Please close me and open me again in a moment.") instead of waiting forever. This does not fix whatever made the server call fail; the reason shown in the message is the clue for that.
+- **Files touched**: `src/sadhna-assistant/SadhnaChat.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint on the file shows the same 4 older problems as before. In a browser at phone size with the bot's built-in practice data: it loads normally; with the "today" call made to fail it now shows the message and no longer hangs; no page errors. NOT tested against the real server. My Reading/Hearing bot card change was checked too: the bot starts normally with it.
+
 ## 🛠️ [Reading Lecture Feature] - 2026-10-15, 12:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
