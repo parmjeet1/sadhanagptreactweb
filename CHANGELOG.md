@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🦅 [Birds Eye View] - 2026-10-22, 06:15 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Bird's Eye View can now work on several mentees at once, the same way as the Mentees / Group Management window. Each student row has a tick circle (tapping the name still opens the student). A "Select all (N)" button sits above the list: it ticks everyone currently shown after the search and the Group / Subgroup / Status filters, and turns into "Clear selection". When one or more are ticked, a bar appears above the bottom menu with "Selected: N Students" and three buttons: **AI Analysis** (first asks for the date range - Today / 7 Days / Monthly / Custom Range - then goes to ChatGPT, same window as the other screens), **Alerts** (Enable / Disable performance notifications for the selected mentees, same as the Alerts button in Group Management), and **Export** (choose 7 Days / 30 Days / Custom dates and Excel or PDF, then downloads the file). There is no 50-student limit here, so "Select all" really selects all.
+- **Files touched**: new `src/components/counsellor/BulkMenteeActions.jsx`; `src/pages/counsellor/BirdsEyeView.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint on BirdsEyeView shows the same older problems as before plus the same "motion is defined but never used" message that the other screens already show for this library (it is used). In a browser at phone size with the server answers faked (5 mentees in 2 groups): ticking single students, Select all, Clear selection, the bar and its count, Alerts sending the 5 selected ids with status 1, Export asking for dates when Custom is chosen and then downloading an .xlsx with only the selected ids, and the AI Analysis date window opening with "Analyzing 5 selected mentees"; no page errors. NOT tested against the real server, with real data, the PDF option, or on a real phone.
+- **Backend**: no change needed (same three existing routes).
+
 ## 🐛 [Mentees] - 2026-10-22, 05:05 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

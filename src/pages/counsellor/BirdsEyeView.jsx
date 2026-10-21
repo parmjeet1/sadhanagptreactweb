@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
+import BulkMenteeActions from '../../components/counsellor/BulkMenteeActions';
 import { postRequest } from '../../services/api';
 import {
   analyzeBirdsEyeStudents,
@@ -25,10 +26,21 @@ const STATUS_FILTERS = [
   { value: 'no_data', label: 'No Data' },
 ];
 
-const StudentRow = ({ student, onOpenStudent }) => {
+const StudentRow = ({ student, onOpenStudent, selected, onToggle }) => {
   const style = STATUS_STYLES[student.color] || STATUS_STYLES.amber;
   return (
-    <div className={`rounded-2xl border p-3.5 mb-2 ${style.card} sm:flex sm:items-center sm:justify-between sm:gap-4`}>
+    <div className={`rounded-2xl border p-3.5 mb-2 flex items-start gap-3 ${style.card} ${selected ? 'ring-2 ring-blue-500' : ''}`}>
+      <button
+        type="button"
+        onClick={() => onToggle(student.id)}
+        role="checkbox"
+        aria-checked={selected}
+        aria-label={`Select ${student.name}`}
+        className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
+      >
+        {selected && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+      </button>
+      <div className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
       <div className="sm:flex-1 sm:min-w-0">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
@@ -47,6 +59,7 @@ const StudentRow = ({ student, onOpenStudent }) => {
       </div>
       <div className="sm:shrink-0 mt-1.5 sm:mt-0">
         <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap">Reported {student.loggedDays}/{student.periodDays} days</span>
+      </div>
       </div>
     </div>
   );
@@ -71,6 +84,9 @@ const BirdsEyeView = () => {
   const [groupFilter, setGroupFilter] = useState('all');
   const [subgroupFilter, setSubgroupFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Selected mentees (by id) for the bulk actions: AI Analysis / Alerts / Export
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
 
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
   const [collapsedSubgroups, setCollapsedSubgroups] = useState(() => new Set());
@@ -183,6 +199,23 @@ const BirdsEyeView = () => {
     });
   }, [filteredStudents]);
 
+  const toggleSelected = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  // "Select all" = everyone currently listed (after the search and Group / Subgroup / Status filters)
+  const allShownSelected = filteredStudents.length > 0 && filteredStudents.every((s) => selectedIds.has(s.id));
+  const toggleSelectAll = () => {
+    setSelectedIds(allShownSelected ? new Set() : new Set(filteredStudents.map((s) => s.id)));
+  };
+  const selectedList = useMemo(
+    () => students.filter((s) => selectedIds.has(s.id)).map((s) => ({ id: s.id, name: s.name })),
+    [students, selectedIds]
+  );
+
   const toggleGroupCollapsed = (name) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
@@ -210,7 +243,7 @@ const BirdsEyeView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-[84px]">
+    <div className={`min-h-screen bg-white font-sans ${selectedIds.size > 0 ? 'pb-[230px]' : 'pb-[84px]'}`}>
       <div className="w-full max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-10 pb-1">
@@ -276,6 +309,23 @@ const BirdsEyeView = () => {
           </select>
         </div>
 
+        {/* Select all */}
+        {!isLoading && !errorMsg && filteredStudents.length > 0 && (
+          <div className="px-6 pb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 text-[13px] font-bold text-blue-600"
+            >
+              <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${allShownSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'}`}>
+                {allShownSelected && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+              </span>
+              {allShownSelected ? 'Clear selection' : `Select all (${filteredStudents.length})`}
+            </button>
+            {selectedIds.size > 0 && <span className="text-[12px] font-semibold text-gray-400">{selectedIds.size} selected</span>}
+          </div>
+        )}
+
         {/* Body */}
         {isLoading ? (
           <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>
@@ -314,7 +364,7 @@ const BirdsEyeView = () => {
                                 {!subCollapsed && (
                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                     {subStudents.map((student) => (
-                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} />
+                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} selected={selectedIds.has(student.id)} onToggle={toggleSelected} />
                                     ))}
                                   </motion.div>
                                 )}
@@ -331,6 +381,12 @@ const BirdsEyeView = () => {
           </div>
         )}
       </div>
+
+      <BulkMenteeActions
+        selected={selectedList}
+        userId={userDetails?.user_id}
+        onClear={() => setSelectedIds(new Set())}
+      />
 
       <CounsellorBottomNavigation />
     </div>
