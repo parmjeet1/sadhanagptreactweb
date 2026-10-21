@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Mentees] - 2026-10-22, 05:05 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Mentees page now keeps each student only once while more pages load as you scroll, so a student the server sends twice (or a page asked for twice) is no longer shown twice. The real fix for students showing twice and missing is on the server (`/student-list` now has a fixed order); this is a safety net on the page.
+- **Files touched**: `src/pages/counsellor/mentees_module/MenteesList.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same 9 older problems in that file as before. NOT tested in a browser with a real list. The Group Management page loads one page at a time and needs no change.
+- **Backend**: matching server fix (deploy the backend for the missing students to appear).
+
 ## 🤖 [Sadhna Assistant] - 2026-10-15, 12:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
