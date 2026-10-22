@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import BottomNavigation from '../../components/student/BottomNavigation';
 import { getRequest } from '../../services/api';
+import { LiveStudentArea } from '../../reading-lecture-feature/components/LiveAreas';
+import { TabBar } from '../../reading-lecture-feature/components/Areas';
 
 // Helper to extract YouTube Thumbnail instantly
 const getYouTubeThumbnail = (url) => {
@@ -30,21 +32,15 @@ const handleShare = async (title, url) => {
 
 const Inspiration = () => {
   const { userDetails } = useOutletContext();
-  const [activeFilter, setActiveFilter] = useState('Ranking');
+  const [section, setSection] = useState('reading'); // 'reading' | 'hearing' | 'library'
+  const [activeFilter, setActiveFilter] = useState('All');
   const [inspirations, setInspirations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const [rankings, setRankings] = useState([]);
-  const [currentUserRank, setCurrentUserRank] = useState(null);
-  const [rankingPage, setRankingPage] = useState(1);
-  const [hasMoreRankings, setHasMoreRankings] = useState(true);
-  const [isFetchingRankings, setIsFetchingRankings] = useState(false);
-  const [rankingType, setRankingType] = useState('center'); // 'center' for Group rank, 'global' for Global rank
-
-  const filters = ['Ranking', 'All', 'Quote', 'Video', 'Link', 'Image'];
+  const filters = ['All', 'Quote', 'Video', 'Link', 'Image'];
 
   const fetchInspirations = (pageNum = 1, append = false) => {
     if (!userDetails?.user_id) return;
@@ -85,59 +81,12 @@ const Inspiration = () => {
     });
   };
 
-  const fetchRankings = (pageNum = 1, append = false, type = rankingType) => {
-    if (!userDetails?.user_id) return;
-    if (append) setIsFetchingRankings(true);
-    else setIsLoading(true);
-
-    const payload = {
-      user_id: userDetails.user_id,
-      page_no: pageNum,
-      limit: 10,
-      center_filter: type === 'center' // true for Group, false for Global
-    };
-
-    getRequest('/weekly-ranking', payload, (res) => {
-      const resData = res?.data;
-      if (resData && resData.status === 1) {
-        const newData = resData.data.ranking || [];
-        if (append) {
-          setRankings(prev => [...prev, ...newData]);
-        } else {
-          setRankings(newData);
-          setCurrentUserRank(resData.data.currentUserRank);
-        }
-        if (newData.length < 10) setHasMoreRankings(false);
-        else setHasMoreRankings(true);
-      }
-      setIsLoading(false);
-      setIsFetchingRankings(false);
-    });
-  };
-
   useEffect(() => {
-    if (activeFilter === 'Ranking') {
-      setRankingPage(1);
-      fetchRankings(1, false, rankingType);
-    } else {
-      setPage(1);
-      fetchInspirations(1, false);
-    }
-  }, [userDetails, activeFilter, rankingType]);
-
-  const loadMore = () => {
-    if (activeFilter === 'Ranking') {
-      if (isFetchingRankings || !hasMoreRankings) return;
-      const nextPage = rankingPage + 1;
-      setRankingPage(nextPage);
-      fetchRankings(nextPage, true);
-    } else {
-      if (isFetchingMore || !hasMore) return;
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchInspirations(nextPage, true);
-    }
-  };
+    if (section !== 'library') return;
+    setPage(1);
+    fetchInspirations(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userDetails, activeFilter, section]);
 
   const observerRef = useRef();
   const lastElementRef = useCallback(node => {
@@ -145,13 +94,7 @@ const Inspiration = () => {
     if (observerRef.current) observerRef.current.disconnect();
     observerRef.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
-        if (activeFilter === 'Ranking' && hasMoreRankings && !isFetchingRankings) {
-          setRankingPage(prevPage => {
-            const nextPage = prevPage + 1;
-            fetchRankings(nextPage, true);
-            return nextPage;
-          });
-        } else if (activeFilter !== 'Ranking' && hasMore && !isFetchingMore) {
+        if (hasMore && !isFetchingMore) {
           setPage(prevPage => {
             const nextPage = prevPage + 1;
             fetchInspirations(nextPage, true);
@@ -187,134 +130,33 @@ const Inspiration = () => {
           </button>
         </header>
 
-        {/* Filter Bar */}
-        <div className="px-6 mb-8 flex gap-3 overflow-x-auto no-scrollbar">
-          {filters.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`relative px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
-                ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md'
-                : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
-                }`}
-            >
-              {filter}
-              {filter === 'Ranking' && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-              )}
-            </button>
-          ))}
+        {/* Sections */}
+        <div className="px-6 mb-4">
+          <TabBar tabs={[['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['library', '📚 Library']]} value={section} onChange={setSection} />
         </div>
 
+        {section === 'library' && (
+          <div className="px-6 mb-8 flex gap-3 overflow-x-auto no-scrollbar">
+            {filters.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`relative px-6 py-2.5 rounded-full text-[14px] font-bold whitespace-nowrap transition-all border ${activeFilter === filter
+                  ? 'bg-[#1e293b] text-white border-[#1e293b] shadow-md'
+                  : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
+                  }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {section !== 'library' && <div className="px-6"><LiveStudentArea key={section} section={section} /></div>}
+
         {/* Content Feed */}
-        <div className="px-6 space-y-8 min-h-[50vh]">
-          {activeFilter === 'Ranking' ? (
-            /* --- RANKING UI --- */
-            isLoading ? (
-              <div className="flex flex-col items-center justify-center pt-20 gap-3">
-                <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium">Loading rankings...</p>
-              </div>
-            ) : (
-              <div className="space-y-4 pb-8">
-                {/* Group Rank vs Global Rank Toggle */}
-                <div className="flex bg-slate-200/70 p-1.5 rounded-2xl mb-4 shadow-inner">
-                  <button
-                    onClick={() => setRankingType('center')}
-                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
-                      rankingType === 'center'
-                        ? 'bg-white text-teal-600 shadow-md'
-                        : 'text-gray-500 hover:text-gray-800'
-                    }`}
-                  >
-                    🏢 Group Rank
-                  </button>
-                  <button
-                    onClick={() => setRankingType('global')}
-                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
-                      rankingType === 'global'
-                        ? 'bg-white text-blue-600 shadow-md'
-                        : 'text-gray-500 hover:text-gray-800'
-                    }`}
-                  >
-                    🌐 Global Rank
-                  </button>
-                </div>
-
-                {/* Current User Stats Card */}
-                {currentUserRank !== null && (
-                  <div className="bg-gradient-to-br from-teal-500 to-blue-600 rounded-[24px] p-6 text-white shadow-xl mb-6 relative overflow-hidden">
-                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <p className="text-teal-100 font-medium text-sm mb-1 uppercase tracking-wider">
-                      Your Daily {rankingType === 'center' ? 'Group' : 'Global'} Rank
-                    </p>
-                    <div className="flex items-end gap-3">
-                      <h2 className="text-5xl font-black">#{currentUserRank}</h2>
-                      <span className="text-teal-100 font-medium pb-2">
-                        {rankingType === 'center' ? 'in your center' : 'across all students'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Ranking List */}
-                <div className="bg-white rounded-[32px] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50">
-                  <h3 className="font-bold text-[#1e293b] text-lg mb-6 flex items-center gap-2">
-                    <span className="text-xl">🏆</span> {rankingType === 'center' ? 'Group' : 'Global'} Leaderboard
-                  </h3>
-                  
-                  {rankings.length > 0 ? (
-                    <div className="space-y-4">
-                      {rankings.map((user, idx) => {
-                        const rank = user.rank ?? idx + 1; // rank from the server (same percentage = same rank)
-                        const hasMarks = Number(user.total_marks) > 0;
-                        let rankColor = "text-gray-500 bg-gray-100";
-                        if (hasMarks && rank === 1) rankColor = "text-yellow-600 bg-yellow-100";
-                        if (hasMarks && rank === 2) rankColor = "text-slate-500 bg-slate-100";
-                        if (hasMarks && rank === 3) rankColor = "text-amber-700 bg-amber-100";
-
-                        const isLast = idx === rankings.length - 1;
-                        return (
-                          <div 
-                            ref={isLast ? lastElementRef : null}
-                            key={user.user_id} 
-                            className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${rankColor}`}>
-                                #{rank}
-                              </div>
-                              <div className="flex items-center gap-3">
-                                {user.profile ? (
-                                  <img src={user.profile.startsWith('http') ? user.profile : `${import.meta.env.VITE_IMAGE_URL}${user.profile}`} className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white" alt={user.name} />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-sm border-2 border-white text-sm">
-                                    {user.name?.charAt(0).toUpperCase()}
-                                  </div>
-                                )}
-                                <div>
-                                  <h4 className="font-bold text-[#1e293b] text-[15px]">{user.name}</h4>
-                                  <p className="text-[12px] font-medium text-gray-400">{user.percentage ?? 0}% · {user.total_marks || 0} Marks</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-center text-gray-500 py-6">No rankings available yet.</p>
-                  )}
-                  
-                  {isFetchingRankings && (
-                    <div className="flex justify-center py-4">
-                      <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          ) : isLoading ? (
+        {section === 'library' && <div className="px-6 space-y-8 min-h-[50vh]">
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center pt-20 gap-3">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               <p className="text-gray-500 font-medium">Loading inspiration...</p>
@@ -429,10 +271,10 @@ const Inspiration = () => {
               <p className="text-gray-500 font-medium text-lg">No content found</p>
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Loading Spinner for Infinite Scroll */}
-        {isFetchingMore && (
+        {section === 'library' && isFetchingMore && (
           <div className="flex justify-center pt-4 pb-10">
             <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>

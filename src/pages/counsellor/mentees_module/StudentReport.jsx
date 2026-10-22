@@ -5,6 +5,7 @@ import CounsellorBottomNavigation from '../../../components/counsellor/Counsello
 import { getRequest, postRequest } from '../../../services/api';
 import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
 import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
+import AssignGroupSheet from '../../../components/counsellor/AssignGroupSheet';
 
 // --- Premium Chart Helpers (same as PersonalSadhanaAnalytics) ---
 const timeToMinutes = (timeStr) => {
@@ -214,6 +215,7 @@ const StudentReport = () => {
   const [isSending, setIsSending] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isGroupEditOpen, setIsGroupEditOpen] = useState(false);
 
   const showToast = (msg) => { setToastMessage(msg); setTimeout(() => setToastMessage(''), 3000); };
 
@@ -313,7 +315,15 @@ const StudentReport = () => {
         <div className="flex flex-col items-center mb-8">
           <img src={studentInfo.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentInfo.name)}&background=random&color=fff&bold=true`} className="w-24 h-24 rounded-full border-4 border-blue-50 mb-4 shadow-md" />
           <h2 className="text-2xl font-black text-center">{studentInfo.name}</h2>
-          <p className="text-blue-500 font-bold text-sm mt-1 mb-3">{studentInfo.center_name || 'No Group'} • {studentInfo.label_name || 'No Label'}</p>
+          <button
+            type="button"
+            onClick={() => setIsGroupEditOpen(true)}
+            title="Change group / subgroup"
+            className="mt-1 mb-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-blue-500 font-bold text-sm hover:bg-blue-50 active:scale-95 transition-all"
+          >
+            <span>{studentInfo.center_name || 'No Group'} • {studentInfo.label_name || 'No Label'}</span>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536M9 13l6.768-6.768a2 2 0 112.828 2.828L11.828 15.83a4 4 0 01-1.414.943L7 18l1.227-3.414A4 4 0 019 13z" /></svg>
+          </button>
 
           <button
             onClick={() => setIsAiModalOpen(true)}
@@ -419,6 +429,18 @@ const StudentReport = () => {
           studentId: id,
           studentName: studentInfo.name || 'Mentee'
         }}
+      />
+
+      <AssignGroupSheet
+        open={isGroupEditOpen}
+        onClose={() => setIsGroupEditOpen(false)}
+        userId={userDetails?.user_id}
+        studentIds={[id]}
+        title={`Group / Subgroup: ${studentInfo.name || 'Mentee'}`}
+        currentGroupName={studentInfo.center_name}
+        currentSubgroupName={studentInfo.label_name}
+        onAssigned={(msg) => { showToast(msg || 'Group updated'); fetchStudentDetails(); }}
+        onChanged={fetchStudentDetails}
       />
 
       <CounsellorBottomNavigation />

@@ -12,6 +12,8 @@ import DatePickerCard from "./components/DatePickerCard";
 import DateRangePickerCard from "./components/DateRangePickerCard";
 import Sticker from "./components/visuals/Sticker";
 import { PrimaryButton, SecondaryButton } from "./components/ChatButton";
+import { QuickCardsProvider, QuickCardFor } from "../reading-lecture-feature/components/QuickCards";
+import { quickKindOf, isFilled as isQuickFilled } from "../reading-lecture-feature/quickHelpers";
 import { getMessage } from "./data/sadhnaMessages";
 import { resolveMessageContext, pickCombinedContext } from "./utils/messageContext";
 import {
@@ -101,10 +103,20 @@ export function SadhnaChat({ adapter }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [defs, todayRecords] = await Promise.all([
-        adapter.getActivities(),
-        adapter.getTodayActivities(),
-      ]);
+      let defs;
+      let todayRecords;
+      try {
+        [defs, todayRecords] = await Promise.all([
+          adapter.getActivities(),
+          adapter.getTodayActivities(),
+        ]);
+      } catch (err) {
+        // Don't leave the person on "Loading your Sadhna..." forever when the server call fails.
+        if (cancelled) return;
+        pushBot(`🙏 I couldn't load your Sadhna just now (${err?.message || "server not reachable"}). Please close me and open me again in a moment.`);
+        setReady(true);
+        return;
+      }
       if (cancelled) return;
 
       const activeDefs = defs.filter((a) => a.active);
@@ -832,6 +844,16 @@ export function SadhnaChat({ adapter }) {
       pushBot(`⚠️ Saved the rest, but I couldn't save: ${failed.join(", ")}. Please try those again.`);
     }
 
+    // Optional extra: after reading / hearing is filled, offer to update the book or lecture (never required).
+    const offered = new Set();
+    for (const u of saved) {
+      const activity = activitiesByIdRef.current[u.activity_id];
+      const kind = quickKindOf(activity);
+      if (!kind || offered.has(kind) || !isQuickFilled({ name: activity.name, type: "DURATION", progress: `${u.value} / 1` })) continue;
+      offered.add(kind);
+      pushBlock({ kind: "quickBook", activityName: activity.name });
+    }
+
     if (status.allComplete) {
       flowRef.current = null;
       queueRef.current = [];
@@ -1098,6 +1120,13 @@ function BlockRenderer({
         </div>
       );
     }
+
+    case "quickBook":
+      return (
+        <QuickCardsProvider>
+          <QuickCardFor activity={{ name: block.activityName, type: "DURATION", progress: "1 / 1" }} inBot />
+        </QuickCardsProvider>
+      );
 
     case "quickFillAll":
       if (block.resolved) return null;

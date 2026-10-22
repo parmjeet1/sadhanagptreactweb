@@ -164,7 +164,12 @@ const MenteesList = () => {
           avatar: s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random`,
           activities: s.activities || []
         }));
-        setStudents(prev => shouldAppend ? [...prev, ...mappedStudents] : mappedStudents);
+        // keep each student once, even if the same page is asked for twice or the server repeats a row
+        setStudents(prev => {
+          const list = shouldAppend ? [...prev, ...mappedStudents] : mappedStudents;
+          const seen = new Set();
+          return list.filter(s => (seen.has(String(s.id)) ? false : (seen.add(String(s.id)), true)));
+        });
         setTotalPages(res.total_page || 1);
       }
       setIsLoading(false);

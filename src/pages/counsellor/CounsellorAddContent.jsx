@@ -4,11 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import { getRequest, postRequest, postRequestWithFile } from '../../services/api';
 import { processResponse } from '../../utils/apiUtils';
+import { LiveCounsellorArea } from '../../reading-lecture-feature/components/LiveAreas';
+import { TabBar } from '../../reading-lecture-feature/components/Areas';
 
 const CounsellorAddContent = () => {
   const navigate = useNavigate();
   const { userDetails } = useOutletContext();
-  const [activeTab, setActiveTab] = useState('Add'); // 'Add' or 'View'
+  const [activeTab, setActiveTab] = useState('Add'); // 'Add' (Post) or 'View' (Library); only used when one of those tabs is open
+  const [section, setSection] = useState('reading'); // 'reading' | 'hearing' | 'mentees' | 'library' | 'post'
+  const isArea = ['reading', 'hearing', 'mentees'].includes(section);
+  const pickSection = (k) => {
+    setSection(k);
+    if (k === 'library') setActiveTab('View');
+    if (k === 'post') setActiveTab('Add');
+  };
   const [contentType, setContentType] = useState('quote');
   const [quoteContent, setQuoteContent] = useState('');
   const [youtubeLink, setYoutubeLink] = useState('');
@@ -227,37 +236,28 @@ const CounsellorAddContent = () => {
 
         {/* Header */}
         <div className="bg-white sticky top-0 z-20 border-b border-gray-100 px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-[24px] font-black text-[#0f172a] tracking-tight">Content Hub</h1>
-            <div className="flex bg-gray-100/80 p-1 rounded-2xl">
-              <button
-                onClick={() => setActiveTab('Add')}
-                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${activeTab === 'Add' ? 'bg-white text-[#1a73e8] shadow-sm' : 'text-gray-500 hover:text-[#0f172a]'
-                  }`}
-              >
-                Create
-              </button>
-              <button
-                onClick={() => setActiveTab('View')}
-                className={`px-5 py-2 rounded-xl text-[13px] font-black transition-all ${activeTab === 'View' ? 'bg-white text-[#1a73e8] shadow-sm' : 'text-gray-500 hover:text-[#0f172a]'
-                  }`}
-              >
-                Library
-              </button>
-            </div>
+          <h1 className="text-[24px] font-black text-[#0f172a] tracking-tight mb-4">Inspiration</h1>
+          <div className="mb-4">
+            <TabBar
+              tabs={[['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['mentees', '👥 Mentees Report'], ['library', '📚 Library'], ['post', '✍️ Post']]}
+              value={section}
+              onChange={pickSection}
+            />
           </div>
 
-          <div className="flex items-center text-gray-400 gap-2">
+          {!isArea && <div className="flex items-center text-gray-400 gap-2">
             <div className={`w-2 h-2 rounded-full ${activeTab === 'Add' ? 'bg-orange-500 animate-pulse' : 'bg-blue-500'}`}></div>
             <span className="text-[12px] font-bold uppercase tracking-widest">
               {activeTab === 'Add' ? 'Publishing Mode' : 'Content Management'}
             </span>
-          </div>
+          </div>}
         </div>
 
         {/* Tab Content */}
         <div className="px-5 pt-6 pb-20">
-          {activeTab === 'Add' ? (
+          {isArea ? (
+            <LiveCounsellorArea key={section} section={section} />
+          ) : activeTab === 'Add' ? (
             <>
               {/* Content Type Selector */}
               <div className="mb-8">

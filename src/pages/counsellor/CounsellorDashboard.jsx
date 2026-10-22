@@ -3,6 +3,7 @@ import { useNavigate, Navigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import ActivityCard from '../../components/shared/ActivityCard';
+import { QuickCardsProvider, QuickCardFor } from '../../reading-lecture-feature/components/QuickCards';
 import NotificationsPanel from '../../components/shared/NotificationsPanel';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
 import NewActivityModal from '../../components/shared/NewActivityModal';
@@ -707,7 +708,7 @@ const CounsellorDashboard = () => {
               <p className="text-gray-500 dark:text-gray-400 font-medium">Loading activities...</p>
             </div>
           ) : activities.length > 0 ? (
-            activities.map((act) => {
+            <QuickCardsProvider>{activities.map((act) => {
               const activeDateObj = dates.find(d => d.active)?.fullDate || new Date();
               const yyyy = activeDateObj.getFullYear();
               const mm = String(activeDateObj.getMonth() + 1).padStart(2, '0');
@@ -715,15 +716,17 @@ const CounsellorDashboard = () => {
               const formattedDate = `${yyyy}-${mm}-${dd}`;
 
               return (
-                <ActivityCard
-                  key={act.id}
-                  activity={act}
-                  onProgressUpdate={handleProgressUpdate}
-                  onEdit={handleEditClick}
-                  selectedDate={formattedDate}
-                />
+                <React.Fragment key={act.id}>
+                  <ActivityCard
+                    activity={act}
+                    onProgressUpdate={handleProgressUpdate}
+                    onEdit={handleEditClick}
+                    selectedDate={formattedDate}
+                  />
+                  <QuickCardFor activity={act} selectedDate={formattedDate} />
+                </React.Fragment>
               );
-            })
+            })}</QuickCardsProvider>
           ) : (
             <div className="text-center pt-10">
               <p className="text-gray-500 dark:text-gray-300 font-medium text-lg">No activities found</p>

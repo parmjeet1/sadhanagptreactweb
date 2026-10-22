@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toDateOnly } from '../../utils/dateOnly';
 
 const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
   const [name, setName] = useState(userInfo.name);
   const [mobile, setMobile] = useState(userInfo.mobile);
-  const [dob, setDob] = useState(userInfo.dob || userInfo.birthday || '');
+  const [dob, setDob] = useState(toDateOnly(userInfo.dob || userInfo.birthday));
 
   useEffect(() => {
     setName(userInfo.name || '');
     setMobile(userInfo.mobile || '');
-    setDob(userInfo.dob || userInfo.birthday || '');
+    setDob(toDateOnly(userInfo.dob || userInfo.birthday));
   }, [userInfo, isOpen]);
 
   const handleSave = () => {
     if (name.trim()) {
-      onSave({ name, mobile, dob });
+      onSave({ name, mobile, dob: toDateOnly(dob) }); // always YYYY-MM-DD, never a full timestamp
     }
   };
 
@@ -83,7 +84,7 @@ const EditPersonalInfoModal = ({ isOpen, onClose, userInfo, onSave }) => {
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Birthday (Date of Birth)</label>
                   <input
                     type="date"
-                    value={dob ? (dob.includes('T') ? dob.split('T')[0] : dob) : ''}
+                    value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     className="w-full bg-[#f8fafc] text-[#0f172a] font-bold text-[16px] rounded-2xl py-4 px-6 outline-none border-2 border-transparent focus:border-[#fef3c7] focus:bg-white transition-all placeholder:text-gray-300"
                   />
