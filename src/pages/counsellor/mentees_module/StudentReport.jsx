@@ -440,6 +440,7 @@ const StudentReport = () => {
         currentGroupName={studentInfo.center_name}
         currentSubgroupName={studentInfo.label_name}
         onAssigned={(msg) => { showToast(msg || 'Group updated'); fetchStudentDetails(); }}
+        onChanged={fetchStudentDetails}
       />
 
       <CounsellorBottomNavigation />

@@ -4,6 +4,15 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🛠️ [Mentee window] - 2026-10-22, 05:30 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Assign Group screen that opens from a mentee's group / subgroup line now also has **Manage Groups** (next to "Select Group") and **Manage Subgroups** (next to "Select Subgroup", needs a group chosen first), the same as in Mentees / Group Management. Manage Groups: list of groups with a pencil (rename) and a bin (delete, with the same warning: students move to Uncategorised, accounts and Sadhna records are not deleted). Manage Subgroups: list of the chosen group's subgroups with rename and delete (with the same warning), plus an "Add subgroup..." box. After renaming or deleting, the lists on the Assign Group screen and the group / subgroup line behind it refresh; your current choice on the Assign Group screen is kept.
+- **Files touched**: `src/components/counsellor/AssignGroupSheet.jsx`; `src/pages/counsellor/mentees_module/StudentReport.jsx` (refreshes the student's names after a rename / delete); `CHANGELOG.md`.
+- **Tested**: build passes; lint on the new screen shows 2 messages ("motion is never used" which every screen using this library shows, and a "setState in effect" note for the reset-when-opened step). In a browser at phone size with the server answers faked: rename a group (right call), delete a group (warning shown, DELETE call sent), back on the Assign screen the choice is kept; add a subgroup (shows in the list), rename a subgroup, delete a subgroup (right calls), and the Assign list shows the changes; no page errors. NOT tested with the real server or on a real phone.
+- **Please note**: deleting a group or subgroup changes real students' assignments (same behaviour as the Mentees screen; the warning is shown first).
+- **Backend**: no change (existing routes `/edit-center`, `/delete-center`, `/add-lable`, `/edit-lable`, `/delete-lable`).
+
 ## 👥 [Mentee window] - 2026-10-22, 04:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
