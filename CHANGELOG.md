@@ -4,6 +4,15 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 👥 [Mentee window] - 2026-10-22, 04:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In a mentee's window (the one that opens when a student is tapped, for example from Bird's Eye View), the line under the name that shows the group and subgroup ("Sunday Class • Youth") is now tappable, with a small pencil icon. Tapping it opens the same "Assign Group" screen as in Mentees / Group Management: search and pick a group, search and pick a subgroup, "Create New Group" and "Create New Subgroup" inline, and a Save button. The student's current group and subgroup are already selected when it opens. After saving, the window shows the new group and subgroup and a short "Students assigned successfully" message. The screen is a reusable component, so it can be used for several students later.
+- **Files touched**: new `src/components/counsellor/AssignGroupSheet.jsx`; `src/pages/counsellor/mentees_module/StudentReport.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same older problems in StudentReport as before, plus the same "motion is never used" message that the other screens already show for this library. In a browser at phone size with the server answers faked: the line opens the screen, the current group and subgroup are pre-selected, choosing another group lists its subgroups, saving sends the right student, group and subgroup, the screen closes, and the line now shows the new group and subgroup; reopening pre-selects the new ones; no page errors. NOT tested with the real server or on a real phone.
+- **Not included**: the "Manage Groups" / "Manage Subgroups" links of the Mentees screen (they open other windows only available there). The current group is matched by its name, because the student details call sends names only; two groups with the same name could pre-select the wrong one.
+- **Backend**: no change (uses the existing group, subgroup and assign routes).
+
 ## 🦅 [Birds Eye View] - 2026-10-22, 03:15 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
