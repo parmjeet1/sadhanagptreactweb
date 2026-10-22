@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -26,40 +26,78 @@ const STATUS_FILTERS = [
   { value: 'no_data', label: 'No Data' },
 ];
 
-const StudentRow = ({ student, onOpenStudent, selected, onToggle }) => {
+const LONG_PRESS_MS = 500;
+const MOVE_CANCEL_PX = 10;
+
+// A tap opens the student's window. Pressing and holding the row starts selection mode (tick circles appear);
+// while in selection mode a tap ticks / unticks the row.
+const StudentRow = ({ student, onOpenStudent, selectionMode, selected, onToggle, onLongPress }) => {
   const style = STATUS_STYLES[student.color] || STATUS_STYLES.amber;
+  const timer = useRef(null);
+  const start = useRef(null);
+  const fired = useRef(false);
+
+  const clearTimer = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } };
+  const onPointerDown = (e) => {
+    fired.current = false;
+    start.current = { x: e.clientX, y: e.clientY };
+    clearTimer();
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      fired.current = true;
+      onLongPress(student.id);
+    }, LONG_PRESS_MS);
+  };
+  const onPointerMove = (e) => {
+    if (!start.current || !timer.current) return;
+    if (Math.abs(e.clientX - start.current.x) > MOVE_CANCEL_PX || Math.abs(e.clientY - start.current.y) > MOVE_CANCEL_PX) clearTimer();
+  };
+  const onClick = () => {
+    if (fired.current) { fired.current = false; return; } // this click is the end of the long press
+    if (selectionMode) onToggle(student.id); else onOpenStudent(student);
+  };
+  const onKeyDown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } };
+
   return (
-    <div className={`rounded-2xl border p-3.5 mb-2 flex items-start gap-3 ${style.card} ${selected ? 'ring-2 ring-blue-500' : ''}`}>
-      <button
-        type="button"
-        onClick={() => onToggle(student.id)}
-        role="checkbox"
-        aria-checked={selected}
-        aria-label={`Select ${student.name}`}
-        className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
-      >
-        {selected && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-      </button>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={student.name}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={clearTimer}
+      onPointerLeave={clearTimer}
+      onPointerCancel={clearTimer}
+      onContextMenu={(e) => e.preventDefault()}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+      className={`rounded-2xl border p-3.5 mb-2 flex items-start gap-3 cursor-pointer ${style.card} ${selected ? 'ring-2 ring-blue-500' : ''}`}
+    >
+      {selectionMode && (
+        <span
+          role="checkbox"
+          aria-checked={selected}
+          aria-label={`Select ${student.name}`}
+          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
+        >
+          {selected && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+        </span>
+      )}
       <div className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
-      <div className="sm:flex-1 sm:min-w-0">
-        <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
-          <button
-            type="button"
-            onClick={() => onOpenStudent(student)}
-            className="font-bold text-[14px] text-[#0f172a] hover:underline text-left truncate"
-          >
-            {student.name}
-          </button>
+        <div className="sm:flex-1 sm:min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
+            <span className="font-bold text-[14px] text-[#0f172a] text-left truncate">{student.name}</span>
+          </div>
+          <p className={`text-[12.5px] font-semibold mt-1 ${style.text} truncate`}>{student.statusText}</p>
         </div>
-        <p className={`text-[12.5px] font-semibold mt-1 ${style.text} truncate`}>{student.statusText}</p>
-      </div>
-      <div className="sm:flex-1 sm:min-w-0 mt-1.5 sm:mt-0">
-        <p className="text-[12px] text-gray-500 font-medium truncate">{student.action}</p>
-      </div>
-      <div className="sm:shrink-0 mt-1.5 sm:mt-0">
-        <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap">Reported {student.loggedDays}/{student.periodDays} days</span>
-      </div>
+        <div className="sm:flex-1 sm:min-w-0 mt-1.5 sm:mt-0">
+          <p className="text-[12px] text-gray-500 font-medium truncate">{student.action}</p>
+        </div>
+        <div className="sm:shrink-0 mt-1.5 sm:mt-0">
+          <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap">Reported {student.loggedDays}/{student.periodDays} days</span>
+        </div>
       </div>
     </div>
   );
@@ -87,6 +125,8 @@ const BirdsEyeView = () => {
 
   // Selected mentees (by id) for the bulk actions: AI Analysis / Alerts / Export
   const [selectedIds, setSelectedIds] = useState(() => new Set());
+  // Tick circles and "Select all" only show after a long press on a row (selection mode)
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
   const [collapsedSubgroups, setCollapsedSubgroups] = useState(() => new Set());
@@ -199,6 +239,11 @@ const BirdsEyeView = () => {
     });
   }, [filteredStudents]);
 
+  const startSelection = (id) => {
+    setSelectionMode(true);
+    setSelectedIds((prev) => { const next = new Set(prev); next.add(id); return next; });
+  };
+  const endSelection = () => { setSelectionMode(false); setSelectedIds(new Set()); };
   const toggleSelected = (id) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -309,8 +354,8 @@ const BirdsEyeView = () => {
           </select>
         </div>
 
-        {/* Select all */}
-        {!isLoading && !errorMsg && filteredStudents.length > 0 && (
+        {/* Select all (only in selection mode, after a long press on a row) */}
+        {!isLoading && !errorMsg && selectionMode && filteredStudents.length > 0 && (
           <div className="px-6 pb-3 flex items-center justify-between">
             <button
               type="button"
@@ -322,7 +367,10 @@ const BirdsEyeView = () => {
               </span>
               {allShownSelected ? 'Clear selection' : `Select all (${filteredStudents.length})`}
             </button>
-            {selectedIds.size > 0 && <span className="text-[12px] font-semibold text-gray-400">{selectedIds.size} selected</span>}
+            <span className="flex items-center gap-3">
+              <span className="text-[12px] font-semibold text-gray-400">{selectedIds.size} selected</span>
+              <button type="button" onClick={endSelection} className="text-[12px] font-bold text-gray-500">Cancel</button>
+            </span>
           </div>
         )}
 
@@ -364,7 +412,7 @@ const BirdsEyeView = () => {
                                 {!subCollapsed && (
                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                     {subStudents.map((student) => (
-                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} selected={selectedIds.has(student.id)} onToggle={toggleSelected} />
+                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} selectionMode={selectionMode} selected={selectedIds.has(student.id)} onToggle={toggleSelected} onLongPress={startSelection} />
                                     ))}
                                   </motion.div>
                                 )}
@@ -385,7 +433,7 @@ const BirdsEyeView = () => {
       <BulkMenteeActions
         selected={selectedList}
         userId={userDetails?.user_id}
-        onClear={() => setSelectedIds(new Set())}
+        onClear={endSelection}
       />
 
       <CounsellorBottomNavigation />

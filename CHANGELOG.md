@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🦅 [Birds Eye View] - 2026-10-22, 03:15 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Two changes to the Bird's Eye View selection added earlier today. (1) Selection now starts with a long press: normally the list has no tick circles and no "Select all"; pressing and holding a student row for half a second ticks it and switches on selection mode (tick circles on every row, "Select all (N)" at the top, "N selected" and a Cancel button). In selection mode a tap ticks or unticks a row. A simple tap outside selection mode opens the student's window, as before (now the whole row can be tapped, not only the name). (2) The "Alerts" button is replaced by **Notify**: it opens the same "Send Notification" message box as in a single mentee's window and sends the same custom notification to every selected student (one send per student, 5 at a time; no heading, just the message). It tells you "Notification sent to N students!", or "Sent to X of N students. Please try again for the rest." if some failed (the box stays open so you can send again). After a full success the selection is cleared.
+- **Files touched**: `src/pages/counsellor/BirdsEyeView.jsx`; `src/components/counsellor/BulkMenteeActions.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same older problems as before. In a browser at phone size with the server answers faked (5 mentees): no tick circles or Select all in normal mode; a 0.8 second mouse press on a row switches selection mode on and ticks it without opening the student; tapping another row ticks it (no navigation); Select all gives 5; an empty message is refused; with one send made to fail it says "Sent to 4 of 5" and keeps the box open; then all 5 sent with the right student ids, the typed text, an empty heading and the counsellor's id; selection then ends; Cancel ends selection mode; a simple tap opens that student's window; no page errors. NOT tested with the real server or on a real phone with a finger (the long press is built on pointer events and should work the same, but please check it on a phone).
+- **Backend**: no change (uses the existing `/cusotm-notification` route, one call per student).
+
 ## 🦅 [Birds Eye View] - 2026-10-22, 06:15 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

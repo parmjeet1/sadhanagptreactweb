@@ -7,10 +7,11 @@ import { exportBulkReportsToExcel, exportBulkReportsToPDF } from '../../utils/ex
 // Bottom bar + windows for working on SEVERAL mentees at once from a list screen (used by Bird's Eye View).
 // It does the same three things as the Mentees / Group Management windows, with the same server calls:
 //   AI Analysis -> asks for the date range first (AiDateFilterModal, strategy BULK_MENTEES)
-//   Alerts      -> turn performance notifications on/off for the selected mentees (POST /toggle-mentee-notification)
+//   Notify      -> send ONE custom message to every selected mentee, like "Send Notification" in a single mentee's
+//                  window (POST /cusotm-notification, one call per mentee)
 //   Export      -> choose 7 days / 30 days / custom + Excel or PDF (POST /export-bulk-student-reports)
 //
-// props: selected = [{ id, name }], userId, onClear(), onNotificationsChanged?(ids, enabled)
+// props: selected = [{ id, name }], userId, onClear()
 
 const dayString = (d) => d.toISOString().split('T')[0];
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return dayString(d); };
@@ -21,9 +22,12 @@ const DURATIONS = [
   { id: 'custom', label: 'Custom' },
 ];
 
-const BulkMenteeActions = ({ selected, userId, onClear, onNotificationsChanged }) => {
+const SEND_AT_ONCE = 5; // how many notification calls run at the same time
+
+const BulkMenteeActions = ({ selected, userId, onClear }) => {
   const [aiOpen, setAiOpen] = useState(false);
-  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [message, setMessage] = useState('');
   const [exportOpen, setExportOpen] = useState(false);
   const [duration, setDuration] = useState('7');
   const [fromDate, setFromDate] = useState('');
@@ -35,21 +39,37 @@ const BulkMenteeActions = ({ selected, userId, onClear, onNotificationsChanged }
   const ids = selected.map((s) => s.id);
   const say = (type, text) => { setNote({ type, text }); setTimeout(() => setNote(null), 4000); };
 
-  const toggleAlerts = (enable) => {
+  const sendNotification = async () => {
+    const text = message.trim();
+    if (!text) return say('error', 'Please enter a message...');
     if (busy) return;
     setBusy(true);
-    postRequest('/toggle-mentee-notification', { user_id: userId, student_ids: ids, status: enable ? 1 : 0 }, (res) => {
-      setBusy(false);
-      const data = res?.data;
-      if (data?.status === 1) {
-        say('ok', data.message || `Notifications ${enable ? 'enabled' : 'disabled'} successfully`);
-        setAlertsOpen(false);
-        onNotificationsChanged?.(ids, enable);
-        onClear?.();
-      } else {
-        say('error', data?.message || 'Failed to update notification settings');
+    let sent = 0;
+    try {
+      for (let i = 0; i < ids.length; i += SEND_AT_ONCE) {
+        const results = await Promise.all(ids.slice(i, i + SEND_AT_ONCE).map(async (studentId) => {
+          try {
+            const res = await postRequest('/cusotm-notification', { user_id: userId, student_id: studentId, heading: '', description: text });
+            return res?.data?.status === 1 || res?.data?.success === true;
+          } catch {
+            return false;
+          }
+        }));
+        sent += results.filter(Boolean).length;
       }
-    }, () => { setBusy(false); say('error', 'Failed to update notification settings'); });
+    } finally {
+      setBusy(false);
+    }
+    if (sent === ids.length) {
+      say('ok', ids.length === 1 ? 'Notification Sent!' : `Notification sent to ${sent} students!`);
+      setNotifyOpen(false);
+      setMessage('');
+      onClear?.();
+    } else if (sent > 0) {
+      say('error', `Sent to ${sent} of ${ids.length} students. Please try again for the rest.`);
+    } else {
+      say('error', 'Failed to send notification');
+    }
   };
 
   const runExport = async () => {
@@ -129,9 +149,9 @@ const BulkMenteeActions = ({ selected, userId, onClear, onNotificationsChanged }
                     <svg className="w-4 h-4 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     <span>AI Analysis</span>
                   </button>
-                  <button onClick={() => setAlertsOpen(true)} className={barBtn}>
+                  <button onClick={() => setNotifyOpen(true)} className={barBtn}>
                     <svg className="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    <span>Alerts</span>
+                    <span>Notify</span>
                   </button>
                   <button onClick={() => setExportOpen(true)} className={barBtn}>
                     <svg className="w-4 h-4 text-sky-300" fill="currentColor" viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
@@ -151,17 +171,21 @@ const BulkMenteeActions = ({ selected, userId, onClear, onNotificationsChanged }
       )}
 
       <AnimatePresence>
-        {alertsOpen && sheet(() => setAlertsOpen(false), (
+        {notifyOpen && sheet(() => setNotifyOpen(false), (
           <>
-            <h2 className="text-2xl font-black mb-2 text-[#0f172a] dark:text-[#F8FAFC]">Mentee Alerts</h2>
-            <p className="text-gray-400 dark:text-[#94A3B8] font-bold mb-6">
-              Receive push notifications when these {selected.length} students miss their sadhana or fall below their target average.
+            <h2 className="text-xl font-black mb-1 text-[#0f172a] dark:text-[#F8FAFC]">Send Notification</h2>
+            <p className="text-gray-400 dark:text-[#94A3B8] font-bold text-[13px] mb-4">
+              To {selected.length} selected {selected.length === 1 ? 'student' : 'students'}
             </p>
-            <div className="space-y-3">
-              <button disabled={busy} onClick={() => toggleAlerts(true)} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-60">Enable Notifications</button>
-              <button disabled={busy} onClick={() => toggleAlerts(false)} className="w-full bg-gray-50 dark:bg-[#1E293B] text-gray-900 dark:text-[#F8FAFC] py-5 rounded-2xl font-black active:scale-[0.98] transition-all disabled:opacity-60">Disable Notifications</button>
-              <button onClick={() => setAlertsOpen(false)} className="w-full py-4 text-gray-400 font-bold">Maybe Later</button>
-            </div>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Message..."
+              rows={4}
+              className="w-full p-4 bg-gray-50 dark:bg-[#1E293B] text-[#0f172a] dark:text-[#F8FAFC] rounded-xl mb-5 outline-none border border-transparent focus:border-blue-100"
+            />
+            <button disabled={busy} onClick={sendNotification} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-blue-600/20 disabled:opacity-60">{busy ? 'Sending...' : 'Send Now'}</button>
+            <button disabled={busy} onClick={() => setNotifyOpen(false)} className="w-full py-4 text-gray-400 font-bold">Cancel</button>
           </>
         ))}
 
