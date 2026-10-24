@@ -289,41 +289,29 @@ const CounsellorProfile = () => {
   };
 
   const handleAddMentor = (counselorData) => {
-    let newMentor;
-    if (typeof counselorData === 'object' && counselorData !== null) {
-      newMentor = {
-        name: counselorData.name || 'Unknown Mentor',
-        email: counselorData.email || '',
-        temple: 'New Connection',
-        avatar: counselorData.profile || `https://ui-avatars.com/api/?name=${encodeURIComponent(counselorData.name || 'Mentor')}&background=f97316&color=fff`
-      };
-
-      // Hit the API to add counsellor
-      const payload = {
-        user_id: userDetails.user_id,
-        counsller_id: counselorData.user_id
-      };
-
-      postRequest('/add-counsllor', payload, (res) => {
-        console.log("Add Counsellor Response:", res);
-        if (res && (res.code === 200 || res.status === "success" || res.status === 1)) {
-          showToast(res.message || "Mentor added successfully!");
-          fetchCounsellorProfile();
-        } else {
-          showToast(res.message || "Failed to add mentor", "error");
-        }
-      });
-
-    } else {
-      const query = String(counselorData);
-      newMentor = {
-        name: query.includes('@') ? query.split('@')[0] : query,
-        temple: 'New Connection',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(query)}&background=f97316&color=fff`
-      };
+    // Only a mentor picked from the search list (it has a user id) can be added.
+    if (typeof counselorData !== 'object' || counselorData === null || !counselorData.user_id) {
+      showToast("Please pick a mentor from the search list", "error");
+      return;
     }
 
-    setMentors([...mentors, newMentor]);
+    const payload = {
+      user_id: userDetails.user_id,
+      counsller_id: counselorData.user_id
+    };
+
+    postRequest('/add-counsllor', payload, (response) => {
+      // the callback gets the full axios response; the server's answer is in response.data
+      const res = response?.data || response;
+      const msg = Array.isArray(res?.message) ? res.message[0] : res?.message;
+      if (res && (res.code === 200 || res.status === 1 || res.status === "success")) {
+        showToast(msg || "Mentor added successfully!");
+        fetchCounsellorProfile();
+      } else {
+        showToast(msg || "Failed to add mentor", "error");
+      }
+    });
+
     setIsAddMentorOpen(false);
   };
 

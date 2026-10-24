@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Mentor profile] - 2026-10-24, 05:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: adding a mentor from the Mentor profile always showed "Failed to add mentor", even when the server said yes. The screen read the server's answer from the wrong place. It now reads it correctly, shows the server's own message, and refreshes the mentor list from the server after a successful add. Before, a mentor was also shown in the list straight away, even if adding failed; that is removed. If you type something that is not picked from the search list, it now says "Please pick a mentor from the search list" instead of showing a fake mentor.
+- **Files touched**: `src/pages/counsellor/CounsellorProfile.jsx` (`handleAddMentor`); `CHANGELOG.md`.
+- **Tested**: build passes; lint shows the same 5 errors and 1 warning this file already had before my change. NOT tested in a browser or with the real server.
+- **Backend**: the add-mentor API itself was crashing because of my earlier birthday fix (backend commit); the backend must be deployed too.
+
 ## 🛠️ [Mentee window] - 2026-10-22, 05:30 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
