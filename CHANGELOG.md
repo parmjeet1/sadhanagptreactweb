@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Mentee report] - 2026-10-25, 05:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: in the student's analysis window (Mentee Report), the average of time activities (Wakeup Time, Chanting completion time, etc.) was shown as a plain number of minutes (for example "Avg. Time: 330") instead of a time. It now shows the average as a clock time such as "5:30 AM" or "1:45 PM". If the student has no entries for that activity it shows "—". Minutes and count averages are unchanged.
+- **Files touched**: `src/pages/counsellor/mentees_module/StudentReport.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows no new messages for this file; the new formatting was run on sample values (05:30:12 -> 5:30 AM, 13:45:00 -> 1:45 PM, 00:10:00 -> 12:10 AM, empty -> —, minutes/count unchanged). NOT tested in a browser or with the real server. No backend change needed.
+- **Note (not changed)**: the average is a plain average of the clock times, so activities that cross midnight (for example sleep time 11 PM and 1 AM) can give a misleading average.
+
 ## 🐛 [Mentor profile] - 2026-10-24, 05:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
