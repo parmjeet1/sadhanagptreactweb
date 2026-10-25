@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Analysis windows] - 2026-10-25, 06:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Follow-up to the time-average fix, covering the counsellor's views of a mentee's analysis and the personal analysis windows. (1) Mentee Report now also understands averages sent as "5:30 AM" / "1:45 PM" (what the updated server sends) as well as "05:30:12", and shows "—" when there are no entries. (2) The student's own Analytics and the counsellor's own Personal Sadhana Analytics showed "00:00 AM" for a time activity with no entries; they now show "—". Their averages for entries are unchanged.
+- **Files touched**: `src/pages/counsellor/mentees_module/StudentReport.jsx`; `src/pages/counsellor/PersonalSadhanaAnalytics.jsx`; `src/pages/student/Analytics.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint count is the same as before my change in all three files; the Mentee Report formatting was run on sample values (5:30 AM, 1:45 PM, 12:00 AM, 05:30:12, 13:45:00, 0, empty, minutes, counts). NOT tested in a browser or with the real server.
+- **Backend**: the Mentee Report average is now worked out on the server over the chosen dates only (backend commit); the backend must be deployed for that part.
+
 ## 🐛 [Mentee report] - 2026-10-25, 05:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

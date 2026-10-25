@@ -430,7 +430,8 @@ const Analytics = () => {
         // Clean up time values and handle formatting
         let displayVal = act.value ?? act.average_count ?? 0;
         if (isTimeNode) {
-          displayVal = minutesToTime(timeToMinutes(String(displayVal)));
+          const dv = String(displayVal ?? '').trim();
+            displayVal = (dv === '' || dv === '0' || dv === '0.00') ? '—' : minutesToTime(timeToMinutes(dv));
         } else if (String(displayVal).includes(':')) {
           displayVal = String(displayVal).split('.')[0]; // Handle HH:mm:ss.ms
         }
