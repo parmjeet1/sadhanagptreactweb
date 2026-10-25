@@ -81,23 +81,33 @@ const CreateNewActivity = ({ isOpen, onClose, onSave }) => {
   ];
 
   const handleSave = async () => {
-    if (!name.trim()) return;
-    
+    if (!name.trim() || isSubmitting) return;
+
     setIsSubmitting(true);
-    if (onSave) {
-      await onSave({
-        name: name,
-        activityType: activityType,
-        unit: unit,
-        target: activityType === 'yes_no' ? 1 : target
-      });
+    let saved = true;
+    try {
+      if (onSave) {
+        const result = await onSave({
+          name: name,
+          activityType: activityType,
+          unit: unit,
+          target: activityType === 'yes_no' ? 1 : target
+        });
+        saved = result !== false;
+      }
+    } catch {
+      saved = false;
     }
     setIsSubmitting(false);
-    
-    setName('');
-    setActivityType('min');
-    setUnit('min');
-    setTarget('');
+
+    // Clear the form only after a successful save. If saving failed, keep what the person chose
+    // (for example Hours) so they can fix it and try again.
+    if (saved) {
+      setName('');
+      setActivityType('min');
+      setUnit('min');
+      setTarget('');
+    }
   };
 
   return (

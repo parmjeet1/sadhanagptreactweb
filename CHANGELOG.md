@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Custom activity] - 2026-10-25, 06:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: when creating a custom activity (Custom Activities > Add Custom) and choosing **Hours** as the unit, pressing Save Activity appeared to do nothing and the choice jumped back to Minutes. The form was clearing itself straight after Save, before the server had answered, and whether or not the save worked; a failure message only showed for 3 seconds at the top of the page. Now the form waits for the server: if the save works, the form closes (as before); if it fails, the form stays with everything you entered (Hours included), and the server's message is shown, so you can fix it and try again. The screen was always sending "hours" correctly.
+- **Files touched**: `src/pages/counsellor/activites/custom-activities/CreateNewActivity.jsx`; `src/pages/counsellor/activites/custom-activities/CustomActivities.jsx` (`handleCreateActivity` now reports success or failure to the form); `CHANGELOG.md`.
+- **Tested**: build passes; lint count unchanged. In a browser at phone size with the server answers faked: choose Hours, Save with a failing answer -> form stays, name and Hours still selected, request sent with unit "hours"; Save again with a success answer -> form closes; no page errors. NOT tested with the real server.
+- **Not proven**: if the real server refuses "hours", the message will now stay visible. The server code accepts "hours", so the likely cause is the database column for the unit not allowing "hours" (check query given in chat; the database was NOT touched).
+
 ## 🐛 [Analysis windows] - 2026-10-25, 06:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
