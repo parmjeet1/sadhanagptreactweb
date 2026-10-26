@@ -14,6 +14,30 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🐛 [Custom activity] - 2026-10-25, 06:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: when creating a custom activity (Custom Activities > Add Custom) and choosing **Hours** as the unit, pressing Save Activity appeared to do nothing and the choice jumped back to Minutes. The form was clearing itself straight after Save, before the server had answered, and whether or not the save worked; a failure message only showed for 3 seconds at the top of the page. Now the form waits for the server: if the save works, the form closes (as before); if it fails, the form stays with everything you entered (Hours included), and the server's message is shown, so you can fix it and try again. The screen was always sending "hours" correctly.
+- **Files touched**: `src/pages/counsellor/activites/custom-activities/CreateNewActivity.jsx`; `src/pages/counsellor/activites/custom-activities/CustomActivities.jsx` (`handleCreateActivity` now reports success or failure to the form); `CHANGELOG.md`.
+- **Tested**: build passes; lint count unchanged. In a browser at phone size with the server answers faked: choose Hours, Save with a failing answer -> form stays, name and Hours still selected, request sent with unit "hours"; Save again with a success answer -> form closes; no page errors. NOT tested with the real server.
+- **Not proven**: if the real server refuses "hours", the message will now stay visible. The server code accepts "hours", so the likely cause is the database column for the unit not allowing "hours" (check query given in chat; the database was NOT touched).
+
+## 🐛 [Analysis windows] - 2026-10-25, 06:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Follow-up to the time-average fix, covering the counsellor's views of a mentee's analysis and the personal analysis windows. (1) Mentee Report now also understands averages sent as "5:30 AM" / "1:45 PM" (what the updated server sends) as well as "05:30:12", and shows "—" when there are no entries. (2) The student's own Analytics and the counsellor's own Personal Sadhana Analytics showed "00:00 AM" for a time activity with no entries; they now show "—". Their averages for entries are unchanged.
+- **Files touched**: `src/pages/counsellor/mentees_module/StudentReport.jsx`; `src/pages/counsellor/PersonalSadhanaAnalytics.jsx`; `src/pages/student/Analytics.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint count is the same as before my change in all three files; the Mentee Report formatting was run on sample values (5:30 AM, 1:45 PM, 12:00 AM, 05:30:12, 13:45:00, 0, empty, minutes, counts). NOT tested in a browser or with the real server.
+- **Backend**: the Mentee Report average is now worked out on the server over the chosen dates only (backend commit); the backend must be deployed for that part.
+
+## 🐛 [Mentee report] - 2026-10-25, 05:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Fix: in the student's analysis window (Mentee Report), the average of time activities (Wakeup Time, Chanting completion time, etc.) was shown as a plain number of minutes (for example "Avg. Time: 330") instead of a time. It now shows the average as a clock time such as "5:30 AM" or "1:45 PM". If the student has no entries for that activity it shows "—". Minutes and count averages are unchanged.
+- **Files touched**: `src/pages/counsellor/mentees_module/StudentReport.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows no new messages for this file; the new formatting was run on sample values (05:30:12 -> 5:30 AM, 13:45:00 -> 1:45 PM, 00:10:00 -> 12:10 AM, empty -> —, minutes/count unchanged). NOT tested in a browser or with the real server. No backend change needed.
+- **Note (not changed)**: the average is a plain average of the clock times, so activities that cross midnight (for example sleep time 11 PM and 1 AM) can give a misleading average.
+
 ## 🐛 [Mentor profile] - 2026-10-24, 05:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

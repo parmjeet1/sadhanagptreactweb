@@ -191,6 +191,22 @@ const formatValue = (val) => {
   return parseFloat(val).toFixed(1).replace(/\.0$/, '');
 };
 
+// The average shown beside each activity name. For time activities (Wakeup, Chanting completion, ...)
+// the server sends a clock time like "05:30:12.5000"; show it as "5:30 AM" instead of turning it into minutes.
+const formatAverage = (label, val) => {
+  const isTime = String(label || '').toLowerCase().includes('time');
+  if (!isTime) return val === null || val === undefined || val === '' ? '0' : formatValue(val);
+  const strVal = String(val ?? '').trim();
+  // no entries (server sends 0, empty, or nothing)
+  if (strVal === '' || strVal === '0' || strVal === '0.00') return '—';
+  if (!strVal.includes(':')) return formatValue(val);
+  // "5:30 AM" / "1:45 PM" are shown as they are; "05:30:12" (24-hour) is turned into 12-hour time
+  if (/[AP]M/i.test(strVal)) return timeToMinutes(strVal) % 1440 === 0 ? '12:00 AM' : minutesToTime(timeToMinutes(strVal));
+  const [h, m, sec] = strVal.split(':').map(n => parseFloat(n) || 0);
+  const total = Math.round((h * 60) + m + (sec >= 30 ? 1 : 0)) % 1440;
+  return total === 0 ? '12:00 AM' : minutesToTime(total);
+};
+
 const formatDateSnippet = (dateStr) => {
   if (!dateStr || dateStr === 'N/A') return 'N/A';
   const d = new Date(dateStr);
@@ -369,7 +385,7 @@ const StudentReport = () => {
               <div key={act.activity_id}>
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-black">{act.name}</span>
-                  <span className="text-xs font-bold text-gray-400">{act.label}: {formatValue(act.value)}</span>
+                  <span className="text-xs font-bold text-gray-400">{act.label}: {formatAverage(act.label, act.value)}</span>
                 </div>
                 {act.daily_data && act.daily_data.length > 0 ? (
                   <MiniChart

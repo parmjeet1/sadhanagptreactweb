@@ -240,7 +240,8 @@ const CustomActivities = () => {
         });
     };
 
-    const handleCreateActivity = async (activityData) => {
+    // Resolves to true when the server saved the activity, false when it did not (the form uses this).
+    const handleCreateActivity = (activityData) => {
         const payload = {
             counsellor_id: userDetails.user_id,
             name: activityData.name,
@@ -248,16 +249,24 @@ const CustomActivities = () => {
             unit: activityData.unit,
             target: activityData.target || 0
         };
-        postRequest('/create-custom-activity', payload, (res) => {
-            const data = res.data;
-            if (data?.status === 1) {
-                showSuccess(data.message || 'Custom activity created successfully');
-                setIsCreateActivityOpen(false);
-                fetchAvailableActivities(1, false);
-                setPage(1);
-            } else {
-                showError(data?.message || 'Failed to create custom activity');
-            }
+        return new Promise((resolve) => {
+            postRequest('/create-custom-activity', payload, (res) => {
+                const data = res?.data;
+                if (data?.status === 1) {
+                    showSuccess(data.message || 'Custom activity created successfully');
+                    setIsCreateActivityOpen(false);
+                    fetchAvailableActivities(1, false);
+                    setPage(1);
+                    resolve(true);
+                } else {
+                    const msg = Array.isArray(data?.message) ? data.message.join(' ') : data?.message;
+                    showError(msg || 'Failed to create custom activity');
+                    resolve(false);
+                }
+            }).catch(() => {
+                showError('Could not reach the server. Please try again.');
+                resolve(false);
+            });
         });
     };
 
