@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AiDateFilterModal from '../AiAnalysis/AiDateFilterModal';
 import { postRequest } from '../../services/api';
+import { sendCounsellorNotification, whatsappLine } from '../../services/counsellorNotify';
 import { exportBulkReportsToExcel, exportBulkReportsToPDF } from '../../utils/exportUtils';
 
 // Bottom bar + windows for working on SEVERAL mentees at once from a list screen (used by Bird's Eye View).
 // It does the same three things as the Mentees / Group Management windows, with the same server calls:
 //   AI Analysis -> asks for the date range first (AiDateFilterModal, strategy BULK_MENTEES)
 //   Notify      -> send ONE custom message to every selected mentee, like "Send Notification" in a single mentee's
-//                  window (POST /cusotm-notification, one call per mentee)
+//                  window (POST /cusotm-notification with student_ids: one call for all, plus WhatsApp)
 //   Export      -> choose 7 days / 30 days / custom + Excel or PDF (POST /export-bulk-student-reports)
 //
 // props: selected = [{ id, name }], userId, onClear()
@@ -22,7 +23,6 @@ const DURATIONS = [
   { id: 'custom', label: 'Custom' },
 ];
 
-const SEND_AT_ONCE = 5; // how many notification calls run at the same time
 
 const BulkMenteeActions = ({ selected, userId, onClear }) => {
   const [aiOpen, setAiOpen] = useState(false);
@@ -44,31 +44,21 @@ const BulkMenteeActions = ({ selected, userId, onClear }) => {
     if (!text) return say('error', 'Please enter a message...');
     if (busy) return;
     setBusy(true);
-    let sent = 0;
+    let result;
     try {
-      for (let i = 0; i < ids.length; i += SEND_AT_ONCE) {
-        const results = await Promise.all(ids.slice(i, i + SEND_AT_ONCE).map(async (studentId) => {
-          try {
-            const res = await postRequest('/cusotm-notification', { user_id: userId, student_id: studentId, heading: '', description: text });
-            return res?.data?.status === 1 || res?.data?.success === true;
-          } catch {
-            return false;
-          }
-        }));
-        sent += results.filter(Boolean).length;
-      }
+      // One call for all selected mentees: in-app notification + WhatsApp for each.
+      result = await sendCounsellorNotification({ userId, studentIds: ids, text });
     } finally {
       setBusy(false);
     }
-    if (sent === ids.length) {
-      say('ok', ids.length === 1 ? 'Notification Sent!' : `Notification sent to ${sent} students!`);
+    if (result.ok) {
+      const head = ids.length === 1 ? 'Notification Sent!' : `Notification sent to ${result.sent || ids.length} students!`;
+      say('ok', [head, whatsappLine(result, ids.length)].filter(Boolean).join(' '));
       setNotifyOpen(false);
       setMessage('');
       onClear?.();
-    } else if (sent > 0) {
-      say('error', `Sent to ${sent} of ${ids.length} students. Please try again for the rest.`);
     } else {
-      say('error', 'Failed to send notification');
+      say('error', result.message || 'Failed to send notification');
     }
   };
 
