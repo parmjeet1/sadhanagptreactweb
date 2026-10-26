@@ -11,7 +11,7 @@ const CounsellorAddContent = () => {
   const navigate = useNavigate();
   const { userDetails } = useOutletContext();
   const [activeTab, setActiveTab] = useState('Add'); // 'Add' (Post) or 'View' (Library); only used when one of those tabs is open
-  const [section, setSection] = useState('reading'); // 'reading' | 'hearing' | 'mentees' | 'library' | 'post'
+  const [section, setSection] = useState('hearing'); // 'hearing' | 'reading' | 'mentees' | 'library' | 'post'
   const isArea = ['reading', 'hearing', 'mentees'].includes(section);
   const pickSection = (k) => {
     setSection(k);
@@ -236,10 +236,10 @@ const CounsellorAddContent = () => {
 
         {/* Header */}
         <div className="bg-white sticky top-0 z-20 border-b border-gray-100 px-6 py-6">
-          <h1 className="text-[24px] font-black text-[#0f172a] tracking-tight mb-4">Inspiration</h1>
+          <h1 className="text-[24px] font-black text-[#0f172a] tracking-tight mb-4">Hear &amp; Read</h1>
           <div className="mb-4">
             <TabBar
-              tabs={[['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['mentees', '👥 Mentees Report'], ['library', '📚 Library'], ['post', '✍️ Post']]}
+              tabs={[['hearing', '🎧 Hearing'], ['reading', '📖 Reading'], ['mentees', '👥 Mentees Report'], ['library', '📚 Library'], ['post', '✍️ Post']]}
               value={section}
               onChange={pickSection}
             />

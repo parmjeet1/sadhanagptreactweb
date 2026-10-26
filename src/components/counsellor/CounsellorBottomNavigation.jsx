@@ -33,7 +33,7 @@ const BottomNavigation = () => {
       )
     },
     {
-      name: 'Inspiration',
+      name: 'Hear & Read',
       path: '/counsellor/add-content',
       icon: (
         <svg className="w-7 h-7 mb-1" fill="currentColor" viewBox="0 0 20 20">

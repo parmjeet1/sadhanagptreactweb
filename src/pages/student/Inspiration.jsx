@@ -32,7 +32,7 @@ const handleShare = async (title, url) => {
 
 const Inspiration = () => {
   const { userDetails } = useOutletContext();
-  const [section, setSection] = useState('reading'); // 'reading' | 'hearing' | 'library'
+  const [section, setSection] = useState('hearing'); // 'hearing' | 'reading' | 'library'
   const [activeFilter, setActiveFilter] = useState('All');
   const [inspirations, setInspirations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -132,7 +132,7 @@ const Inspiration = () => {
 
         {/* Sections */}
         <div className="px-6 mb-4">
-          <TabBar tabs={[['reading', '📖 Reading'], ['hearing', '🎧 Hearing'], ['library', '📚 Library']]} value={section} onChange={setSection} />
+          <TabBar tabs={[['hearing', '🎧 Hearing'], ['reading', '📖 Reading'], ['library', '📚 Library']]} value={section} onChange={setSection} />
         </div>
 
         {section === 'library' && (

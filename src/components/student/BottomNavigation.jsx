@@ -33,7 +33,7 @@ const BottomNavigation = () => {
       )
     },
     {
-      name: 'Inspiration',
+      name: 'Hear & Read',
       path: '/student/inspiration',
       icon: (
         <div className="relative">
