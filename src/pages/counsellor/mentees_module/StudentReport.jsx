@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../../components/counsellor/CounsellorBottomNavigation';
-import { getRequest, postRequest } from '../../../services/api';
+import { getRequest } from '../../../services/api';
+import { sendCounsellorNotification, whatsappLine } from '../../../services/counsellorNotify';
 import { openChatGPTWithPrompt } from '../../../utils/chatGptUtils';
 import AiDateFilterModal from '../../../components/AiAnalysis/AiDateFilterModal';
 import AssignGroupSheet from '../../../components/counsellor/AssignGroupSheet';
@@ -247,19 +248,19 @@ const StudentReport = () => {
 
   useEffect(() => { fetchStudentDetails(); }, [fetchStudentDetails]);
 
-  const handleSendNotification = () => {
+  const handleSendNotification = async () => {
     if (!notificationDesc.trim()) return showToast('Please enter a message...');
     setIsSending(true);
-    postRequest('/cusotm-notification', { user_id: userDetails.user_id, student_id: id, heading: '', description: notificationDesc }, (res) => {
-      setIsSending(false);
-      if (res.data?.status === 1 || res.data?.success === true) {
-        setIsNotificationModalOpen(false);
-        showToast('Notification Sent!');
-        setNotificationDesc('');
-      } else {
-        showToast(res.data?.message || "Failed to send notification");
-      }
-    });
+    // Same reusable sender as Birds Eye View, with just this one student.
+    const result = await sendCounsellorNotification({ userId: userDetails.user_id, studentIds: [id], text: notificationDesc });
+    setIsSending(false);
+    if (result.ok) {
+      setIsNotificationModalOpen(false);
+      showToast(['Notification Sent!', whatsappLine(result, 1)].filter(Boolean).join(' '));
+      setNotificationDesc('');
+    } else {
+      showToast(result.message || "Failed to send notification");
+    }
   };
 
   const studentInfo = reportData?.student || location.state?.student || { name: 'Loading...' };

@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📲 [Notify + WhatsApp] - 2026-10-26, 05:45 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: "Send Notification" on a mentee's page and "Notify" in Bird's Eye View now use one shared helper (`sendCounsellorNotification`). Bird's Eye View sends ONE request for all selected mentees instead of one per mentee. The server now also sends the message on WhatsApp; the success message says so ("Also sent on WhatsApp." for one student, "WhatsApp: 4 of 5." for several). Nothing extra is shown when WhatsApp is not set up on the server.
+- **Files touched**: new `src/services/counsellorNotify.js`; `src/components/counsellor/BulkMenteeActions.jsx`; `src/pages/counsellor/mentees_module/StudentReport.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint counts unchanged in both screens. NOT tested in a browser or with the real server.
+- **Backend**: needs the backend commit with `student_ids` support on `/cusotm-notification`; deploy the backend first, or sending will fail.
+
 ## 👥 [Mentees Report] - 2026-10-26, 05:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
