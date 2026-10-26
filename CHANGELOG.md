@@ -4,6 +4,22 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 👥 [Mentees Report] - 2026-10-26, 05:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: In Hear & Read > Mentees Report (counsellor), each group (centre, for example "Brahmacharis") is now a collapsible box. Tap the group name to open or close it; an arrow shows which way. Groups start closed so the list is short; when only one group is shown (a group is chosen in the filter) it starts open. The colour filter view (tapping a dot) is unchanged.
+- **Files touched**: `src/reading-lecture-feature/components/MenteesReportTab.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows no messages in this file (same as before). NOT tested in a browser or on a phone.
+- **Backend**: no change.
+
+## 📖 [Reading card] - 2026-10-26, 04:50 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The small Reading card under the Reading activity no longer shows the "Next recommended" book with its Start button. It now shows only "Presently reading" and the Update button. The same card is used on the student dashboard, the counsellor dashboard and in the Sadhna bot, so it is hidden in all three. The full "Recommended books" list is still inside the Update window.
+- **Files touched**: `src/reading-lecture-feature/components/QuickCards.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows no messages in this file (same as before). NOT tested in a browser or on a phone.
+- **Backend**: no change.
+
 ## 🎧 [Hear & Read] - 2026-10-26, 02:10 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
