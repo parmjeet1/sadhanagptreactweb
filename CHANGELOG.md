@@ -4,6 +4,16 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ⏱️ [Custom activity] - 2026-10-26, 01:20 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The Create Custom Activity form no longer shows the Minutes / Hours unit choice for Duration. Duration is always saved in minutes (the database never supported "hours").
+- **Files touched**: `src/pages/counsellor/activites/custom-activities/CreateNewActivity.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint shows 1 older message in this file (it had 2 before). NOT tested in a browser or on a phone.
+- **Backend / DB**: no change. Checked production: no Duration activity was saved with a unit other than minutes.
+
+---
+
 ## 🐛 [Mentor profile] - 2026-10-24, 05:00 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

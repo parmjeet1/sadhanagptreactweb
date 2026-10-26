@@ -182,35 +182,7 @@ const CreateNewActivity = ({ isOpen, onClose, onSave }) => {
                 </div>
               </div>
 
-              {/* Dynamic Unit Selector */}
-              {activityType === 'min' && (
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-gray-450 dark:text-[#6b7a99] uppercase tracking-wider">Unit</label>
-                  <div className="flex bg-slate-50 dark:bg-[rgba(255,255,255,0.02)] border border-slate-200 dark:border-[rgba(255,255,255,0.06)] rounded-[14px] p-1">
-                    <button
-                      onClick={() => setUnit('min')}
-                      className={`flex-1 py-2 text-[13px] font-bold rounded-[10px] transition-all ${
-                        unit === 'min' 
-                          ? 'bg-teal-600 dark:bg-[rgba(29,233,182,0.12)] text-white dark:text-[#1de9b6] shadow-sm' 
-                          : 'text-slate-500 dark:text-[#6b7a99] hover:text-gray-800 dark:hover:text-white'
-                      }`}
-                    >
-                      Minutes
-                    </button>
-                    <button
-                      onClick={() => setUnit('hours')}
-                      className={`flex-1 py-2 text-[13px] font-bold rounded-[10px] transition-all ${
-                        unit === 'hours' 
-                          ? 'bg-teal-600 dark:bg-[rgba(29,233,182,0.12)] text-white dark:text-[#1de9b6] shadow-sm' 
-                          : 'text-slate-500 dark:text-[#6b7a99] hover:text-gray-800 dark:hover:text-white'
-                      }`}
-                    >
-                      Hours
-                    </button>
-                  </div>
-                </div>
-              )}
-
+              {/* Duration is always tracked in minutes, so no unit choice is shown for it */}
               {activityType === 'numb' && (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-gray-450 dark:text-[#6b7a99] uppercase tracking-wider">Unit</label>
