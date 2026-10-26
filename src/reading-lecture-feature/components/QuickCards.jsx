@@ -72,7 +72,6 @@ const ReadingCard = ({ store, filled, date, inBot }) => {
   const all = useMemo(() => levels.flatMap((l) => l.books).concat(myBooks), [levels, myBooks]);
   const ongoing = all.filter((b) => statusOf(b.id) === 'ongoing');
   const waiting = levels.flatMap((l) => l.books).filter((b) => statusOf(b.id) === 'not_started');
-  const next = waiting[0];
   const prompt = (inBot || filled) && !hidden;
 
   const skip = () => { if (!inBot) writeDismissed(key); setHidden(true); };
@@ -108,15 +107,6 @@ const ReadingCard = ({ store, filled, date, inBot }) => {
         </div>
         <button type="button" onClick={() => setSheet(true)} className={smallBtn}>Update</button>
       </div>
-      {next && (
-        <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex-1 min-w-0">
-            <p className={labelCls}>Next recommended</p>
-            <p className="text-[14px] font-bold text-[#0f172a] dark:text-white break-words">{next.title}</p>
-          </div>
-          <button type="button" onClick={() => setBookStatus(next.id, 'ongoing', 'Started reading')} className={ghostBtn}>Start</button>
-        </div>
-      )}
 
       <BottomSheet open={sheet} title="What are you reading?" onClose={closeSheet}>
         <p className={`${labelCls} mb-1`}>Reading now (you can have more than one)</p>
