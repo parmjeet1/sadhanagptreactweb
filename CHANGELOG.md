@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 🎧 [Hear & Read] - 2026-10-26, 02:10 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Inspiration" menu item is renamed **Hear & Read** (student and counsellor bottom menus), and the counsellor page title too. On both pages the tabs are now in the order Hearing, Reading, then the rest, and the page opens on Hearing. Page addresses are unchanged.
+- **Files touched**: `src/components/student/BottomNavigation.jsx`; `src/components/counsellor/CounsellorBottomNavigation.jsx`; `src/pages/student/Inspiration.jsx`; `src/pages/counsellor/CounsellorAddContent.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint counts unchanged in all 4 files. NOT tested in a browser or on a phone.
+- **Backend**: no change.
+
 ## ⏱️ [Custom activity] - 2026-10-26, 01:20 PM IST
 
 - **Developer**: Manvatar Prabhu Ji
