@@ -18,6 +18,7 @@ const MenteesReportTab = ({ tools }) => {
   const [opening, setOpening] = useState('');
   const [note, setNote] = useState('');
   const [dot, setDot] = useState(null); // null = all, or 'green' | 'amber' | 'red' (tapped in the key)
+  const [openGroups, setOpenGroups] = useState({}); // group id -> true when that group is expanded
   const load = tools.loadMenteesReportList;
 
   const run = useCallback(async () => {
@@ -96,19 +97,32 @@ const MenteesReportTab = ({ tools }) => {
           <div className="divide-y divide-gray-50">{picked.map((m) => row(m, [m.group, m.sub].join(' / ')))}</div>
         </div>
       )}
-      {data && !loading && !dot && data.groups.map((g) => (
-        <div key={String(g.id)} className="bg-white rounded-[24px] border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] px-5 py-4">
-          <h3 className="text-[15px] font-extrabold text-[#1e293b]">{g.name} <span className="text-[12px] font-bold text-gray-400">· {g.count}</span></h3>
-          {g.subgroups.map((s) => (
-            <div key={String(s.id)} className="mt-2">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">{s.name}</p>
-              <div className="divide-y divide-gray-50">
-                {s.mentees.map((m) => row(m))}
+      {data && !loading && !dot && data.groups.map((g) => {
+        // Each group (centre) is collapsed by default; when only one group is shown it starts open.
+        const key = String(g.id);
+        const isOpen = openGroups[key] ?? data.groups.length === 1;
+        return (
+          <div key={key} className="bg-white rounded-[24px] border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] px-5 py-4">
+            <button
+              type="button"
+              onClick={() => setOpenGroups((prev) => ({ ...prev, [key]: !isOpen }))}
+              aria-expanded={isOpen}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h3 className="text-[15px] font-extrabold text-[#1e293b]">{g.name} <span className="text-[12px] font-bold text-gray-400">· {g.count}</span></h3>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {isOpen && g.subgroups.map((s) => (
+              <div key={String(s.id)} className="mt-2">
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">{s.name}</p>
+                <div className="divide-y divide-gray-50">
+                  {s.mentees.map((m) => row(m))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ))}
+            ))}
+          </div>
+        );
+      })}
       {report && <MenteeWindow report={report} onClose={() => setReport(null)} />}
     </div>
   );
