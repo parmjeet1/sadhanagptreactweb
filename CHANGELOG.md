@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📧 [Report settings] - 2026-10-27, 02:00 PM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The automatic Mentees Report email to counsellors is now OFF unless the counsellor switches it on. The Report Settings switch now starts as Off while the settings load (before, it started as On, so saving before it loaded could switch reports on). The database default and existing counsellors are changed by hand with SQL (shared in chat).
+- **Files touched**: `src/components/counsellor/ReportSettingsModal.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes. NOT tested in a browser.
+- **Backend**: no code change; the weekly report job already sends only when `auto_report_status = 1`.
+
 ## 📌 [Birds Eye View] - 2026-10-27, 09:35 AM IST
 
 - **Developer**: Manvatar Prabhu Ji

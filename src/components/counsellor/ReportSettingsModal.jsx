@@ -5,7 +5,7 @@ import { processResponse } from '../../utils/apiUtils';
 import { exportBulkReportsToExcel, exportBulkReportsToPDF } from '../../utils/exportUtils';
 
 const ReportSettingsModal = ({ isOpen, onClose, userDetails, showToast }) => {
-  const [autoReportStatus, setAutoReportStatus] = useState(1);
+  const [autoReportStatus, setAutoReportStatus] = useState(false); // off until the counsellor switches it on
   const [reportFrequencyDays, setReportFrequencyDays] = useState(7);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
