@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounsellorBottomNavigation from '../../components/counsellor/CounsellorBottomNavigation';
@@ -26,64 +26,34 @@ const STATUS_FILTERS = [
   { value: 'no_data', label: 'No Data' },
 ];
 
-const LONG_PRESS_MS = 500;
-const MOVE_CANCEL_PX = 10;
-
-// A tap opens the student's window. Pressing and holding the row starts selection mode (tick circles appear);
-// while in selection mode a tap ticks / unticks the row.
-const StudentRow = ({ student, onOpenStudent, selectionMode, selected, onToggle, onLongPress }) => {
+// Every row has a tick box: tap the box to select / unselect the student for the bulk actions.
+// Tapping the rest of the row opens the student's window.
+const StudentRow = ({ student, onOpenStudent, selected, onToggle }) => {
   const style = STATUS_STYLES[student.color] || STATUS_STYLES.amber;
-  const timer = useRef(null);
-  const start = useRef(null);
-  const fired = useRef(false);
-
-  const clearTimer = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } };
-  const onPointerDown = (e) => {
-    fired.current = false;
-    start.current = { x: e.clientX, y: e.clientY };
-    clearTimer();
-    timer.current = setTimeout(() => {
-      timer.current = null;
-      fired.current = true;
-      onLongPress(student.id);
-    }, LONG_PRESS_MS);
-  };
-  const onPointerMove = (e) => {
-    if (!start.current || !timer.current) return;
-    if (Math.abs(e.clientX - start.current.x) > MOVE_CANCEL_PX || Math.abs(e.clientY - start.current.y) > MOVE_CANCEL_PX) clearTimer();
-  };
-  const onClick = () => {
-    if (fired.current) { fired.current = false; return; } // this click is the end of the long press
-    if (selectionMode) onToggle(student.id); else onOpenStudent(student);
-  };
-  const onKeyDown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } };
+  const onKeyDown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenStudent(student); } };
 
   return (
     <div
       role="button"
       tabIndex={0}
       aria-label={student.name}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={clearTimer}
-      onPointerLeave={clearTimer}
-      onPointerCancel={clearTimer}
-      onContextMenu={(e) => e.preventDefault()}
-      onClick={onClick}
+      onClick={() => onOpenStudent(student)}
       onKeyDown={onKeyDown}
-      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
       className={`rounded-2xl border p-3.5 mb-2 flex items-start gap-3 cursor-pointer ${style.card} ${selected ? 'ring-2 ring-blue-500' : ''}`}
     >
-      {selectionMode && (
-        <span
-          role="checkbox"
-          aria-checked={selected}
-          aria-label={`Select ${student.name}`}
-          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
-        >
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={selected}
+        aria-label={`Select ${student.name}`}
+        onClick={(e) => { e.stopPropagation(); onToggle(student.id); }}
+        onKeyDown={(e) => e.stopPropagation()}
+        className="-m-2 p-2 shrink-0"
+      >
+        <span className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}>
           {selected && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
         </span>
-      )}
+      </button>
       <div className="flex-1 min-w-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
         <div className="sm:flex-1 sm:min-w-0">
           <div className="flex items-center gap-2">
@@ -125,8 +95,6 @@ const BirdsEyeView = () => {
 
   // Selected mentees (by id) for the bulk actions: AI Analysis / Alerts / Export
   const [selectedIds, setSelectedIds] = useState(() => new Set());
-  // Tick circles and "Select all" only show after a long press on a row (selection mode)
-  const [selectionMode, setSelectionMode] = useState(false);
 
   const [collapsedGroups, setCollapsedGroups] = useState(() => new Set());
   const [collapsedSubgroups, setCollapsedSubgroups] = useState(() => new Set());
@@ -239,11 +207,7 @@ const BirdsEyeView = () => {
     });
   }, [filteredStudents]);
 
-  const startSelection = (id) => {
-    setSelectionMode(true);
-    setSelectedIds((prev) => { const next = new Set(prev); next.add(id); return next; });
-  };
-  const endSelection = () => { setSelectionMode(false); setSelectedIds(new Set()); };
+  const clearSelection = () => setSelectedIds(new Set());
   const toggleSelected = (id) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -354,9 +318,9 @@ const BirdsEyeView = () => {
           </select>
         </div>
 
-        {/* Select all (only in selection mode, after a long press on a row) */}
-        {!isLoading && !errorMsg && selectionMode && filteredStudents.length > 0 && (
-          <div className="px-6 pb-3 flex items-center justify-between">
+        {/* Select all (tick boxes are always shown); pinned to the top while scrolling */}
+        {!isLoading && !errorMsg && filteredStudents.length > 0 && (
+          <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm px-6 py-2.5 mb-1 border-b border-gray-100 flex items-center justify-between">
             <button
               type="button"
               onClick={toggleSelectAll}
@@ -369,7 +333,7 @@ const BirdsEyeView = () => {
             </button>
             <span className="flex items-center gap-3">
               <span className="text-[12px] font-semibold text-gray-400">{selectedIds.size} selected</span>
-              <button type="button" onClick={endSelection} className="text-[12px] font-bold text-gray-500">Cancel</button>
+              {selectedIds.size > 0 && <button type="button" onClick={clearSelection} className="text-[12px] font-bold text-gray-500">Clear</button>}
             </span>
           </div>
         )}
@@ -412,7 +376,7 @@ const BirdsEyeView = () => {
                                 {!subCollapsed && (
                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                     {subStudents.map((student) => (
-                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} selectionMode={selectionMode} selected={selectedIds.has(student.id)} onToggle={toggleSelected} onLongPress={startSelection} />
+                                      <StudentRow key={student.id} student={student} onOpenStudent={openStudent} selected={selectedIds.has(student.id)} onToggle={toggleSelected} />
                                     ))}
                                   </motion.div>
                                 )}
@@ -433,7 +397,7 @@ const BirdsEyeView = () => {
       <BulkMenteeActions
         selected={selectedList}
         userId={userDetails?.user_id}
-        onClear={endSelection}
+        onClear={clearSelection}
       />
 
       <CounsellorBottomNavigation />
