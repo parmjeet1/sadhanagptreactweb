@@ -318,9 +318,9 @@ const BirdsEyeView = () => {
           </select>
         </div>
 
-        {/* Select all (tick boxes are always shown) */}
+        {/* Select all (tick boxes are always shown); pinned to the top while scrolling */}
         {!isLoading && !errorMsg && filteredStudents.length > 0 && (
-          <div className="px-6 pb-3 flex items-center justify-between">
+          <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm px-6 py-2.5 mb-1 border-b border-gray-100 flex items-center justify-between">
             <button
               type="button"
               onClick={toggleSelectAll}

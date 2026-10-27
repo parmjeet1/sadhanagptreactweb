@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## 📌 [Birds Eye View] - 2026-10-27, 09:35 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: The "Select all / N selected / Clear" row now stays pinned to the top of the screen while you scroll the student list.
+- **Files touched**: `src/pages/counsellor/BirdsEyeView.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes. In a browser at phone size with 20 faked students: after scrolling down, the row stays at the top. NOT tested on a real phone.
+- **Backend**: no change.
+
 ## ☑️ [Birds Eye View] - 2026-10-27, 09:40 AM IST
 
 - **Developer**: Manvatar Prabhu Ji
