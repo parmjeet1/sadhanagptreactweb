@@ -4,6 +4,14 @@ All notable changes, UI redesigns, architectural updates, and bug fixes for the 
 
 ---
 
+## ☑️ [Birds Eye View] - 2026-10-27, 09:40 AM IST
+
+- **Developer**: Manvatar Prabhu Ji
+- **What changed**: Bird's Eye View now shows a tick box on every student row all the time (no more long press). Tap the tick box to select / unselect; tap the rest of the row to open the student's window, as before. "Select all (N)" and "N selected" are always shown; "Clear" appears once something is selected (replaces "Cancel"). The "Notify" button is renamed **Notify on WhatsApp** in Bird's Eye View and on a mentee's page.
+- **Files touched**: `src/pages/counsellor/BirdsEyeView.jsx`; `src/components/counsellor/BulkMenteeActions.jsx`; `src/pages/counsellor/mentees_module/StudentReport.jsx`; `CHANGELOG.md`.
+- **Tested**: build passes; lint counts unchanged in all 3 files. In a browser at phone size with the server answers faked (3 students): tick boxes show without a long press; ticking 2 rows keeps you on the page and shows "2 selected"; the bar shows "Notify on WhatsApp" and sends `student_ids` for the 2 ticked students; tapping a row opens that student's page. NOT tested with the real server or on a real phone.
+- **Backend**: no change.
+
 ## 📲 [Notify + WhatsApp] - 2026-10-26, 05:45 PM IST
 
 - **Developer**: Manvatar Prabhu Ji

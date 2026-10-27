@@ -415,7 +415,7 @@ const StudentReport = () => {
         </button>
         <button onClick={() => setIsNotificationModalOpen(true)} className="flex-1 py-3.5 bg-blue-600 rounded-2xl font-black text-xs text-white shadow-lg shadow-blue-500/30 flex items-center justify-center gap-1.5">
           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6.5C21 8.98 18.76 11 16 11s-5-2.02-5-4.5S13.24 2 16 2s5 2.02 5 4.5zM16 3c-2.21 0-4 1.12-4 2.5S13.79 8 16 8s4-1.12 4-2.5S18.21 3 16 3zm-1 13H4a2 2 0 0 1-2-2v-1c0-2.66 5.33-4 8-4 .92 0 2.06.17 3.18.47A7.5 7.5 0 0 0 13 11.1C12.12 10.96 11.08 10.9 10 10.9 7.33 10.9 2 12.13 2 14v1h13v-1c0-.34.04-.67.1-1l.9.1zm-5-5C7.24 11 5 8.98 5 6.5S7.24 2 10 2c1.26 0 2.41.44 3.27 1.15A6.58 6.58 0 0 0 11 6.5c0 1.56.62 2.98 1.63 4.03A5.33 5.33 0 0 1 10 11z" /></svg>
-          Notify
+          Notify on WhatsApp
         </button>
       </div>
 
